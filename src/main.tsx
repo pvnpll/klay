@@ -11,6 +11,7 @@ import TicTacToe from './pages/games/TicTacToe.tsx'
 import Typing from './pages/games/Typing.tsx'
 import Snake from './pages/games/Snake.tsx'
 import WordGuess from './pages/games/WordGuess.tsx'
+import ChessGame from './pages/games/ChessGame.tsx'
 import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
@@ -27,6 +28,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           <Route path="typing" element={<Typing />} />
           <Route path="snake" element={<Snake />} />
           <Route path="word-guess" element={<WordGuess />} />
+          <Route path="chess" element={<ChessGame />} />
         </Route>
       </Routes>
     </BrowserRouter>

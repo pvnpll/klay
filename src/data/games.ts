@@ -122,5 +122,20 @@ export const GAMES = [
     path: "/word-guess",
     Icon: Type,
     colorClass: "text-orange-400 bg-orange-400/10"
+  },
+  {
+    id: "chess",
+    name: "Chess",
+    description: "Play chess against an AI with full drag-and-drop animated pieces.",
+    rules: [
+      "Drag and drop your pieces to move.",
+      "Standard chess rules apply (en passant, castling, promotion).",
+      "You play as White, the Computer plays as Black.",
+      "Checkmate the opposing king to win!"
+    ],
+    category: "Strategy",
+    path: "/chess",
+    Icon: Grid3X3, // Using Grid3x3 as a placeholder since lucide doesn't have a chess piece icon
+    colorClass: "text-zinc-400 bg-zinc-400/10"
   }
 ]
