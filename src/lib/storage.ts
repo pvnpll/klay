@@ -15,3 +15,4 @@ export function getFromStorage<T>(key: string, defaultValue: T): T {
     return defaultValue
   }
 }
+
