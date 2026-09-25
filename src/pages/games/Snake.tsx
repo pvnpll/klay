@@ -218,7 +218,7 @@ export default function Snake() {
           {snake.map((segment, i) => (
             <div
               key={i}
-              className={`absolute rounded-sm ${i === 0 ? 'bg-green-400' : 'bg-green-600'}`}
+              className={`absolute rounded-sm transition-all duration-[100ms] ease-linear ${i === 0 ? 'bg-green-400 z-10 scale-110' : 'bg-green-600'}`}
               style={{
                 width: `${100 / GRID_SIZE}%`,
                 height: `${100 / GRID_SIZE}%`,
@@ -229,7 +229,7 @@ export default function Snake() {
           ))}
 
           <div
-            className="absolute bg-red-500 rounded-full"
+            className="absolute bg-red-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(239,68,68,0.8)] transition-all duration-300"
             style={{
               width: `${100 / GRID_SIZE}%`,
               height: `${100 / GRID_SIZE}%`,

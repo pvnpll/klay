@@ -14,235 +14,132 @@ const WORD_LIST = [
   'PLANT', 'SOUND', 'LIGHT', 'BREAD', 'MUSIC', 'SPACE', 'STORM', 'STONE', 'CROWN'
 ]
 
-type LetterStatus = 'correct' | 'present' | 'absent' | 'empty'
-type GuessRow = {
-  letters: string[];
-  statuses: LetterStatus[];
-}
-
-const MAX_GUESSES = 6
-const WORD_LENGTH = 5
+type LetterObj = { id: number, letter: string, used: boolean }
 
 export default function WordGuess() {
   const [targetWord, setTargetWord] = useState('')
-  const [guesses, setGuesses] = useState<GuessRow[]>([])
-  const [currentGuess, setCurrentGuess] = useState('')
+  const [scrambled, setScrambled] = useState<LetterObj[]>([])
+  const [currentGuess, setCurrentGuess] = useState<number[]>([]) // stores ids
   const [gameState, setGameState] = useState<'playing' | 'won' | 'lost'>('playing')
-  const [message, setMessage] = useState('')
+
+  const shuffleWord = (word: string) => {
+    let arr = word.split('').map((l, i) => ({ id: i, letter: l, used: false }))
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    // Prevent it from accidentally matching the word
+    if (arr.map(a => a.letter).join('') === word && word.length > 1) {
+      return shuffleWord(word)
+    }
+    return arr
+  }
 
   const initGame = useCallback(() => {
     const randomWord = WORD_LIST[Math.floor(Math.random() * WORD_LIST.length)]
     setTargetWord(randomWord)
-    setGuesses([])
-    setCurrentGuess('')
+    setScrambled(shuffleWord(randomWord))
+    setCurrentGuess([])
     setGameState('playing')
-    setMessage('')
   }, [])
 
   useEffect(() => {
     initGame()
   }, [initGame])
 
-  const showMessage = (msg: string) => {
-    setMessage(msg)
-    setTimeout(() => setMessage(''), 2000)
-  }
-
-  const submitGuess = useCallback(() => {
-    if (currentGuess.length !== WORD_LENGTH) {
-      showMessage('Not enough letters')
-      return
-    }
-    
-    // Evaluate guess
-    const targetLetters = targetWord.split('')
-    const guessLetters = currentGuess.split('')
-    const statuses: LetterStatus[] = Array(WORD_LENGTH).fill('absent')
-    
-    // First pass: mark correct
-    guessLetters.forEach((letter, i) => {
-      if (letter === targetLetters[i]) {
-        statuses[i] = 'correct'
-        targetLetters[i] = null as any // mark as used
-      }
-    })
-    
-    // Second pass: mark present
-    guessLetters.forEach((letter, i) => {
-      if (statuses[i] !== 'correct' && targetLetters.includes(letter)) {
-        statuses[i] = 'present'
-        targetLetters[targetLetters.indexOf(letter)] = null as any
-      }
-    })
-    
-    const newGuesses = [...guesses, { letters: guessLetters, statuses }]
-    setGuesses(newGuesses)
-    setCurrentGuess('')
-    
-    if (currentGuess === targetWord) {
-      setGameState('won')
-      setMessage('You got it!')
-      saveScore(gameMeta, 1)
-      confetti({
-        particleCount: 150,
-        spread: 70,
-        origin: { y: 0.6 },
-        colors: ['#22c55e', '#16a34a', '#4ade80']
-      })
-    } else if (newGuesses.length >= MAX_GUESSES) {
-      setGameState('lost')
-      setMessage(`Game Over. Word was ${targetWord}`)
-      saveScore(gameMeta, 0)
-    }
-  }, [currentGuess, guesses, targetWord])
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (gameState !== 'playing') return
-      
-      if (e.key === 'Enter') {
-        submitGuess()
-      } else if (e.key === 'Backspace') {
-        setCurrentGuess(prev => prev.slice(0, -1))
-      } else if (/^[a-zA-Z]$/.test(e.key) && currentGuess.length < WORD_LENGTH) {
-        setCurrentGuess(prev => (prev + e.key).toUpperCase())
-      }
-    }
-    
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [currentGuess, gameState, submitGuess])
-
-  const getLetterClass = (status: LetterStatus) => {
-    switch (status) {
-      case 'correct': return 'bg-emerald-500 border-emerald-500 text-white'
-      case 'present': return 'bg-yellow-500 border-yellow-500 text-white'
-      case 'absent': return 'bg-gray-700 border-gray-700 text-white'
-      default: return 'border-gray-600 text-white'
-    }
-  }
-
-  // Generate grid rows
-  const rows = []
-  for (let i = 0; i < MAX_GUESSES; i++) {
-    if (i < guesses.length) {
-      rows.push(guesses[i])
-    } else if (i === guesses.length) {
-      rows.push({
-        letters: currentGuess.split('').concat(Array(WORD_LENGTH - currentGuess.length).fill('')),
-        statuses: Array(WORD_LENGTH).fill('empty')
-      })
-    } else {
-      rows.push({
-        letters: Array(WORD_LENGTH).fill(''),
-        statuses: Array(WORD_LENGTH).fill('empty')
-      })
-    }
-  }
-
-  const handleKeyClick = (key: string) => {
+  const handleLetterClick = (id: number) => {
     if (gameState !== 'playing') return
-    if (key === 'ENTER') {
-      submitGuess()
-    } else if (key === 'BACKSPACE') {
-      setCurrentGuess(prev => prev.slice(0, -1))
-    } else if (currentGuess.length < WORD_LENGTH) {
-      setCurrentGuess(prev => (prev + key).toUpperCase())
-    }
-  }
+    const letterObj = scrambled.find(s => s.id === id)
+    if (!letterObj || letterObj.used) return
 
-  const getKeyStatus = (key: string): LetterStatus | undefined => {
-    let bestStatus: LetterStatus | undefined = undefined
-    for (const row of guesses) {
-      for (let i = 0; i < WORD_LENGTH; i++) {
-        if (row.letters[i] === key) {
-          const status = row.statuses[i]
-          if (status === 'correct') return 'correct' // Best possible
-          if (status === 'present') bestStatus = 'present'
-          if (status === 'absent' && !bestStatus) bestStatus = 'absent'
-        }
+    setScrambled(prev => prev.map(s => s.id === id ? { ...s, used: true } : s))
+    const newGuess = [...currentGuess, id]
+    setCurrentGuess(newGuess)
+
+    if (newGuess.length === targetWord.length) {
+      const guessStr = newGuess.map(gid => scrambled.find(s => s.id === gid)!.letter).join('')
+      if (guessStr === targetWord) {
+        setGameState('won')
+        saveScore(gameMeta, 1)
+        confetti({
+          particleCount: 150,
+          spread: 70,
+          origin: { y: 0.6 },
+          colors: ['#22c55e', '#16a34a', '#4ade80']
+        })
+      } else {
+        setGameState('lost')
+        saveScore(gameMeta, 0)
       }
     }
-    return bestStatus
   }
 
-  const keyboardRows = [
-    ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
-    ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
-    ['ENTER', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', 'BACKSPACE']
-  ]
+  const handleRemoveLetter = () => {
+    if (gameState !== 'playing' || currentGuess.length === 0) return
+    const idToRestore = currentGuess[currentGuess.length - 1]
+    setCurrentGuess(prev => prev.slice(0, -1))
+    setScrambled(prev => prev.map(s => s.id === idToRestore ? { ...s, used: false } : s))
+  }
 
   return (
     <GameLayout title={gameMeta.name}>
       <div className="flex flex-col items-center max-w-lg mx-auto">
         
-        <div className="h-8 mb-4 flex items-center justify-center">
-          {message && gameState === 'playing' && (
-            <div className="bg-white text-gray-900 font-bold px-4 py-2 rounded-lg animate-in fade-in zoom-in duration-200">
-              {message}
-            </div>
-          )}
+        <div className="mb-8 mt-4 text-center">
+          <h2 className="text-gray-400 mb-2">Unscramble the word:</h2>
+          <div className="flex gap-2 justify-center flex-wrap">
+            {scrambled.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => handleLetterClick(item.id)}
+                disabled={item.used || gameState !== 'playing'}
+                className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl text-2xl font-black uppercase transition-all
+                  ${item.used 
+                    ? 'bg-gray-800 text-gray-700 cursor-not-allowed scale-95' 
+                    : 'bg-indigo-500 hover:bg-indigo-400 text-white shadow-lg active:scale-95'
+                  }`}
+              >
+                {item.letter}
+              </button>
+            ))}
+          </div>
         </div>
 
-        <div className="grid gap-2 mb-8">
-          {rows.map((row, rowIndex) => (
-            <div key={rowIndex} className="flex gap-2">
-              {row.letters.map((letter, colIndex) => {
-                const isActive = rowIndex === guesses.length && letter !== ''
-                return (
-                  <div
-                    key={colIndex}
-                    className={`
-                      w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center text-2xl font-bold uppercase
-                      border-2 rounded-xl transition-all duration-300
-                      ${getLetterClass(row.statuses[colIndex])}
-                      ${isActive ? 'border-gray-400 scale-105' : 'border-gray-700/50'}
-                    `}
-                  >
-                    {letter}
-                  </div>
-                )
-              })}
-            </div>
-          ))}
-        </div>
+        <div className="w-full flex flex-col items-center mb-8">
+          <div className="flex gap-2 mb-4">
+            {Array(targetWord.length).fill(null).map((_, i) => {
+              const letterId = currentGuess[i]
+              const letter = letterId !== undefined ? scrambled.find(s => s.id === letterId)?.letter : ''
+              
+              let boxClass = 'bg-gray-900 border-gray-700 text-white'
+              if (gameState === 'won') boxClass = 'bg-emerald-500 border-emerald-500 text-white scale-105'
+              else if (gameState === 'lost') boxClass = 'bg-red-500 border-red-500 text-white'
 
-        {/* Virtual Keyboard */}
-        <div className="w-full flex flex-col gap-2 mt-4 px-2">
-          {keyboardRows.map((row, i) => (
-            <div key={i} className="flex justify-center gap-1.5 sm:gap-2">
-              {row.map(key => {
-                const status = getKeyStatus(key)
-                let keyClass = 'bg-gray-800 text-white hover:bg-gray-700'
-                if (status === 'correct') keyClass = 'bg-emerald-500 text-white'
-                else if (status === 'present') keyClass = 'bg-yellow-500 text-white'
-                else if (status === 'absent') keyClass = 'bg-gray-900 text-gray-600'
-                
-                const isSpecial = key === 'ENTER' || key === 'BACKSPACE'
-                
-                return (
-                  <button
-                    key={key}
-                    onClick={() => handleKeyClick(key)}
-                    className={`
-                      ${isSpecial ? 'px-2 sm:px-4 text-xs sm:text-sm' : 'flex-1 max-w-[40px] text-sm sm:text-base'} 
-                      h-12 sm:h-14 rounded-lg font-bold transition-colors select-none touch-manipulation
-                      ${keyClass}
-                    `}
-                  >
-                    {key === 'BACKSPACE' ? '⌫' : key}
-                  </button>
-                )
-              })}
-            </div>
-          ))}
+              return (
+                <div
+                  key={i}
+                  className={`w-12 h-12 sm:w-14 sm:h-14 border-2 rounded-xl flex items-center justify-center text-2xl font-black uppercase transition-all duration-300 ${boxClass}`}
+                >
+                  {letter}
+                </div>
+              )
+            })}
+          </div>
+          
+          <button
+            onClick={handleRemoveLetter}
+            disabled={currentGuess.length === 0 || gameState !== 'playing'}
+            className="text-gray-400 hover:text-white px-4 py-2 font-bold disabled:opacity-50 transition-colors"
+          >
+            ⌫ Backspace
+          </button>
         </div>
 
         {gameState !== 'playing' && (
           <GameResult
             game={gameMeta}
             isWin={gameState === 'won'}
-            message={gameState === 'lost' ? `Word was ${targetWord}` : message}
+            message={gameState === 'won' ? 'Perfect!' : `Word was ${targetWord}`}
             onRestart={initGame}
           />
         )}

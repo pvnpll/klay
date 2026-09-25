@@ -20,6 +20,24 @@ export interface GameMetadata {
 
 export const GAMES: GameMetadata[] = [
   {
+    id: "sudoku",
+    name: "Sudoku",
+    description: "Hard difficulty Sudoku generator. A new puzzle every time.",
+    rules: [
+      "Fill the 9x9 grid with numbers 1-9.",
+      "Each row, column, and 3x3 block must contain all digits 1-9 without repetition.",
+      "Complete the puzzle as fast as possible."
+    ],
+    category: "Puzzle",
+    difficulty: "Hard",
+    estimatedDuration: "10 minutes",
+    scoreType: "time",
+    path: "/sudoku",
+    Icon: Grid3X3,
+    colorClass: "text-indigo-400 bg-indigo-400/10",
+    gradientClass: "from-indigo-400/20 to-purple-500/20"
+  },
+  {
     id: "target-click",
     name: "Target Click",
     description: "Aim Trainer. Click 20 targets as fast as possible.",
@@ -39,23 +57,23 @@ export const GAMES: GameMetadata[] = [
     gradientClass: "from-blue-400/20 to-cyan-500/20"
   },
   {
-    id: "reaction",
-    name: "Reaction Test",
-    description: "Test your reflexes. Click as fast as you can when the screen turns green.",
+    id: "falling-tiles",
+    name: "Falling Tiles",
+    description: "Click the black tiles before they hit the bottom of the screen.",
     rules: [
-      "Click anywhere on the game area to begin.",
-      "Wait until the red screen turns green.",
-      "Click as fast as you can once it turns green!",
-      "If you click before it turns green, it's a false start."
+      "Tiles will fall from the top of the screen.",
+      "Click the lowest black tile in the sequence.",
+      "If you miss a tile or click a red tile, game over!",
+      "Survive as long as possible to get a high score."
     ],
     category: "Quick",
-    difficulty: "Easy",
-    estimatedDuration: "30 seconds",
-    scoreType: "lower-is-better",
-    path: "/reaction",
+    difficulty: "Medium",
+    estimatedDuration: "1 minute",
+    scoreType: "score",
+    path: "/falling-tiles",
     Icon: Zap,
-    colorClass: "text-yellow-400 bg-yellow-400/10",
-    gradientClass: "from-yellow-400/20 to-orange-500/20"
+    colorClass: "text-blue-400 bg-blue-400/10",
+    gradientClass: "from-blue-400/20 to-indigo-500/20"
   },
   {
     id: "number-rush",
@@ -155,14 +173,13 @@ export const GAMES: GameMetadata[] = [
   },
   {
     id: "word-guess",
-    name: "Word Guess",
-    description: "Guess the hidden 5-letter word in 6 tries.",
+    name: "Word Scramble",
+    description: "Unscramble the letters to find the hidden word.",
     rules: [
-      "Type a 5-letter word and press Enter to submit.",
-      "Green tile: The letter is in the word and in the correct spot.",
-      "Yellow tile: The letter is in the word but in the wrong spot.",
-      "Gray tile: The letter is not in the word.",
-      "You have 6 attempts to guess the word."
+      "You will be given a scrambled word.",
+      "Click the letters in the correct order to spell the word.",
+      "Use backspace if you make a mistake.",
+      "Find the word to win!"
     ],
     category: "Word",
     difficulty: "Medium",

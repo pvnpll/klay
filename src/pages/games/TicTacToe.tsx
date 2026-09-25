@@ -50,6 +50,60 @@ export default function TicTacToe() {
     return 'playing'
   }
 
+  const minimax = (squares: Player[], isMaximizing: boolean): number => {
+    const state = checkWinner(squares)
+    if (state === 'winner_o') return 10
+    if (state === 'winner_x') return -10
+    if (state === 'draw') return 0
+
+    if (isMaximizing) {
+      let bestScore = -Infinity
+      for (let i = 0; i < 9; i++) {
+        if (!squares[i]) {
+          squares[i] = 'O'
+          const score = minimax(squares, false)
+          squares[i] = null
+          bestScore = Math.max(score, bestScore)
+        }
+      }
+      return bestScore
+    } else {
+      let bestScore = Infinity
+      for (let i = 0; i < 9; i++) {
+        if (!squares[i]) {
+          squares[i] = 'X'
+          const score = minimax(squares, true)
+          squares[i] = null
+          bestScore = Math.min(score, bestScore)
+        }
+      }
+      return bestScore
+    }
+  }
+
+  const getBestMove = (squares: Player[]) => {
+    let bestScore = -Infinity
+    let move = 0
+    
+    // Quick opening optimization to save CPU
+    const emptySpots = squares.filter(s => !s).length
+    if (emptySpots === 9) return 4 // center
+    if (emptySpots === 8 && !squares[4]) return 4 // take center if human didn't
+
+    for (let i = 0; i < 9; i++) {
+      if (!squares[i]) {
+        squares[i] = 'O'
+        const score = minimax(squares, false)
+        squares[i] = null
+        if (score > bestScore) {
+          bestScore = score
+          move = i
+        }
+      }
+    }
+    return move
+  }
+
   const handleClick = (index: number) => {
     if (board[index] || gameState !== 'playing') return
 
@@ -68,14 +122,11 @@ export default function TicTacToe() {
     // Computer's turn
     if (mode === 'pvc' && newState === 'playing') {
       setTimeout(() => {
-        const available = newBoard.map((val, i) => val === null ? i : null).filter(val => val !== null)
-        if (available.length > 0) {
-          const randomIndex = available[Math.floor(Math.random() * available.length)] as number
-          newBoard[randomIndex] = 'O'
-          setBoard([...newBoard])
-          setGameState(checkWinner(newBoard))
-          setXIsNext(true)
-        }
+        const bestMoveIndex = getBestMove([...newBoard])
+        newBoard[bestMoveIndex] = 'O'
+        setBoard([...newBoard])
+        setGameState(checkWinner(newBoard))
+        setXIsNext(true)
       }, 150)
     }
   }

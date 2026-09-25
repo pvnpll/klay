@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom/client'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import App from './App.tsx'
 import Home from './pages/Home.tsx'
-import Reaction from './pages/games/Reaction.tsx'
+import FallingTiles from './pages/games/FallingTiles.tsx'
 import NumberRush from './pages/games/NumberRush.tsx'
 import Memory from './pages/games/Memory.tsx'
 import TicTacToe from './pages/games/TicTacToe.tsx'
@@ -13,6 +13,7 @@ import WordGuess from './pages/games/WordGuess.tsx'
 import ChessGame from './pages/games/ChessGame.tsx'
 import Game2048 from './pages/games/Game2048.tsx'
 import TargetClick from './pages/games/TargetClick.tsx'
+import Sudoku from './pages/games/Sudoku.tsx'
 import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
@@ -21,7 +22,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       <Routes>
         <Route path="/" element={<App />}>
           <Route index element={<Home />} />
-          <Route path="reaction" element={<Reaction />} />
+          <Route path="falling-tiles" element={<FallingTiles />} />
           <Route path="number-rush" element={<NumberRush />} />
           <Route path="memory" element={<Memory />} />
           <Route path="tic-tac-toe" element={<TicTacToe />} />
@@ -31,6 +32,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           <Route path="chess" element={<ChessGame />} />
           <Route path="2048" element={<Game2048 />} />
           <Route path="target-click" element={<TargetClick />} />
+          <Route path="sudoku" element={<Sudoku />} />
         </Route>
       </Routes>
     </BrowserRouter>
