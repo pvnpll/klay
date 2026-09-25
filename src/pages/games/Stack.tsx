@@ -1,0 +1,267 @@
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { GameLayout } from '../../components/GameLayout'
+import { GameResult } from '../../components/GameResult'
+import { GAMES } from '../../data/games'
+import { saveScore, getStats } from '../../utils/storage'
+
+const gameMeta = GAMES.find(g => g.id === 'stack')!
+
+type Block = {
+  id: number
+  width: number
+  x: number // left coordinate
+  color: string
+}
+
+const COLORS = [
+  'bg-indigo-500', 'bg-purple-500', 'bg-fuchsia-500', 'bg-pink-500', 
+  'bg-rose-500', 'bg-orange-500', 'bg-amber-500', 'bg-yellow-500',
+  'bg-lime-500', 'bg-green-500', 'bg-emerald-500', 'bg-teal-500',
+  'bg-cyan-500', 'bg-sky-500', 'bg-blue-500'
+]
+
+export default function Stack() {
+  const [gameState, setGameState] = useState<'idle' | 'playing' | 'gameover'>('idle')
+  const [score, setScore] = useState(0)
+  
+  const [bestScore, setBestScore] = useState<number | undefined>(() => {
+    return getStats().bests[gameMeta.id]
+  })
+  const [isNewBest, setIsNewBest] = useState(false)
+
+  const [blocks, setBlocks] = useState<Block[]>([])
+  const [activeBlock, setActiveBlock] = useState<Block | null>(null)
+
+  const blocksRef = useRef<Block[]>([])
+  const activeRef = useRef<Block | null>(null)
+  const dirRef = useRef(1)
+  const speedRef = useRef(60) // width units per second
+  const offsetRef = useRef(0) // camera y offset
+  
+  const requestRef = useRef<number | null>(null)
+  const lastTimeRef = useRef<number | null>(null)
+
+  const startGame = () => {
+    const baseBlock = {
+      id: 0,
+      width: 60,
+      x: 20, // (100 - 60) / 2
+      color: COLORS[0]
+    }
+    
+    blocksRef.current = [baseBlock]
+    setBlocks([baseBlock])
+    
+    spawnActiveBlock(1, 60)
+    
+    setScore(0)
+    setIsNewBest(false)
+    setGameState('playing')
+    offsetRef.current = 0
+    speedRef.current = 50
+    
+    lastTimeRef.current = performance.now()
+    if (requestRef.current) cancelAnimationFrame(requestRef.current)
+    requestRef.current = requestAnimationFrame(update)
+  }
+
+  const spawnActiveBlock = (id: number, width: number) => {
+    // Spawn from edge
+    const dir = Math.random() > 0.5 ? 1 : -1
+    dirRef.current = dir
+    
+    const x = dir === 1 ? -width : 100
+    
+    activeRef.current = {
+      id,
+      width,
+      x,
+      color: COLORS[id % COLORS.length]
+    }
+    setActiveBlock(activeRef.current)
+  }
+
+  const update = useCallback((time: number) => {
+    if (gameState !== 'playing') return
+    
+    if (lastTimeRef.current !== null && activeRef.current) {
+      const dt = (time - lastTimeRef.current) / 1000
+      let { x, width } = activeRef.current
+      
+      x += speedRef.current * dirRef.current * dt
+      
+      // Bounce off walls (mostly to keep it on screen, it should go a bit offscreen then come back)
+      if (x > 100) { x = 100; dirRef.current = -1 }
+      if (x < -width) { x = -width; dirRef.current = 1 }
+      
+      activeRef.current = { ...activeRef.current, x }
+      setActiveBlock(activeRef.current)
+    }
+    
+    lastTimeRef.current = time
+    requestRef.current = requestAnimationFrame(update)
+  }, [gameState])
+
+  const handleTap = () => {
+    if (gameState === 'idle') {
+      startGame()
+      return
+    }
+    if (gameState !== 'playing' || !activeRef.current) return
+
+    const active = activeRef.current
+    const topBlock = blocksRef.current[blocksRef.current.length - 1]
+    
+    // Calculate overlap
+    const activeLeft = active.x
+    const activeRight = active.x + active.width
+    const topLeft = topBlock.x
+    const topRight = topBlock.x + topBlock.width
+    
+    const overlapLeft = Math.max(activeLeft, topLeft)
+    const overlapRight = Math.min(activeRight, topRight)
+    const overlapWidth = overlapRight - overlapLeft
+    
+    if (overlapWidth <= 0) {
+      // Complete miss
+      setGameState('gameover')
+      if (requestRef.current) cancelAnimationFrame(requestRef.current)
+      const { isNewBest, bestScore: newBest } = saveScore(gameMeta, score)
+      setIsNewBest(isNewBest)
+      setBestScore(newBest)
+      return
+    }
+
+    // Hit! Slice block
+    let newX = overlapLeft
+    let newWidth = overlapWidth
+    
+    // If it's a perfect match (within 2%), snap it and give bonus
+    if (Math.abs(activeLeft - topLeft) < 2) {
+      newX = topLeft
+      newWidth = topBlock.width
+      // Flash screen or something?
+      const el = document.getElementById('stack-container')
+      if (el) {
+        el.classList.add('brightness-150')
+        setTimeout(() => el.classList.remove('brightness-150'), 150)
+      }
+    }
+    
+    const finalBlock = { ...active, x: newX, width: newWidth }
+    blocksRef.current = [...blocksRef.current, finalBlock]
+    setBlocks(blocksRef.current)
+    
+    const newScore = score + 1
+    setScore(newScore)
+    
+    // Increase speed slightly
+    speedRef.current = Math.min(150, speedRef.current + 3)
+    
+    // Adjust camera offset if stack gets too high
+    if (blocksRef.current.length > 5) {
+      offsetRef.current += 1
+    }
+    
+    spawnActiveBlock(finalBlock.id + 1, newWidth)
+  }
+
+  useEffect(() => {
+    if (gameState === 'playing') {
+      requestRef.current = requestAnimationFrame(update)
+    }
+    return () => {
+      if (requestRef.current) cancelAnimationFrame(requestRef.current)
+    }
+  }, [gameState, update])
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === ' ' || e.key === 'Enter') {
+        e.preventDefault()
+        handleTap()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [gameState, score])
+
+  return (
+    <GameLayout title={gameMeta.name}>
+      <div className="flex flex-col items-center w-full max-w-2xl mx-auto">
+        <div className="flex justify-between w-full mb-4 px-4 text-gray-400 font-medium bg-gray-950/80 py-3 rounded-xl border border-white/5 shadow-inner">
+          <span className="text-xl">Score: <span className="text-white">{score}</span></span>
+          <span className="text-xl">Best: <span className="text-white">{bestScore || 0}</span></span>
+        </div>
+
+        <div 
+          id="stack-container"
+          onMouseDown={handleTap}
+          onTouchStart={(e) => { e.preventDefault(); handleTap(); }}
+          className="w-full bg-gray-900 border-2 border-white/10 rounded-3xl relative overflow-hidden shadow-2xl aspect-[3/4] cursor-pointer touch-none select-none transition-all duration-100"
+        >
+          {gameState === 'idle' && (
+            <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-20 backdrop-blur-sm">
+              <button
+                onClick={(e) => { e.stopPropagation(); startGame(); }}
+                className="bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-4 rounded-xl font-bold text-xl shadow-lg transition-transform active:scale-95 animate-in zoom-in"
+              >
+                Start Game
+              </button>
+            </div>
+          )}
+
+          <div className="absolute bottom-16 w-full text-center text-gray-500 font-bold opacity-50 z-0">
+            TAP or SPACE to drop
+          </div>
+
+          <div 
+            className="absolute bottom-0 w-full h-full transition-transform duration-300 ease-out"
+            style={{ transform: `translateY(${offsetRef.current * 8}%)` }}
+          >
+            {blocks.map((b, i) => (
+              <div
+                key={b.id}
+                className={`absolute ${b.color} shadow-[inset_0_2px_4px_rgba(255,255,255,0.3)]`}
+                style={{
+                  left: `${b.x}%`,
+                  width: `${b.width}%`,
+                  bottom: `${i * 8}%`,
+                  height: '8%',
+                }}
+              />
+            ))}
+            
+            {activeBlock && gameState === 'playing' && (
+              <div
+                className={`absolute ${activeBlock.color} shadow-[0_4px_10px_rgba(0,0,0,0.5),inset_0_2px_4px_rgba(255,255,255,0.3)]`}
+                style={{
+                  left: `${activeBlock.x}%`,
+                  width: `${activeBlock.width}%`,
+                  bottom: `${blocks.length * 8}%`,
+                  height: '8%',
+                }}
+              />
+            )}
+          </div>
+          
+          {gameState === 'gameover' && (
+            <div className="absolute inset-0 bg-red-500/20 z-10 animate-in fade-in pointer-events-none" />
+          )}
+        </div>
+
+        {gameState === 'gameover' && (
+          <div className="mt-8 w-full animate-in slide-in-from-bottom-4">
+            <GameResult
+              game={gameMeta}
+              score={score}
+              isNewBest={isNewBest}
+              bestScore={bestScore}
+              onRestart={startGame}
+            />
+          </div>
+        )}
+      </div>
+    </GameLayout>
+  )
+}

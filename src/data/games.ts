@@ -8,7 +8,7 @@ export interface GameMetadata {
   name: string
   description: string
   rules: string[]
-  category: 'Quick' | 'Speed' | 'Puzzle' | 'Classic' | 'Skill' | 'Strategy' | 'Brain' | 'Word' | 'Chaos'
+  category: 'Quick' | 'Speed' | 'Puzzle' | 'Classic' | 'Skill' | 'Strategy' | 'Brain' | 'Word' | 'Chaos' | 'Arcade'
   difficulty: 'Easy' | 'Medium' | 'Hard'
   estimatedDuration: string
   scoreType: ScoreType
@@ -19,6 +19,63 @@ export interface GameMetadata {
 }
 
 export const GAMES: GameMetadata[] = [
+  {
+    id: "breakout",
+    name: "Breakout",
+    description: "Destroy all the bricks with the bouncing ball.",
+    rules: [
+      "Move the paddle to bounce the ball.",
+      "Break all the bricks to complete the level.",
+      "Don't let the ball fall past your paddle!",
+      "The ball gets faster over time."
+    ],
+    category: "Arcade",
+    difficulty: "Medium",
+    estimatedDuration: "2 minutes",
+    scoreType: "score",
+    path: "/breakout",
+    Icon: Zap,
+    colorClass: "text-red-400 bg-red-400/10",
+    gradientClass: "from-red-400/20 to-orange-500/20"
+  },
+  {
+    id: "pong",
+    name: "Pong",
+    description: "Classic paddle and ball action against an AI.",
+    rules: [
+      "Control the bottom paddle.",
+      "Hit the ball past the AI's top paddle to score.",
+      "First to 5 points wins!",
+      "The angle changes based on where the ball hits the paddle."
+    ],
+    category: "Arcade",
+    difficulty: "Medium",
+    estimatedDuration: "2 minutes",
+    scoreType: "score",
+    path: "/pong",
+    Icon: Zap,
+    colorClass: "text-zinc-400 bg-zinc-400/10",
+    gradientClass: "from-zinc-400/20 to-gray-600/20"
+  },
+  {
+    id: "stack",
+    name: "Stack",
+    description: "Stack the blocks as high as you can without them falling.",
+    rules: [
+      "A block will move back and forth.",
+      "Tap to drop it on the stack.",
+      "Any part of the block hanging over the edge is sliced off.",
+      "The block gets smaller and faster with every mistake!"
+    ],
+    category: "Arcade",
+    difficulty: "Hard",
+    estimatedDuration: "1 minute",
+    scoreType: "score",
+    path: "/stack",
+    Icon: Hash,
+    colorClass: "text-indigo-400 bg-indigo-400/10",
+    gradientClass: "from-indigo-400/20 to-violet-600/20"
+  },
   {
     id: "odd-one-out",
     name: "Odd One Out",

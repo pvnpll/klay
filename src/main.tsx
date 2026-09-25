@@ -23,6 +23,9 @@ import RiskIt from './pages/games/RiskIt.tsx'
 import OddOneOut from './pages/games/OddOneOut.tsx'
 import Sequence from './pages/games/Sequence.tsx'
 import StroopTest from './pages/games/StroopTest.tsx'
+import Breakout from './pages/games/Breakout.tsx'
+import Pong from './pages/games/Pong.tsx'
+import Stack from './pages/games/Stack.tsx'
 import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
@@ -51,6 +54,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <Route path="odd-one-out" element={<OddOneOut />} />
           <Route path="sequence" element={<Sequence />} />
           <Route path="stroop-test" element={<StroopTest />} />
+        <Route path="breakout" element={<Breakout />} />
+          <Route path="pong" element={<Pong />} />
+          <Route path="stack" element={<Stack />} />
         </Route>
       </Routes>
     </BrowserRouter>
