@@ -61,8 +61,15 @@ export function GameLayout({ title, description, rules, children }: GameLayoutPr
         </div>
       )}
 
-      <div className="bg-gray-900/50 border border-gray-800 rounded-2xl p-6 md:p-8 shadow-2xl">
-        {children}
+      <div className="relative">
+        {/* Colorful blur effect behind the game */}
+        {gameInfo?.gradientClass && (
+          <div className={`absolute -inset-1 rounded-[3rem] blur-xl opacity-30 ${gameInfo.gradientClass}`} />
+        )}
+        
+        <div className="relative bg-gray-950/80 backdrop-blur-xl border border-white/10 rounded-[2rem] p-6 md:p-8 shadow-2xl">
+          {children}
+        </div>
       </div>
     </div>
   )

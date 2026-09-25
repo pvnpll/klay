@@ -1,4 +1,4 @@
-import { Zap, TrendingUp, Hash, Brain, Grid3X3, Keyboard, PlaySquare, Type } from 'lucide-react'
+import { Zap, Hash, Brain, Grid3X3, Keyboard, PlaySquare, Type } from 'lucide-react'
 
 export const GAMES = [
   {
@@ -14,22 +14,8 @@ export const GAMES = [
     category: "Quick",
     path: "/reaction",
     Icon: Zap,
-    colorClass: "text-yellow-400 bg-yellow-400/10"
-  },
-  {
-    id: "higher-lower",
-    name: "Higher or Lower",
-    description: "Guess if the next number drawn will be higher or lower.",
-    rules: [
-      "You will be shown a number between 1 and 100.",
-      "Guess whether the next generated number will be HIGHER or LOWER.",
-      "If you guess correctly, you earn 1 point and continue.",
-      "If you guess wrong, it's game over."
-    ],
-    category: "Casual",
-    path: "/higher-lower",
-    Icon: TrendingUp,
-    colorClass: "text-blue-400 bg-blue-400/10"
+    colorClass: "text-yellow-400 bg-yellow-400/10",
+    gradientClass: "from-yellow-400/20 to-orange-500/20"
   },
   {
     id: "number-rush",
@@ -44,7 +30,8 @@ export const GAMES = [
     category: "Speed",
     path: "/number-rush",
     Icon: Hash,
-    colorClass: "text-red-400 bg-red-400/10"
+    colorClass: "text-red-400 bg-red-400/10",
+    gradientClass: "from-red-400/20 to-rose-600/20"
   },
   {
     id: "memory",
@@ -60,7 +47,8 @@ export const GAMES = [
     category: "Puzzle",
     path: "/memory",
     Icon: Brain,
-    colorClass: "text-purple-400 bg-purple-400/10"
+    colorClass: "text-purple-400 bg-purple-400/10",
+    gradientClass: "from-purple-400/20 to-fuchsia-600/20"
   },
   {
     id: "tic-tac-toe",
@@ -75,7 +63,8 @@ export const GAMES = [
     category: "Classic",
     path: "/tic-tac-toe",
     Icon: Grid3X3,
-    colorClass: "text-emerald-400 bg-emerald-400/10"
+    colorClass: "text-emerald-400 bg-emerald-400/10",
+    gradientClass: "from-emerald-400/20 to-teal-600/20"
   },
   {
     id: "typing",
@@ -90,7 +79,8 @@ export const GAMES = [
     category: "Skill",
     path: "/typing",
     Icon: Keyboard,
-    colorClass: "text-indigo-400 bg-indigo-400/10"
+    colorClass: "text-indigo-400 bg-indigo-400/10",
+    gradientClass: "from-indigo-400/20 to-blue-600/20"
   },
   {
     id: "snake",
@@ -105,7 +95,8 @@ export const GAMES = [
     category: "Classic",
     path: "/snake",
     Icon: PlaySquare,
-    colorClass: "text-green-400 bg-green-400/10"
+    colorClass: "text-green-400 bg-green-400/10",
+    gradientClass: "from-green-400/20 to-emerald-600/20"
   },
   {
     id: "word-guess",
@@ -121,21 +112,22 @@ export const GAMES = [
     category: "Puzzle",
     path: "/word-guess",
     Icon: Type,
-    colorClass: "text-orange-400 bg-orange-400/10"
+    colorClass: "text-orange-400 bg-orange-400/10",
+    gradientClass: "from-orange-400/20 to-amber-600/20"
   },
   {
     id: "chess",
     name: "Chess",
-    description: "Play chess against an AI with full drag-and-drop animated pieces.",
+    description: "Play chess against an AI or a friend with full animated pieces.",
     rules: [
       "Drag and drop your pieces to move.",
       "Standard chess rules apply (en passant, castling, promotion).",
-      "You play as White, the Computer plays as Black.",
       "Checkmate the opposing king to win!"
     ],
     category: "Strategy",
     path: "/chess",
-    Icon: Grid3X3, // Using Grid3x3 as a placeholder since lucide doesn't have a chess piece icon
-    colorClass: "text-zinc-400 bg-zinc-400/10"
+    Icon: Grid3X3,
+    colorClass: "text-zinc-400 bg-zinc-400/10",
+    gradientClass: "from-zinc-400/20 to-gray-600/20"
   }
 ]

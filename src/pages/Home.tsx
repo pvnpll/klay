@@ -25,6 +25,7 @@ export default function Home() {
             path={game.path}
             Icon={game.Icon}
             colorClass={game.colorClass}
+            gradientClass={game.gradientClass}
           />
         ))}
       </div>

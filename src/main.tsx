@@ -4,7 +4,6 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import App from './App.tsx'
 import Home from './pages/Home.tsx'
 import Reaction from './pages/games/Reaction.tsx'
-import HigherLower from './pages/games/HigherLower.tsx'
 import NumberRush from './pages/games/NumberRush.tsx'
 import Memory from './pages/games/Memory.tsx'
 import TicTacToe from './pages/games/TicTacToe.tsx'
@@ -21,7 +20,6 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <Route path="/" element={<App />}>
           <Route index element={<Home />} />
           <Route path="reaction" element={<Reaction />} />
-          <Route path="higher-lower" element={<HigherLower />} />
           <Route path="number-rush" element={<NumberRush />} />
           <Route path="memory" element={<Memory />} />
           <Route path="tic-tac-toe" element={<TicTacToe />} />
