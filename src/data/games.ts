@@ -1,6 +1,43 @@
 import { Zap, Hash, Brain, Grid3X3, Keyboard, PlaySquare, Type } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 
-export const GAMES = [
+export type ScoreType = 'time' | 'score' | 'accuracy' | 'lower-is-better' | 'win-loss'
+
+export interface GameMetadata {
+  id: string
+  name: string
+  description: string
+  rules: string[]
+  category: 'Quick' | 'Speed' | 'Puzzle' | 'Classic' | 'Skill' | 'Strategy' | 'Brain' | 'Word'
+  difficulty: 'Easy' | 'Medium' | 'Hard'
+  estimatedDuration: string
+  scoreType: ScoreType
+  path: string
+  Icon: LucideIcon
+  colorClass: string
+  gradientClass: string
+}
+
+export const GAMES: GameMetadata[] = [
+  {
+    id: "target-click",
+    name: "Target Click",
+    description: "Aim Trainer. Click 20 targets as fast as possible.",
+    rules: [
+      "Click the 'Start Training' button to begin.",
+      "A target will appear somewhere on the screen.",
+      "Click it as fast as you can.",
+      "Repeat until you've hit all 20 targets."
+    ],
+    category: "Skill",
+    difficulty: "Medium",
+    estimatedDuration: "30 seconds",
+    scoreType: "time",
+    path: "/target-click",
+    Icon: Zap,
+    colorClass: "text-blue-400 bg-blue-400/10",
+    gradientClass: "from-blue-400/20 to-cyan-500/20"
+  },
   {
     id: "reaction",
     name: "Reaction Test",
@@ -12,6 +49,9 @@ export const GAMES = [
       "If you click before it turns green, it's a false start."
     ],
     category: "Quick",
+    difficulty: "Easy",
+    estimatedDuration: "30 seconds",
+    scoreType: "lower-is-better",
     path: "/reaction",
     Icon: Zap,
     colorClass: "text-yellow-400 bg-yellow-400/10",
@@ -28,6 +68,9 @@ export const GAMES = [
       "Finish by clicking 20 as fast as possible!"
     ],
     category: "Speed",
+    difficulty: "Medium",
+    estimatedDuration: "1 minute",
+    scoreType: "time",
     path: "/number-rush",
     Icon: Hash,
     colorClass: "text-red-400 bg-red-400/10",
@@ -45,6 +88,9 @@ export const GAMES = [
       "Match all 4 pairs in the fastest time and fewest moves."
     ],
     category: "Puzzle",
+    difficulty: "Medium",
+    estimatedDuration: "2 minutes",
+    scoreType: "time", // Alternatively could track lowest moves
     path: "/memory",
     Icon: Brain,
     colorClass: "text-purple-400 bg-purple-400/10",
@@ -61,6 +107,9 @@ export const GAMES = [
       "If the board fills up with no winner, it's a draw."
     ],
     category: "Classic",
+    difficulty: "Easy",
+    estimatedDuration: "1 minute",
+    scoreType: "win-loss",
     path: "/tic-tac-toe",
     Icon: Grid3X3,
     colorClass: "text-emerald-400 bg-emerald-400/10",
@@ -77,6 +126,9 @@ export const GAMES = [
       "Finish the quote to log your score."
     ],
     category: "Skill",
+    difficulty: "Hard",
+    estimatedDuration: "2 minutes",
+    scoreType: "score", // WPM
     path: "/typing",
     Icon: Keyboard,
     colorClass: "text-indigo-400 bg-indigo-400/10",
@@ -93,6 +145,9 @@ export const GAMES = [
       "If you hit the wall or bite your own tail, it's game over!"
     ],
     category: "Classic",
+    difficulty: "Medium",
+    estimatedDuration: "3 minutes",
+    scoreType: "score",
     path: "/snake",
     Icon: PlaySquare,
     colorClass: "text-green-400 bg-green-400/10",
@@ -109,7 +164,10 @@ export const GAMES = [
       "Gray tile: The letter is not in the word.",
       "You have 6 attempts to guess the word."
     ],
-    category: "Puzzle",
+    category: "Word",
+    difficulty: "Medium",
+    estimatedDuration: "5 minutes",
+    scoreType: "win-loss",
     path: "/word-guess",
     Icon: Type,
     colorClass: "text-orange-400 bg-orange-400/10",
@@ -125,6 +183,9 @@ export const GAMES = [
       "Add them up to reach 2048!"
     ],
     category: "Puzzle",
+    difficulty: "Hard",
+    estimatedDuration: "10 minutes",
+    scoreType: "score",
     path: "/2048",
     Icon: Grid3X3,
     colorClass: "text-yellow-400 bg-yellow-400/10",
@@ -140,6 +201,9 @@ export const GAMES = [
       "Checkmate the opposing king to win!"
     ],
     category: "Strategy",
+    difficulty: "Hard",
+    estimatedDuration: "15 minutes",
+    scoreType: "win-loss",
     path: "/chess",
     Icon: Grid3X3,
     colorClass: "text-zinc-400 bg-zinc-400/10",

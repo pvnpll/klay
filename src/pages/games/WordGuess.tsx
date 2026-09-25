@@ -1,6 +1,11 @@
 import { useState, useEffect, useCallback } from 'react'
 import { GameLayout } from '../../components/GameLayout'
+import { GameResult } from '../../components/GameResult'
+import { GAMES } from '../../data/games'
+import { saveScore } from '../../utils/storage'
 import confetti from 'canvas-confetti'
+
+const gameMeta = GAMES.find(g => g.id === 'word-guess')!
 
 const WORD_LIST = [
   'APPLE', 'BRAIN', 'CLOCK', 'DREAM', 'EARTH', 'FLAME', 'GHOST', 'HEART', 
@@ -77,6 +82,7 @@ export default function WordGuess() {
     if (currentGuess === targetWord) {
       setGameState('won')
       setMessage('You got it!')
+      saveScore(gameMeta, 1)
       confetti({
         particleCount: 150,
         spread: 70,
@@ -86,6 +92,7 @@ export default function WordGuess() {
     } else if (newGuesses.length >= MAX_GUESSES) {
       setGameState('lost')
       setMessage(`Game Over. Word was ${targetWord}`)
+      saveScore(gameMeta, 0)
     }
   }, [currentGuess, guesses, targetWord])
 
@@ -169,12 +176,12 @@ export default function WordGuess() {
         </div>
 
         {gameState !== 'playing' && (
-          <button
-            onClick={initGame}
-            className="px-8 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-bold text-xl transition-transform hover:scale-105 active:scale-95 animate-in fade-in zoom-in"
-          >
-            Play Again
-          </button>
+          <GameResult
+            game={gameMeta}
+            isWin={gameState === 'won'}
+            message={message}
+            onRestart={initGame}
+          />
         )}
       </div>
     </GameLayout>

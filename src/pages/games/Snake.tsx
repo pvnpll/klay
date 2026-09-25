@@ -1,6 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { GameLayout } from '../../components/GameLayout'
-import { getFromStorage, saveToStorage } from '../../lib/storage'
+import { GameResult } from '../../components/GameResult'
+import { GAMES } from '../../data/games'
+import { saveScore, getStats } from '../../utils/storage'
+
+const gameMeta = GAMES.find(g => g.id === 'snake')!
 
 const GRID_SIZE = 20
 const INITIAL_SNAKE = [{ x: 10, y: 10 }]
@@ -14,9 +18,11 @@ export default function Snake() {
   const [direction, setDirection] = useState<Point>(INITIAL_DIRECTION)
   const [food, setFood] = useState<Point>({ x: 5, y: 5 })
   const [score, setScore] = useState(0)
-  const [bestScore, setBestScore] = useState<number>(
-    getFromStorage<number>('klay_snake_best', 0)
-  )
+  
+  const [bestScore, setBestScore] = useState<number | undefined>(() => {
+    return getStats().bests[gameMeta.id]
+  })
+  const [isNewBest, setIsNewBest] = useState(false)
   const [gameState, setGameState] = useState<GameState>('idle')
 
   const directionRef = useRef(direction)
@@ -30,7 +36,6 @@ export default function Snake() {
         x: Math.floor(Math.random() * GRID_SIZE),
         y: Math.floor(Math.random() * GRID_SIZE)
       }
-      // eslint-disable-next-line no-loop-func
       if (!currentSnake.some(segment => segment.x === newFood.x && segment.y === newFood.y)) {
         break
       }
@@ -38,20 +43,28 @@ export default function Snake() {
     return newFood
   }, [])
 
-  const startGame = () => {
+  const resetGame = () => {
     setSnake(INITIAL_SNAKE)
     setDirection(INITIAL_DIRECTION)
     directionRef.current = INITIAL_DIRECTION
     setScore(0)
     setFood(generateFood(INITIAL_SNAKE))
     setGameState('playing')
+    setIsNewBest(false)
+    lastUpdateRef.current = performance.now()
   }
 
-  const updateGame = useCallback((time: number) => {
+  const gameOver = () => {
+    setGameState('gameover')
+    const { isNewBest, bestScore: newBest } = saveScore(gameMeta, score)
+    setIsNewBest(isNewBest)
+    setBestScore(newBest)
+  }
+
+  const update = useCallback((time: number) => {
     if (gameState !== 'playing') return
 
-    if (time - lastUpdateRef.current > 150) {
-      lastUpdateRef.current = time
+    if (time - lastUpdateRef.current > 120) {
       setSnake(prevSnake => {
         const head = prevSnake[0]
         const newHead = {
@@ -66,146 +79,181 @@ export default function Snake() {
           newHead.y < 0 ||
           newHead.y >= GRID_SIZE
         ) {
-          setGameState('gameover')
+          gameOver()
           return prevSnake
         }
 
         // Check self collision
         if (prevSnake.some(segment => segment.x === newHead.x && segment.y === newHead.y)) {
-          setGameState('gameover')
+          gameOver()
           return prevSnake
         }
 
         const newSnake = [newHead, ...prevSnake]
 
         // Check food collision
-        setFood(currentFood => {
-          if (newHead.x === currentFood.x && newHead.y === currentFood.y) {
-            setScore(s => s + 10)
-            return generateFood(newSnake)
-          }
-          newSnake.pop() // Remove tail if no food eaten
-          return currentFood
-        })
+        if (newHead.x === food.x && newHead.y === food.y) {
+          setScore(s => s + 10)
+          setFood(generateFood(newSnake))
+        } else {
+          newSnake.pop()
+        }
 
         return newSnake
       })
+      lastUpdateRef.current = time
     }
-    requestRef.current = requestAnimationFrame(updateGame)
-  }, [gameState, generateFood])
+
+    requestRef.current = requestAnimationFrame(update)
+  }, [food, gameState, generateFood])
 
   useEffect(() => {
     if (gameState === 'playing') {
-      requestRef.current = requestAnimationFrame(updateGame)
+      requestRef.current = requestAnimationFrame(update)
     }
     return () => cancelAnimationFrame(requestRef.current)
-  }, [gameState, updateGame])
-
-  useEffect(() => {
-    if (gameState === 'gameover') {
-      if (score > bestScore) {
-        setBestScore(score)
-        saveToStorage('klay_snake_best', score)
-      }
-    }
-  }, [gameState, score, bestScore])
+  }, [gameState, update])
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Prevent default scrolling for arrow keys
-      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+      // Prevent default scrolling for arrow keys and space
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) {
         e.preventDefault()
       }
 
-      const { x, y } = directionRef.current
+      if (gameState !== 'playing') {
+        if (e.key === ' ' || e.key === 'Enter') {
+          resetGame()
+        }
+        return
+      }
+
+      const currentDir = directionRef.current
       switch (e.key) {
         case 'ArrowUp':
         case 'w':
-          if (y === 0) directionRef.current = { x: 0, y: -1 }
+          if (currentDir.y !== 1) directionRef.current = { x: 0, y: -1 }
           break
         case 'ArrowDown':
         case 's':
-          if (y === 0) directionRef.current = { x: 0, y: 1 }
+          if (currentDir.y !== -1) directionRef.current = { x: 0, y: 1 }
           break
         case 'ArrowLeft':
         case 'a':
-          if (x === 0) directionRef.current = { x: -1, y: 0 }
+          if (currentDir.x !== 1) directionRef.current = { x: -1, y: 0 }
           break
         case 'ArrowRight':
         case 'd':
-          if (x === 0) directionRef.current = { x: 1, y: 0 }
+          if (currentDir.x !== -1) directionRef.current = { x: 1, y: 0 }
           break
       }
     }
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [])
+  }, [gameState])
+
+  // Touch controls
+  const [touchStart, setTouchStart] = useState<{ x: number, y: number } | null>(null)
+  
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (gameState !== 'playing') return
+    setTouchStart({
+      x: e.touches[0].clientX,
+      y: e.touches[0].clientY
+    })
+  }
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!touchStart || gameState !== 'playing') return
+    
+    const touchEnd = {
+      x: e.changedTouches[0].clientX,
+      y: e.changedTouches[0].clientY
+    }
+    
+    const dx = touchEnd.x - touchStart.x
+    const dy = touchEnd.y - touchStart.y
+    const absDx = Math.abs(dx)
+    const absDy = Math.abs(dy)
+
+    if (Math.max(absDx, absDy) > 30) {
+      const currentDir = directionRef.current
+      if (absDx > absDy) {
+        if (dx > 0 && currentDir.x !== -1) directionRef.current = { x: 1, y: 0 }
+        else if (dx < 0 && currentDir.x !== 1) directionRef.current = { x: -1, y: 0 }
+      } else {
+        if (dy > 0 && currentDir.y !== -1) directionRef.current = { x: 0, y: 1 }
+        else if (dy < 0 && currentDir.y !== 1) directionRef.current = { x: 0, y: -1 }
+      }
+    }
+    setTouchStart(null)
+  }
 
   return (
-    <GameLayout title="Snake">
-      <div className="flex flex-col items-center">
-        <div className="flex justify-between w-full max-w-[400px] mb-4">
-          <p className="text-xl font-bold text-emerald-400">Score: {score}</p>
-          <p className="text-xl font-bold text-gray-400">Best: {bestScore}</p>
+    <GameLayout title={gameMeta.name}>
+      <div className="flex flex-col items-center relative">
+        <div className="flex justify-between w-full max-w-md mb-4 px-4 text-gray-400 font-medium bg-gray-950/80 py-3 rounded-xl border border-white/5 shadow-inner">
+          <span className="text-xl">Score: <span className="text-white">{score}</span></span>
+          <span className="text-xl">Best: <span className="text-white">{bestScore || 0}</span></span>
         </div>
 
-        <div className="relative w-full max-w-[400px] aspect-square bg-gray-800 rounded-lg border-2 border-gray-700 overflow-hidden">
+        <div 
+          className="relative bg-gray-900 border-2 border-white/10 rounded-xl overflow-hidden touch-none shadow-2xl"
+          style={{ width: 'min(90vw, 400px)', height: 'min(90vw, 400px)' }}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
           {gameState === 'idle' && (
-            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-gray-900/80 backdrop-blur-sm">
+            <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-10">
               <button
-                onClick={startGame}
-                className="px-8 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-bold text-xl transition-transform hover:scale-105 active:scale-95"
+                onClick={resetGame}
+                className="bg-green-500 hover:bg-green-600 text-white px-8 py-4 rounded-xl font-bold text-xl shadow-lg transition-transform active:scale-95"
               >
-                Start Game
+                Play Game
               </button>
             </div>
           )}
 
-          {gameState === 'gameover' && (
-            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-gray-900/90 backdrop-blur-sm">
-              <h2 className="text-3xl font-black text-red-400 mb-2">Game Over!</h2>
-              <p className="text-gray-300 mb-6">Final Score: {score}</p>
-              <button
-                onClick={startGame}
-                className="px-8 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-bold text-xl transition-transform hover:scale-105 active:scale-95"
-              >
-                Play Again
-              </button>
-            </div>
-          )}
+          {snake.map((segment, i) => (
+            <div
+              key={i}
+              className={`absolute rounded-sm ${i === 0 ? 'bg-green-400' : 'bg-green-600'}`}
+              style={{
+                width: `${100 / GRID_SIZE}%`,
+                height: `${100 / GRID_SIZE}%`,
+                left: `${(segment.x / GRID_SIZE) * 100}%`,
+                top: `${(segment.y / GRID_SIZE) * 100}%`
+              }}
+            />
+          ))}
 
-          <div 
-            className="w-full h-full grid"
-            style={{ 
-              gridTemplateColumns: `repeat(${GRID_SIZE}, minmax(0, 1fr))`,
-              gridTemplateRows: `repeat(${GRID_SIZE}, minmax(0, 1fr))`
+          <div
+            className="absolute bg-red-500 rounded-full"
+            style={{
+              width: `${100 / GRID_SIZE}%`,
+              height: `${100 / GRID_SIZE}%`,
+              left: `${(food.x / GRID_SIZE) * 100}%`,
+              top: `${(food.y / GRID_SIZE) * 100}%`
             }}
-          >
-            {Array.from({ length: GRID_SIZE * GRID_SIZE }).map((_, i) => {
-              const x = i % GRID_SIZE
-              const y = Math.floor(i / GRID_SIZE)
-              const isSnake = snake.some(segment => segment.x === x && segment.y === y)
-              const isHead = snake[0].x === x && snake[0].y === y
-              const isFood = food.x === x && food.y === y
+          />
+        </div>
 
-              return (
-                <div
-                  key={i}
-                  className={`
-                    ${isHead ? 'bg-emerald-400 rounded-sm' : ''}
-                    ${isSnake && !isHead ? 'bg-emerald-500/80 rounded-sm' : ''}
-                    ${isFood ? 'bg-red-500 rounded-full scale-75' : ''}
-                  `}
-                />
-              )
-            })}
-          </div>
+        <div className="mt-8 text-center text-gray-500 text-sm max-w-sm">
+          <p className="hidden sm:block mb-2">Use <strong className="text-gray-300">Arrow Keys</strong> or <strong className="text-gray-300">WASD</strong> to move.</p>
+          <p className="sm:hidden mb-2">Swipe to move.</p>
         </div>
-        
-        <div className="mt-8 text-center text-gray-400 text-sm">
-          Use <kbd className="bg-gray-800 px-2 py-1 rounded">Arrow Keys</kbd> or <kbd className="bg-gray-800 px-2 py-1 rounded">WASD</kbd> to move
-        </div>
+
+        {gameState === 'gameover' && (
+          <GameResult
+            game={gameMeta}
+            score={score}
+            isNewBest={isNewBest}
+            bestScore={bestScore}
+            onRestart={resetGame}
+            isWin={false}
+          />
+        )}
       </div>
     </GameLayout>
   )

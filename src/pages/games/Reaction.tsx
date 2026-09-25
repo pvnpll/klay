@@ -1,20 +1,24 @@
 import { useState, useRef, useEffect } from 'react'
 import { GameLayout } from '../../components/GameLayout'
-import { getFromStorage, saveToStorage } from '../../lib/storage'
+import { GameResult } from '../../components/GameResult'
+import { GAMES } from '../../data/games'
+import { saveScore, getStats } from '../../utils/storage'
 
+const gameMeta = GAMES.find(g => g.id === 'reaction')!
 type GameState = 'ready' | 'waiting' | 'go' | 'false_start' | 'result'
 
 export default function Reaction() {
   const [gameState, setGameState] = useState<GameState>('ready')
   const [reactionTime, setReactionTime] = useState<number | null>(null)
-  const [bestTime, setBestTime] = useState<number | null>(
-    getFromStorage<number | null>('klay_reaction_best', null)
-  )
+  
+  const [bestTime, setBestTime] = useState<number | undefined>(() => {
+    return getStats().bests[gameMeta.id]
+  })
+  const [isNewBest, setIsNewBest] = useState(false)
 
   const timeoutRef = useRef<number | null>(null)
   const startTimeRef = useRef<number>(0)
 
-  // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current)
@@ -24,8 +28,8 @@ export default function Reaction() {
   const handleStart = () => {
     setGameState('waiting')
     setReactionTime(null)
+    setIsNewBest(false)
 
-    // Random delay between 1500ms and 5000ms
     const delay = Math.floor(Math.random() * 3500) + 1500
 
     timeoutRef.current = window.setTimeout(() => {
@@ -50,16 +54,15 @@ export default function Reaction() {
       const time = Math.round(performance.now() - startTimeRef.current)
       setReactionTime(time)
       setGameState('result')
-
-      if (!bestTime || time < bestTime) {
-        setBestTime(time)
-        saveToStorage('klay_reaction_best', time)
-      }
+      
+      const { isNewBest, bestScore } = saveScore(gameMeta, time)
+      setIsNewBest(isNewBest)
+      setBestTime(bestScore)
     }
   }
 
   let bgColor = 'bg-gray-800 hover:bg-gray-700'
-  let message = 'Click anywhere to start'
+  let message = 'Click to start'
   let subMessage = ''
 
   if (gameState === 'waiting') {
@@ -75,15 +78,14 @@ export default function Reaction() {
   } else if (gameState === 'result') {
     bgColor = 'bg-blue-500 hover:bg-blue-600'
     message = `${reactionTime} ms`
-    subMessage = 'Click to try again'
   }
 
   return (
-    <GameLayout title="Reaction Test">
-      <div className="flex flex-col items-center">
+    <GameLayout title={gameMeta.name}>
+      <div className="flex flex-col items-center relative">
         <div 
           onMouseDown={handleClick}
-          className={`w-full max-w-2xl h-80 rounded-2xl flex flex-col items-center justify-center cursor-pointer transition-colors select-none ${bgColor} border-2 border-transparent focus:outline-none focus-visible:ring-4 focus-visible:ring-emerald-500`}
+          className={`w-full max-w-2xl h-80 rounded-3xl flex flex-col items-center justify-center cursor-pointer transition-all select-none ${bgColor} border-2 border-transparent focus:outline-none focus-visible:ring-4 focus-visible:ring-emerald-500 shadow-2xl`}
           tabIndex={0}
           onKeyDown={(e) => {
             if (e.key === ' ' || e.key === 'Enter') {
@@ -94,21 +96,25 @@ export default function Reaction() {
           role="button"
           aria-label={message}
         >
-          <span className={`text-4xl md:text-6xl font-black mb-4 ${gameState === 'false_start' ? 'text-gray-900' : 'text-white'}`}>
+          <span className={`text-5xl md:text-7xl font-black mb-4 ${gameState === 'false_start' ? 'text-gray-900' : 'text-white'}`}>
             {message}
           </span>
           {subMessage && (
-            <span className={`text-xl font-medium ${gameState === 'false_start' ? 'text-gray-800' : 'text-white/80'}`}>
+            <span className={`text-xl font-bold ${gameState === 'false_start' ? 'text-gray-800' : 'text-white/80'}`}>
               {subMessage}
             </span>
           )}
         </div>
 
-        <div className="mt-8 text-center">
-          <p className="text-xl text-gray-400 font-medium">
-            Best Time: <span className="text-white">{bestTime ? `${bestTime} ms` : '—'}</span>
-          </p>
-        </div>
+        {gameState === 'result' && (
+          <GameResult
+            game={gameMeta}
+            score={reactionTime!}
+            isNewBest={isNewBest}
+            bestScore={bestTime}
+            onRestart={handleStart}
+          />
+        )}
       </div>
     </GameLayout>
   )

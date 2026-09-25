@@ -12,6 +12,7 @@ import Snake from './pages/games/Snake.tsx'
 import WordGuess from './pages/games/WordGuess.tsx'
 import ChessGame from './pages/games/ChessGame.tsx'
 import Game2048 from './pages/games/Game2048.tsx'
+import TargetClick from './pages/games/TargetClick.tsx'
 import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
@@ -29,6 +30,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           <Route path="word-guess" element={<WordGuess />} />
           <Route path="chess" element={<ChessGame />} />
           <Route path="2048" element={<Game2048 />} />
+          <Route path="target-click" element={<TargetClick />} />
         </Route>
       </Routes>
     </BrowserRouter>

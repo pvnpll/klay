@@ -1,6 +1,11 @@
 import { useState, useEffect, useCallback } from 'react'
 import { GameLayout } from '../../components/GameLayout'
+import { GameResult } from '../../components/GameResult'
+import { GAMES } from '../../data/games'
+import { saveScore, getStats } from '../../utils/storage'
 import confetti from 'canvas-confetti'
+
+const gameMeta = GAMES.find(g => g.id === '2048')!
 
 type Board = number[][]
 
@@ -35,7 +40,12 @@ export default function Game2048() {
   const [score, setScore] = useState(0)
   const [gameOver, setGameOver] = useState(false)
   const [won, setWon] = useState(false)
-  const [hasContinued, setHasContinued] = useState(false) // If they want to play past 2048
+  const [hasContinued, setHasContinued] = useState(false)
+  
+  const [bestScore, setBestScore] = useState<number | undefined>(() => {
+    return getStats().bests[gameMeta.id]
+  })
+  const [isNewBest, setIsNewBest] = useState(false)
 
   const checkGameOver = (currentBoard: Board) => {
     // Check for empty cells
@@ -158,13 +168,16 @@ export default function Game2048() {
         
         if (checkGameOver(spawnedBoard)) {
           setGameOver(true)
+          const { isNewBest, bestScore: newBest } = saveScore(gameMeta, score + points)
+          setIsNewBest(isNewBest)
+          setBestScore(newBest)
         }
         
         return spawnedBoard
       }
       return prev
     })
-  }, [gameOver, won, hasContinued])
+  }, [gameOver, won, hasContinued, score])
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -215,6 +228,7 @@ export default function Game2048() {
     setGameOver(false)
     setWon(false)
     setHasContinued(false)
+    setIsNewBest(false)
   }
 
   const getColor = (val: number) => {
@@ -270,10 +284,19 @@ export default function Game2048() {
           </div>
 
           {/* Overlays */}
-          {(gameOver || (won && !hasContinued)) && (
+          {gameOver && (
+            <GameResult
+              game={gameMeta}
+              score={score}
+              isNewBest={isNewBest}
+              bestScore={bestScore}
+              onRestart={resetGame}
+            />
+          )}
+          {won && !hasContinued && !gameOver && (
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm rounded-3xl flex flex-col items-center justify-center animate-in fade-in z-10">
-              <h3 className={`text-4xl font-black mb-2 text-transparent bg-clip-text bg-gradient-to-br ${won ? 'from-yellow-300 to-orange-500' : 'from-red-400 to-rose-600'}`}>
-                {won ? 'You Win!' : 'Game Over!'}
+              <h3 className="text-4xl font-black mb-2 text-transparent bg-clip-text bg-gradient-to-br from-yellow-300 to-orange-500">
+                You Win!
               </h3>
               <p className="text-white text-lg font-medium mb-6">Score: {score}</p>
               
@@ -282,16 +305,14 @@ export default function Game2048() {
                   onClick={resetGame}
                   className="px-6 py-3 bg-white text-gray-900 rounded-full font-bold hover:bg-gray-200 transition-transform active:scale-95"
                 >
-                  Try Again
+                  Play Again
                 </button>
-                {won && !hasContinued && (
-                  <button
-                    onClick={() => setHasContinued(true)}
-                    className="px-6 py-3 bg-gray-800 text-white rounded-full font-bold border border-white/10 hover:bg-gray-700 transition-transform active:scale-95"
-                  >
-                    Keep Playing
-                  </button>
-                )}
+                <button
+                  onClick={() => setHasContinued(true)}
+                  className="px-6 py-3 bg-gray-800 text-white rounded-full font-bold border border-white/10 hover:bg-gray-700 transition-transform active:scale-95"
+                >
+                  Keep Playing
+                </button>
               </div>
             </div>
           )}

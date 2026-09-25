@@ -2,6 +2,11 @@ import { useState, useCallback, useEffect } from 'react'
 import { Chess, Move } from 'chess.js'
 import { Chessboard } from 'react-chessboard'
 import { GameLayout } from '../../components/GameLayout'
+import { GameResult } from '../../components/GameResult'
+import { GAMES } from '../../data/games'
+import { saveScore } from '../../utils/storage'
+
+const gameMeta = GAMES.find(g => g.id === 'chess')!
 
 export default function ChessGame() {
   const [game, setGame] = useState(new Chess())
@@ -15,10 +20,13 @@ export default function ChessGame() {
   const updateStatus = useCallback((currentGame: Chess) => {
     if (currentGame.isCheckmate()) {
       setStatus(`Checkmate! ${currentGame.turn() === 'w' ? 'Black' : 'White'} wins!`)
+      saveScore(gameMeta, 1)
     } else if (currentGame.isDraw()) {
       setStatus('Draw!')
+      saveScore(gameMeta, 1)
     } else if (currentGame.isStalemate()) {
       setStatus('Stalemate!')
+      saveScore(gameMeta, 1)
     } else {
       let statusText = currentGame.turn() === 'w' ? 'White to move' : 'Black to move'
       if (currentGame.isCheck()) {
@@ -212,6 +220,14 @@ export default function ChessGame() {
             </button>
           </div>
         </div>
+
+        {game.isGameOver() && (
+          <GameResult
+            game={gameMeta}
+            message={status}
+            onRestart={resetGame}
+          />
+        )}
       </div>
     </GameLayout>
   )
