@@ -24,3 +24,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Typing Race**: Live typing speed and accuracy tracker using predefined quotes.
 - Full responsive design and minimal modern UI.
 - Comprehensive PRD documentation in `docs/PRD.md`.
+

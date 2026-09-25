@@ -80,3 +80,4 @@ No browser alert() dialogs. Inline visual feedback.
 React, Vite, TypeScript, Tailwind CSS, React Router. Supabase client for future. Vercel deployment.
 
 ## 16-23. See Original PRD for more details on Supabase, Environment Variables, Performance, Future Scope, DoD, and Success Metrics.
+

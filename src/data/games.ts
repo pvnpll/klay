@@ -56,3 +56,4 @@ export const GAMES = [
     colorClass: "text-indigo-400 bg-indigo-400/10"
   }
 ]
+

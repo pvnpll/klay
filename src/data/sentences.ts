@@ -13,3 +13,4 @@ export const SENTENCES = [
   "Knowledge is power.",
   "That which does not kill us makes us stronger."
 ]
+
