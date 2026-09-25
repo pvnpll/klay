@@ -17,6 +17,9 @@ import Sudoku from './pages/games/Sudoku.tsx'
 import PerfectTiming from './pages/games/PerfectTiming.tsx'
 import OneSecond from './pages/games/OneSecond.tsx'
 import MentalMath from './pages/games/MentalMath.tsx'
+import DontTouchRed from './pages/games/DontTouchRed.tsx'
+import GridMemory from './pages/games/GridMemory.tsx'
+import RiskIt from './pages/games/RiskIt.tsx'
 import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
@@ -39,6 +42,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           <Route path="perfect-timing" element={<PerfectTiming />} />
           <Route path="one-second" element={<OneSecond />} />
           <Route path="mental-math" element={<MentalMath />} />
+        <Route path="dont-touch-red" element={<DontTouchRed />} />
+          <Route path="grid-memory" element={<GridMemory />} />
+          <Route path="risk-it" element={<RiskIt />} />
         </Route>
       </Routes>
     </BrowserRouter>

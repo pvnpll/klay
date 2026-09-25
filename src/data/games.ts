@@ -8,7 +8,7 @@ export interface GameMetadata {
   name: string
   description: string
   rules: string[]
-  category: 'Quick' | 'Speed' | 'Puzzle' | 'Classic' | 'Skill' | 'Strategy' | 'Brain' | 'Word'
+  category: 'Quick' | 'Speed' | 'Puzzle' | 'Classic' | 'Skill' | 'Strategy' | 'Brain' | 'Word' | 'Chaos'
   difficulty: 'Easy' | 'Medium' | 'Hard'
   estimatedDuration: string
   scoreType: ScoreType
@@ -19,6 +19,63 @@ export interface GameMetadata {
 }
 
 export const GAMES: GameMetadata[] = [
+  {
+    id: "dont-touch-red",
+    name: "Don't Touch Red",
+    description: "Click the safe targets before they disappear. Never touch red!",
+    rules: [
+      "Shapes will appear on the screen.",
+      "Click them to score points before they vanish.",
+      "If you click a RED shape, you instantly lose.",
+      "If a safe shape disappears before you click it, you lose."
+    ],
+    category: "Chaos",
+    difficulty: "Hard",
+    estimatedDuration: "1 minute",
+    scoreType: "score",
+    path: "/dont-touch-red",
+    Icon: Zap,
+    colorClass: "text-red-500 bg-red-500/10",
+    gradientClass: "from-red-500/20 to-orange-600/20"
+  },
+  {
+    id: "risk-it",
+    name: "Risk It",
+    description: "Push your luck. Bank your points or risk it for a higher multiplier!",
+    rules: [
+      "The multiplier will continuously increase.",
+      "Click BANK to secure your current score.",
+      "If the system CRASHES before you bank, you lose the round.",
+      "Reach the target score across multiple rounds to win!"
+    ],
+    category: "Strategy",
+    difficulty: "Medium",
+    estimatedDuration: "2 minutes",
+    scoreType: "score",
+    path: "/risk-it",
+    Icon: Brain,
+    colorClass: "text-emerald-400 bg-emerald-400/10",
+    gradientClass: "from-emerald-400/20 to-green-600/20"
+  },
+  {
+    id: "grid-memory",
+    name: "Grid Memory",
+    description: "Remember the highlighted tiles and repeat the pattern.",
+    rules: [
+      "A sequence of tiles will flash on the grid.",
+      "Memorize their locations.",
+      "Click the tiles that flashed in any order.",
+      "The grid grows larger as you progress!"
+    ],
+    category: "Brain",
+    difficulty: "Hard",
+    estimatedDuration: "2 minutes",
+    scoreType: "score",
+    path: "/grid-memory",
+    Icon: Grid3X3,
+    colorClass: "text-purple-400 bg-purple-400/10",
+    gradientClass: "from-purple-400/20 to-indigo-500/20"
+  },
   {
     id: "perfect-timing",
     name: "Perfect Timing",
