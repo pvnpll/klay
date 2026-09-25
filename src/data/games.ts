@@ -20,6 +20,63 @@ export interface GameMetadata {
 
 export const GAMES: GameMetadata[] = [
   {
+    id: "perfect-timing",
+    name: "Perfect Timing",
+    description: "Stop the moving indicator exactly inside the target zone.",
+    rules: [
+      "A marker will move back and forth.",
+      "Click or tap when the marker is inside the green zone.",
+      "Each success shrinks the zone and increases speed.",
+      "Miss the zone once, and it's game over!"
+    ],
+    category: "Skill",
+    difficulty: "Medium",
+    estimatedDuration: "1 minute",
+    scoreType: "score",
+    path: "/perfect-timing",
+    Icon: Zap,
+    colorClass: "text-rose-400 bg-rose-400/10",
+    gradientClass: "from-rose-400/20 to-pink-500/20"
+  },
+  {
+    id: "one-second",
+    name: "One Second",
+    description: "Try to stop the timer at exactly 1.000 seconds.",
+    rules: [
+      "Hold the button to start the timer.",
+      "The timer will hide after a moment.",
+      "Release exactly when you think 1 second has passed.",
+      "Get as close to 1.000s as possible!"
+    ],
+    category: "Quick",
+    difficulty: "Hard",
+    estimatedDuration: "30 seconds",
+    scoreType: "accuracy",
+    path: "/one-second",
+    Icon: Brain,
+    colorClass: "text-cyan-400 bg-cyan-400/10",
+    gradientClass: "from-cyan-400/20 to-blue-500/20"
+  },
+  {
+    id: "mental-math",
+    name: "Mental Math",
+    description: "Solve as many math problems as you can before time runs out.",
+    rules: [
+      "You start with 30 seconds.",
+      "Solve the equation using the numpad.",
+      "Correct answers give you points and extra time.",
+      "Wrong answers deduct time."
+    ],
+    category: "Brain",
+    difficulty: "Medium",
+    estimatedDuration: "2 minutes",
+    scoreType: "score",
+    path: "/mental-math",
+    Icon: Hash,
+    colorClass: "text-amber-400 bg-amber-400/10",
+    gradientClass: "from-amber-400/20 to-orange-500/20"
+  },
+  {
     id: "sudoku",
     name: "Sudoku",
     description: "Hard difficulty Sudoku generator. A new puzzle every time.",

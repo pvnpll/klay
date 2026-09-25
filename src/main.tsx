@@ -14,6 +14,9 @@ import ChessGame from './pages/games/ChessGame.tsx'
 import Game2048 from './pages/games/Game2048.tsx'
 import TargetClick from './pages/games/TargetClick.tsx'
 import Sudoku from './pages/games/Sudoku.tsx'
+import PerfectTiming from './pages/games/PerfectTiming.tsx'
+import OneSecond from './pages/games/OneSecond.tsx'
+import MentalMath from './pages/games/MentalMath.tsx'
 import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
@@ -33,6 +36,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           <Route path="2048" element={<Game2048 />} />
           <Route path="target-click" element={<TargetClick />} />
           <Route path="sudoku" element={<Sudoku />} />
+          <Route path="perfect-timing" element={<PerfectTiming />} />
+          <Route path="one-second" element={<OneSecond />} />
+          <Route path="mental-math" element={<MentalMath />} />
         </Route>
       </Routes>
     </BrowserRouter>
