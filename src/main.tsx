@@ -20,6 +20,9 @@ import MentalMath from './pages/games/MentalMath.tsx'
 import DontTouchRed from './pages/games/DontTouchRed.tsx'
 import GridMemory from './pages/games/GridMemory.tsx'
 import RiskIt from './pages/games/RiskIt.tsx'
+import OddOneOut from './pages/games/OddOneOut.tsx'
+import Sequence from './pages/games/Sequence.tsx'
+import StroopTest from './pages/games/StroopTest.tsx'
 import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
@@ -45,6 +48,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <Route path="dont-touch-red" element={<DontTouchRed />} />
           <Route path="grid-memory" element={<GridMemory />} />
           <Route path="risk-it" element={<RiskIt />} />
+        <Route path="odd-one-out" element={<OddOneOut />} />
+          <Route path="sequence" element={<Sequence />} />
+          <Route path="stroop-test" element={<StroopTest />} />
         </Route>
       </Routes>
     </BrowserRouter>

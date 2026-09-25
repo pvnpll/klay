@@ -20,6 +20,63 @@ export interface GameMetadata {
 
 export const GAMES: GameMetadata[] = [
   {
+    id: "odd-one-out",
+    name: "Odd One Out",
+    description: "Find the one emoji that doesn't belong before time runs out.",
+    rules: [
+      "A grid of identical items will appear.",
+      "One item is slightly different.",
+      "Find and click it as fast as possible.",
+      "The grid grows larger each round!"
+    ],
+    category: "Brain",
+    difficulty: "Medium",
+    estimatedDuration: "1 minute",
+    scoreType: "score",
+    path: "/odd-one-out",
+    Icon: Brain,
+    colorClass: "text-fuchsia-400 bg-fuchsia-400/10",
+    gradientClass: "from-fuchsia-400/20 to-purple-600/20"
+  },
+  {
+    id: "sequence",
+    name: "Sequence",
+    description: "Determine the next number in the mathematical pattern.",
+    rules: [
+      "A sequence of numbers is displayed.",
+      "Figure out the pattern (addition, multiplication, etc.).",
+      "Select the correct next number from the choices.",
+      "Solve as many as you can!"
+    ],
+    category: "Brain",
+    difficulty: "Medium",
+    estimatedDuration: "2 minutes",
+    scoreType: "score",
+    path: "/sequence",
+    Icon: Hash,
+    colorClass: "text-blue-400 bg-blue-400/10",
+    gradientClass: "from-blue-400/20 to-cyan-600/20"
+  },
+  {
+    id: "stroop-test",
+    name: "Stroop Test",
+    description: "Click the COLOR of the text, not the word itself!",
+    rules: [
+      "A word will appear on screen.",
+      "The word will spell a color (e.g., 'RED').",
+      "But the text itself will be painted a DIFFERENT color.",
+      "You must click the button that matches the INK color."
+    ],
+    category: "Brain",
+    difficulty: "Hard",
+    estimatedDuration: "1 minute",
+    scoreType: "score",
+    path: "/stroop-test",
+    Icon: Zap,
+    colorClass: "text-rose-400 bg-rose-400/10",
+    gradientClass: "from-rose-400/20 to-orange-600/20"
+  },
+  {
     id: "dont-touch-red",
     name: "Don't Touch Red",
     description: "Click the safe targets before they disappear. Never touch red!",
