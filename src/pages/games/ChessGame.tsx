@@ -80,7 +80,8 @@ export default function ChessGame() {
     }
   }, [fen, game, makeComputerMove])
 
-  const onDrop = (sourceSquare: string, targetSquare: string) => {
+  const onDrop = ({ sourceSquare, targetSquare }: { sourceSquare: string; targetSquare: string | null }) => {
+    if (!targetSquare) return false
     // Prevent moves if it's the computer's turn or game over
     if (game.turn() === 'b' || game.isGameOver()) return false
 
@@ -117,12 +118,14 @@ export default function ChessGame() {
         {/* Chessboard Container */}
         <div className="w-full max-w-[400px] md:max-w-[500px] bg-gray-800 p-2 md:p-4 rounded-xl border border-gray-700 shadow-2xl">
           <Chessboard
-            position={fen}
-            onPieceDrop={onDrop}
-            boardOrientation="white"
-            customDarkSquareStyle={{ backgroundColor: '#10b981' }} // Emerald 500
-            customLightSquareStyle={{ backgroundColor: '#ecfdf5' }} // Emerald 50
-            animationDuration={300}
+            options={{
+              position: fen,
+              onPieceDrop: onDrop,
+              boardOrientation: 'white',
+              darkSquareStyle: { backgroundColor: '#10b981' },
+              lightSquareStyle: { backgroundColor: '#ecfdf5' },
+              animationDurationInMs: 300
+            }}
           />
         </div>
 
