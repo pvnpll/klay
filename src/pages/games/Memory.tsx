@@ -183,14 +183,15 @@ export default function Memory() {
                 key={card.id}
                 onClick={() => handleCardClick(card.id)}
                 disabled={show || isProcessing || gameState === 'completed'}
-                className="relative preserve-3d transition-transform duration-300 ease-in-out focus:outline-none focus-visible:ring-4 focus-visible:ring-purple-400 rounded-xl"
+                className="relative transition-transform duration-300 ease-in-out focus:outline-none focus-visible:ring-4 focus-visible:ring-purple-400 rounded-xl"
                 style={{
                   transform: show ? 'rotateY(180deg)' : 'rotateY(0deg)',
+                  transformStyle: 'preserve-3d',
                   perspective: '1000px'
                 }}
               >
                 <div 
-                  className="absolute inset-0 bg-gray-800 hover:bg-gray-700 rounded-xl border border-gray-700 backface-hidden flex items-center justify-center shadow-lg"
+                  className="absolute inset-0 bg-gray-800 hover:bg-gray-700 rounded-xl border border-gray-700 flex items-center justify-center shadow-lg"
                   style={{ backfaceVisibility: 'hidden' }}
                 >
                   <div className="w-12 h-12 rounded-full border-2 border-gray-600/30"></div>

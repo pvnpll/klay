@@ -37,6 +37,80 @@ export default function ChessGame() {
     setFen(currentGame.fen())
   }, [])
 
+  const evaluateBoard = (chess: Chess) => {
+    const pieceValues: Record<string, number> = { p: 10, n: 30, b: 30, r: 50, q: 90, k: 900 }
+    let value = 0
+    const board = chess.board()
+    for (let r = 0; r < 8; r++) {
+      for (let c = 0; c < 8; c++) {
+        const piece = board[r][c]
+        if (piece) {
+          const val = pieceValues[piece.type] || 0
+          value += piece.color === 'w' ? val : -val
+        }
+      }
+    }
+    return value
+  }
+
+  const minimax = (chess: Chess, depth: number, isMaximizing: boolean): number => {
+    if (depth === 0 || chess.isGameOver()) {
+      return evaluateBoard(chess)
+    }
+
+    const moves = chess.moves({ verbose: true }) as Move[]
+    if (isMaximizing) {
+      let bestVal = -Infinity
+      for (const move of moves) {
+        chess.move(move)
+        bestVal = Math.max(bestVal, minimax(chess, depth - 1, false))
+        chess.undo()
+      }
+      return bestVal
+    } else {
+      let bestVal = Infinity
+      for (const move of moves) {
+        chess.move(move)
+        bestVal = Math.min(bestVal, minimax(chess, depth - 1, true))
+        chess.undo()
+      }
+      return bestVal
+    }
+  }
+
+  const getBestMove = (chess: Chess, depth: number): Move | null => {
+    const moves = chess.moves({ verbose: true }) as Move[]
+    if (moves.length === 0) return null
+
+    // To add some variety, shuffle the moves first
+    for (let i = moves.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [moves[i], moves[j]] = [moves[j], moves[i]];
+    }
+
+    let bestMove = moves[0]
+    const isMaximizing = chess.turn() === 'w'
+    let bestVal = isMaximizing ? -Infinity : Infinity
+
+    for (const move of moves) {
+      chess.move(move)
+      const boardValue = minimax(chess, depth - 1, !isMaximizing)
+      chess.undo()
+      if (isMaximizing) {
+        if (boardValue > bestVal) {
+          bestVal = boardValue
+          bestMove = move
+        }
+      } else {
+        if (boardValue < bestVal) {
+          bestVal = boardValue
+          bestMove = move
+        }
+      }
+    }
+    return bestMove
+  }
+
   const makeComputerMove = useCallback(() => {
     if (game.isGameOver() || gameMode === '2P') return
 
@@ -44,23 +118,21 @@ export default function ChessGame() {
     
     // Simulate thinking time
     setTimeout(() => {
-      const possibleMoves = game.moves({ verbose: true }) as Move[]
+      let chosenMove: Move | null = null
       
-      if (possibleMoves.length === 0) {
-        setIsComputing(false)
-        return
+      if (difficulty === 'easy') {
+        const moves = game.moves({ verbose: true }) as Move[]
+        if (moves.length > 0) {
+          chosenMove = moves[Math.floor(Math.random() * moves.length)]
+        }
+      } else {
+        // Medium difficulty uses depth 2 minimax
+        chosenMove = getBestMove(game, 2)
       }
 
-      let chosenMove: Move
-      if (difficulty === 'easy') {
-        chosenMove = possibleMoves[Math.floor(Math.random() * possibleMoves.length)]
-      } else {
-        const captures = possibleMoves.filter(m => m.flags.includes('c') || m.flags.includes('e'))
-        if (captures.length > 0) {
-          chosenMove = captures[Math.floor(Math.random() * captures.length)]
-        } else {
-          chosenMove = possibleMoves[Math.floor(Math.random() * possibleMoves.length)]
-        }
+      if (!chosenMove) {
+        setIsComputing(false)
+        return
       }
 
       try {
@@ -75,7 +147,7 @@ export default function ChessGame() {
         console.error(e)
       }
       setIsComputing(false)
-    }, 500)
+    }, 100)
   }, [game, difficulty, gameMode, updateStatus])
 
   useEffect(() => {

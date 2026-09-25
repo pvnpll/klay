@@ -266,7 +266,7 @@ export default function Game2048() {
         </div>
 
         <div 
-          className="relative bg-gray-900/80 p-3 md:p-4 rounded-3xl backdrop-blur-md shadow-2xl border border-white/5"
+          className="relative bg-gray-900/80 p-3 md:p-4 rounded-3xl backdrop-blur-md shadow-2xl border border-white/5 touch-none"
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >

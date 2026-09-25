@@ -76,7 +76,7 @@ export default function TicTacToe() {
           setGameState(checkWinner(newBoard))
           setXIsNext(true)
         }
-      }, 500)
+      }, 150)
     }
   }
 
@@ -149,7 +149,7 @@ export default function TicTacToe() {
               disabled={!!cell || gameState !== 'playing' || (mode === 'pvc' && !xIsNext)}
             >
               {cell && (
-                <span className={cell === 'X' ? 'text-blue-500' : 'text-red-500 animate-in zoom-in duration-200'}>
+                <span className={cell === 'X' ? 'text-blue-500' : 'text-red-500'}>
                   {cell}
                 </span>
               )}

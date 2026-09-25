@@ -140,12 +140,44 @@ export default function WordGuess() {
     }
   }
 
+  const handleKeyClick = (key: string) => {
+    if (gameState !== 'playing') return
+    if (key === 'ENTER') {
+      submitGuess()
+    } else if (key === 'BACKSPACE') {
+      setCurrentGuess(prev => prev.slice(0, -1))
+    } else if (currentGuess.length < WORD_LENGTH) {
+      setCurrentGuess(prev => (prev + key).toUpperCase())
+    }
+  }
+
+  const getKeyStatus = (key: string): LetterStatus | undefined => {
+    let bestStatus: LetterStatus | undefined = undefined
+    for (const row of guesses) {
+      for (let i = 0; i < WORD_LENGTH; i++) {
+        if (row.letters[i] === key) {
+          const status = row.statuses[i]
+          if (status === 'correct') return 'correct' // Best possible
+          if (status === 'present') bestStatus = 'present'
+          if (status === 'absent' && !bestStatus) bestStatus = 'absent'
+        }
+      }
+    }
+    return bestStatus
+  }
+
+  const keyboardRows = [
+    ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
+    ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
+    ['ENTER', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', 'BACKSPACE']
+  ]
+
   return (
-    <GameLayout title="Word Guess">
-      <div className="flex flex-col items-center">
+    <GameLayout title={gameMeta.name}>
+      <div className="flex flex-col items-center max-w-lg mx-auto">
         
         <div className="h-8 mb-4 flex items-center justify-center">
-          {message && (
+          {message && gameState === 'playing' && (
             <div className="bg-white text-gray-900 font-bold px-4 py-2 rounded-lg animate-in fade-in zoom-in duration-200">
               {message}
             </div>
@@ -161,10 +193,10 @@ export default function WordGuess() {
                   <div
                     key={colIndex}
                     className={`
-                      w-14 h-14 md:w-16 md:h-16 flex items-center justify-center text-2xl md:text-3xl font-bold uppercase
-                      border-2 rounded-sm transition-all duration-300
+                      w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center text-2xl font-bold uppercase
+                      border-2 rounded-xl transition-all duration-300
                       ${getLetterClass(row.statuses[colIndex])}
-                      ${isActive ? 'border-gray-400 scale-[1.02]' : ''}
+                      ${isActive ? 'border-gray-400 scale-105' : 'border-gray-700/50'}
                     `}
                   >
                     {letter}
@@ -175,11 +207,42 @@ export default function WordGuess() {
           ))}
         </div>
 
+        {/* Virtual Keyboard */}
+        <div className="w-full flex flex-col gap-2 mt-4 px-2">
+          {keyboardRows.map((row, i) => (
+            <div key={i} className="flex justify-center gap-1.5 sm:gap-2">
+              {row.map(key => {
+                const status = getKeyStatus(key)
+                let keyClass = 'bg-gray-800 text-white hover:bg-gray-700'
+                if (status === 'correct') keyClass = 'bg-emerald-500 text-white'
+                else if (status === 'present') keyClass = 'bg-yellow-500 text-white'
+                else if (status === 'absent') keyClass = 'bg-gray-900 text-gray-600'
+                
+                const isSpecial = key === 'ENTER' || key === 'BACKSPACE'
+                
+                return (
+                  <button
+                    key={key}
+                    onClick={() => handleKeyClick(key)}
+                    className={`
+                      ${isSpecial ? 'px-2 sm:px-4 text-xs sm:text-sm' : 'flex-1 max-w-[40px] text-sm sm:text-base'} 
+                      h-12 sm:h-14 rounded-lg font-bold transition-colors select-none touch-manipulation
+                      ${keyClass}
+                    `}
+                  >
+                    {key === 'BACKSPACE' ? '⌫' : key}
+                  </button>
+                )
+              })}
+            </div>
+          ))}
+        </div>
+
         {gameState !== 'playing' && (
           <GameResult
             game={gameMeta}
             isWin={gameState === 'won'}
-            message={message}
+            message={gameState === 'lost' ? `Word was ${targetWord}` : message}
             onRestart={initGame}
           />
         )}
