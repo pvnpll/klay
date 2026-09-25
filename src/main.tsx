@@ -26,6 +26,9 @@ import StroopTest from './pages/games/StroopTest.tsx'
 import Breakout from './pages/games/Breakout.tsx'
 import Pong from './pages/games/Pong.tsx'
 import Stack from './pages/games/Stack.tsx'
+import ConnectFour from './pages/games/ConnectFour.tsx'
+import DotsAndBoxes from './pages/games/DotsAndBoxes.tsx'
+import ReactionDuel from './pages/games/ReactionDuel.tsx'
 import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
@@ -57,6 +60,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <Route path="breakout" element={<Breakout />} />
           <Route path="pong" element={<Pong />} />
           <Route path="stack" element={<Stack />} />
+        <Route path="connect-four" element={<ConnectFour />} />
+          <Route path="dots-and-boxes" element={<DotsAndBoxes />} />
+          <Route path="reaction-duel" element={<ReactionDuel />} />
         </Route>
       </Routes>
     </BrowserRouter>

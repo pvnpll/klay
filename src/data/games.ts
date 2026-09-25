@@ -20,6 +20,63 @@ export interface GameMetadata {
 
 export const GAMES: GameMetadata[] = [
   {
+    id: "connect-four",
+    name: "Connect Four",
+    description: "Classic 2-player strategy. First to get 4 in a row wins!",
+    rules: [
+      "Drop your colored discs into the columns.",
+      "Get 4 of your colors in a row vertically, horizontally, or diagonally.",
+      "Block your opponent from doing the same."
+    ],
+    category: "Classic",
+    difficulty: "Medium",
+    estimatedDuration: "3 minutes",
+    scoreType: "score",
+    path: "/connect-four",
+    Icon: Grid3X3,
+    colorClass: "text-blue-400 bg-blue-400/10",
+    gradientClass: "from-blue-400/20 to-indigo-600/20"
+  },
+  {
+    id: "dots-and-boxes",
+    name: "Dots and Boxes",
+    description: "A 2-player game of claiming territory. Complete the boxes!",
+    rules: [
+      "Take turns drawing a single line between two unjoined adjacent dots.",
+      "If you complete the fourth side of a 1x1 box, you claim it and get another turn.",
+      "The game ends when no more lines can be placed.",
+      "The player with the most boxes wins!"
+    ],
+    category: "Classic",
+    difficulty: "Medium",
+    estimatedDuration: "5 minutes",
+    scoreType: "score",
+    path: "/dots-and-boxes",
+    Icon: Hash,
+    colorClass: "text-orange-400 bg-orange-400/10",
+    gradientClass: "from-orange-400/20 to-red-600/20"
+  },
+  {
+    id: "reaction-duel",
+    name: "Reaction Duel",
+    description: "A fast-paced 2-player split-screen reaction battle.",
+    rules: [
+      "Grab a friend. One player on each side of the device.",
+      "Wait for the screen to turn GREEN.",
+      "The first person to tap their side wins a point.",
+      "Tap too early (on red) and your opponent gets a free point!",
+      "First to 5 points wins the match."
+    ],
+    category: "Quick",
+    difficulty: "Medium",
+    estimatedDuration: "2 minutes",
+    scoreType: "score",
+    path: "/reaction-duel",
+    Icon: Zap,
+    colorClass: "text-yellow-400 bg-yellow-400/10",
+    gradientClass: "from-yellow-400/20 to-amber-600/20"
+  },
+  {
     id: "breakout",
     name: "Breakout",
     description: "Destroy all the bricks with the bouncing ball.",
