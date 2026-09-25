@@ -12,6 +12,8 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.117.2",
     "@tailwindcss/vite": "^4.3.3",
+    "@types/canvas-confetti": "^1.9.0",
+    "canvas-confetti": "^1.9.4",
     "chess.js": "^1.4.0",
     "lucide-react": "^1.48.0",
     "react": "^19.2.8",

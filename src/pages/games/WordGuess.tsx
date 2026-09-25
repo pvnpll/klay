@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { GameLayout } from '../../components/GameLayout'
+import confetti from 'canvas-confetti'
 
 const WORD_LIST = [
   'APPLE', 'BRAIN', 'CLOCK', 'DREAM', 'EARTH', 'FLAME', 'GHOST', 'HEART', 
@@ -76,6 +77,12 @@ export default function WordGuess() {
     if (currentGuess === targetWord) {
       setGameState('won')
       setMessage('You got it!')
+      confetti({
+        particleCount: 150,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#22c55e', '#16a34a', '#4ade80']
+      })
     } else if (newGuesses.length >= MAX_GUESSES) {
       setGameState('lost')
       setMessage(`Game Over. Word was ${targetWord}`)

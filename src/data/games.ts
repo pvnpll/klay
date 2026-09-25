@@ -116,6 +116,21 @@ export const GAMES = [
     gradientClass: "from-orange-400/20 to-amber-600/20"
   },
   {
+    id: "2048",
+    name: "2048",
+    description: "Join the numbers and get to the 2048 tile!",
+    rules: [
+      "Use arrow keys or swipe to move tiles.",
+      "Tiles with the same number merge into one when they touch.",
+      "Add them up to reach 2048!"
+    ],
+    category: "Puzzle",
+    path: "/2048",
+    Icon: Grid3X3,
+    colorClass: "text-yellow-400 bg-yellow-400/10",
+    gradientClass: "from-yellow-300/20 to-orange-500/20"
+  },
+  {
     id: "chess",
     name: "Chess",
     description: "Play chess against an AI or a friend with full animated pieces.",

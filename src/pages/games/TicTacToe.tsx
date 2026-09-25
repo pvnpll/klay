@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { GameLayout } from '../../components/GameLayout'
 import { RotateCcw, User, Cpu } from 'lucide-react'
+import confetti from 'canvas-confetti'
 
 type Player = 'X' | 'O' | null
 type GameMode = 'pvp' | 'pvc' | null
@@ -17,6 +18,17 @@ export default function TicTacToe() {
   const [board, setBoard] = useState<Player[]>(Array(9).fill(null))
   const [xIsNext, setXIsNext] = useState<boolean>(true)
   const [gameState, setGameState] = useState<GameState>('playing')
+
+  useEffect(() => {
+    if (gameState === 'winner_x' || gameState === 'winner_o') {
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: gameState === 'winner_x' ? ['#3b82f6', '#60a5fa'] : ['#ef4444', '#f87171']
+      })
+    }
+  }, [gameState])
 
   const checkWinner = (squares: Player[]): GameState => {
     for (let i = 0; i < WIN_COMBOS.length; i++) {
