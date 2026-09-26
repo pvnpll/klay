@@ -116,25 +116,25 @@ export default function OddOneOut() {
   return (
     <GameLayout title={gameMeta.name}>
       <div className="flex flex-col items-center w-full max-w-2xl mx-auto relative">
-        <div className="flex justify-between w-full mb-4 px-4 text-gray-400 font-medium bg-gray-950/80 py-3 rounded-xl border border-white/5 shadow-inner">
-          <span className="text-xl">Score: <span className="text-white">{score}</span></span>
-          <span className={`text-xl ${timeLeft <= 5 ? 'text-red-500 animate-pulse font-bold' : ''}`}>
-            Time: <span className="text-white tabular-nums">{timeLeft}s</span>
-          </span>
+        <div className="flex justify-between w-full mb-4 px-5 text-sm font-black bg-gradient-to-r from-fuchsia-500/20 to-purple-500/10 py-3 rounded-2xl border border-fuchsia-400/20 shadow-inner">
+          <span className="text-fuchsia-200">⭐ SCORE <span className="text-white text-2xl ml-1 tabular-nums">{score}</span></span>
+          <span className={`${timeLeft <= 5 ? 'text-red-400 animate-pulse' : 'text-gray-300'}`}>⏳ TIME <span className="text-white text-2xl ml-1 tabular-nums">{timeLeft}s</span></span>
         </div>
 
         <div 
           id="grid-container"
-          className="w-full aspect-square bg-gray-900 border-2 border-white/10 rounded-3xl p-2 sm:p-6 shadow-2xl relative transition-colors duration-200"
+          className="w-full aspect-square bg-gradient-to-b from-fuchsia-500/15 to-purple-600/5 border-2 border-fuchsia-400/20 rounded-3xl p-2 sm:p-6 shadow-[0_0_50px_rgba(217,70,239,0.2)] relative transition-colors duration-200"
         >
           {gameState === 'idle' && (
-            <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-20 backdrop-blur-sm rounded-3xl">
+            <div className="absolute inset-0 bg-black/60 flex flex-col gap-3 items-center justify-center z-20 backdrop-blur-sm rounded-3xl p-6 text-center">
+              <p className="text-5xl animate-float">🔍</p>
               <button
                 onClick={startGame}
-                className="bg-fuchsia-600 hover:bg-fuchsia-500 text-white px-8 py-4 rounded-xl font-bold text-xl shadow-lg transition-transform active:scale-95 animate-in zoom-in"
+                className="bg-gradient-to-r from-fuchsia-500 to-purple-600 hover:brightness-110 text-white px-8 py-4 rounded-2xl font-black text-xl shadow-lg shadow-fuchsia-500/30 transition-transform hover:-translate-y-0.5 active:scale-95"
               >
-                Start Game
+                🔍 Find the Odd One
               </button>
+              <p className="text-fuchsia-200/70 text-sm font-bold">Spot the impostor before time runs out!</p>
             </div>
           )}
 
@@ -156,7 +156,7 @@ export default function OddOneOut() {
                   key={i}
                   onClick={() => handleItemClick(i)}
                   disabled={gameState !== 'playing'}
-                  className={`flex items-center justify-center bg-gray-800 hover:bg-gray-700 rounded-lg sm:rounded-xl shadow-sm active:scale-95 transition-transform touch-manipulation ${textClass}`}
+                  className={`flex items-center justify-center bg-white/5 hover:bg-white/15 border border-white/10 rounded-xl sm:rounded-2xl shadow-sm active:scale-95 transition-transform touch-manipulation ${textClass}`}
                 >
                   {item}
                 </button>
@@ -170,13 +170,14 @@ export default function OddOneOut() {
         </div>
 
         {gameState === 'gameover' && (
-          <div className="mt-8 w-full animate-in slide-in-from-bottom-4">
+          <div className="mt-6 w-full animate-pop-in">
             <GameResult
               game={gameMeta}
               score={score}
               isNewBest={isNewBest}
               bestScore={bestScore}
               onRestart={startGame}
+              message={`🔍 ${score} impostors found!`}
             />
           </div>
         )}

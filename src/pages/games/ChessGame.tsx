@@ -195,83 +195,83 @@ export default function ChessGame() {
   }
 
   return (
-    <GameLayout title="Chess">
+    <GameLayout title="♟️ Chess">
       <div className="flex flex-col md:flex-row gap-8 items-center justify-center">
         
-        <div className="w-full max-w-[400px] md:max-w-[500px] bg-gray-900/80 p-2 md:p-4 rounded-xl border border-gray-700/50 shadow-2xl backdrop-blur-md">
+        <div className="w-full max-w-[400px] md:max-w-[500px] bg-gradient-to-b from-amber-500/15 to-stone-500/5 p-2 md:p-4 rounded-3xl border border-amber-300/20 shadow-[0_0_50px_rgba(251,191,36,0.2)] backdrop-blur-md">
           <Chessboard
             options={{
               position: fen,
               onPieceDrop: onDrop,
               boardOrientation: orientation,
-              darkSquareStyle: { backgroundColor: '#10b981' },
-              lightSquareStyle: { backgroundColor: '#ecfdf5' },
+              darkSquareStyle: { backgroundColor: '#b45309' },
+              lightSquareStyle: { backgroundColor: '#fef3c7' },
               animationDurationInMs: 300
             }}
           />
         </div>
 
-        <div className="flex flex-col gap-6 w-full max-w-[300px] bg-gray-900/60 backdrop-blur-md p-6 rounded-2xl border border-white/5 shadow-xl">
+        <div className="flex flex-col gap-5 w-full max-w-[300px] bg-white/5 backdrop-blur-md p-6 rounded-3xl border border-white/10 shadow-xl">
           <div>
-            <h3 className="text-xl font-bold text-white mb-2 tracking-tight">Game Status</h3>
-            <p className={`text-lg font-bold px-4 py-3 rounded-xl text-center shadow-inner ${
+            <h3 className="text-sm font-black text-amber-200 mb-2 uppercase tracking-widest">♟️ Game Status</h3>
+            <p className={`text-lg font-black px-4 py-3 rounded-2xl text-center shadow-inner border ${
               status.includes('Checkmate') || status.includes('Draw') 
-                ? 'bg-red-500/20 text-red-400 border border-red-500/30' 
-                : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                ? 'bg-red-500/20 text-red-300 border-red-500/30' 
+                : 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
             }`}>
-              {isComputing ? 'Computer thinking...' : status}
+              {isComputing ? '🤖 Computer thinking...' : status}
             </p>
           </div>
 
           <div>
-            <h3 className="text-xs font-black text-gray-500 mb-2 uppercase tracking-widest">Mode</h3>
-            <div className="flex bg-gray-950 p-1 rounded-xl">
+            <h3 className="text-xs font-black text-gray-300 mb-2 uppercase tracking-widest">🎮 Mode</h3>
+            <div className="flex bg-black/40 p-1 rounded-2xl border border-white/10">
               <button
                 onClick={() => setGameMode('1P')}
-                className={`flex-1 py-2 rounded-lg font-bold transition-all ${
+                className={`flex-1 py-2 rounded-xl font-black transition-all ${
                   gameMode === '1P' 
-                    ? 'bg-emerald-500 text-white shadow-lg' 
-                    : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                    ? 'bg-gradient-to-r from-emerald-400 to-lime-400 text-gray-950 shadow-lg' 
+                    : 'text-gray-300 hover:text-white hover:bg-white/10'
                 }`}
               >
-                1 Player
+                🤖 1P
               </button>
               <button
                 onClick={() => setGameMode('2P')}
-                className={`flex-1 py-2 rounded-lg font-bold transition-all ${
+                className={`flex-1 py-2 rounded-xl font-black transition-all ${
                   gameMode === '2P' 
-                    ? 'bg-emerald-500 text-white shadow-lg' 
-                    : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                    ? 'bg-gradient-to-r from-blue-500 to-cyan-400 text-white shadow-lg' 
+                    : 'text-gray-300 hover:text-white hover:bg-white/10'
                 }`}
               >
-                2 Player
+                👯 2P
               </button>
             </div>
           </div>
 
           {gameMode === '1P' && (
-            <div className="animate-in fade-in slide-in-from-top-2">
-              <h3 className="text-xs font-black text-gray-500 mb-2 uppercase tracking-widest">AI Difficulty</h3>
+            <div className="animate-pop-in">
+              <h3 className="text-xs font-black text-gray-300 mb-2 uppercase tracking-widest">🤖 AI Level</h3>
               <div className="flex gap-2">
                 <button
                   onClick={() => setDifficulty('easy')}
-                  className={`flex-1 py-2 rounded-xl font-bold transition-all ${
+                  className={`flex-1 py-2 rounded-xl font-black transition-all border ${
                     difficulty === 'easy' 
-                      ? 'bg-blue-500/20 text-blue-400 border border-blue-500/50' 
-                      : 'bg-gray-950 text-gray-400 hover:bg-gray-800 border border-transparent'
+                      ? 'bg-blue-500/20 text-blue-300 border-blue-400/50' 
+                      : 'bg-black/30 text-gray-400 hover:bg-white/10 border-transparent'
                   }`}
                 >
-                  Easy
+                  😌 Easy
                 </button>
                 <button
                   onClick={() => setDifficulty('medium')}
-                  className={`flex-1 py-2 rounded-xl font-bold transition-all ${
+                  className={`flex-1 py-2 rounded-xl font-black transition-all border ${
                     difficulty === 'medium' 
-                      ? 'bg-amber-500/20 text-amber-400 border border-amber-500/50' 
-                      : 'bg-gray-950 text-gray-400 hover:bg-gray-800 border border-transparent'
+                      ? 'bg-amber-500/20 text-amber-300 border-amber-400/50' 
+                      : 'bg-black/30 text-gray-400 hover:bg-white/10 border-transparent'
                   }`}
                 >
-                  Medium
+                  🔥 Spicy
                 </button>
               </div>
             </div>
@@ -280,25 +280,27 @@ export default function ChessGame() {
           <div className="pt-4 border-t border-white/10 flex flex-col gap-3">
             <button
               onClick={toggleOrientation}
-              className="w-full py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-xl font-bold transition-colors"
+              className="w-full py-3 bg-white/10 hover:bg-white/20 text-white rounded-2xl font-bold transition-colors border border-white/10"
             >
-              Flip Board
+              🔄 Flip Board
             </button>
             <button
               onClick={resetGame}
-              className="w-full py-3 bg-white hover:bg-gray-200 text-gray-900 rounded-xl font-bold transition-transform active:scale-95"
+              className="w-full py-3 bg-gradient-to-r from-amber-300 to-orange-400 hover:brightness-110 text-gray-950 rounded-2xl font-black transition-transform active:scale-95"
             >
-              Restart Game
+              ♟️ New Game
             </button>
           </div>
         </div>
 
         {game.isGameOver() && (
+          <div className="w-full md:max-w-sm animate-pop-in">
           <GameResult
             game={gameMeta}
-            message={status}
+            message={`🏆 ${status}`}
             onRestart={resetGame}
           />
+          </div>
         )}
       </div>
     </GameLayout>

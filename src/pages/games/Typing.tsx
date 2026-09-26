@@ -128,24 +128,24 @@ export default function Typing() {
   return (
     <GameLayout title={gameMeta.name}>
       <div className="flex flex-col items-center max-w-3xl mx-auto relative">
-        <div className="flex justify-between w-full mb-8 text-gray-400 font-medium bg-gray-950/80 p-4 rounded-xl border border-white/5 shadow-inner">
-          <div className="text-center flex-1 border-r border-white/5">
-            <p className="text-sm uppercase tracking-wider mb-1">Time</p>
-            <p className="text-2xl text-white tabular-nums">{formatTime(timeElapsed)}s</p>
+        <div className="flex justify-between w-full mb-6 bg-white/5 p-4 rounded-2xl border border-white/10 shadow-inner">
+          <div className="text-center flex-1 border-r border-white/10">
+            <p className="text-xs font-black uppercase tracking-widest text-cyan-200 mb-1">⏱️ Time</p>
+            <p className="text-2xl text-white font-black tabular-nums">{formatTime(timeElapsed)}s</p>
           </div>
-          <div className="text-center flex-1 border-r border-white/5">
-            <p className="text-sm uppercase tracking-wider mb-1">Accuracy</p>
-            <p className="text-2xl text-white tabular-nums">{accuracy}%</p>
+          <div className="text-center flex-1 border-r border-white/10">
+            <p className="text-xs font-black uppercase tracking-widest text-emerald-200 mb-1">🎯 Accuracy</p>
+            <p className="text-2xl text-white font-black tabular-nums">{accuracy}%</p>
           </div>
           <div className="text-center flex-1">
-            <p className="text-sm uppercase tracking-wider mb-1">Best WPM</p>
-            <p className="text-2xl text-indigo-400 tabular-nums">{bestWpm || '—'}</p>
+            <p className="text-xs font-black uppercase tracking-widest text-indigo-200 mb-1">👑 Best WPM</p>
+            <p className="text-2xl text-indigo-300 font-black tabular-nums">{bestWpm || '—'}</p>
           </div>
         </div>
 
         <div className="w-full">
           <div 
-            className="text-2xl sm:text-3xl md:text-4xl leading-relaxed sm:leading-relaxed font-medium mb-8 p-6 bg-gray-900/60 rounded-2xl border border-white/10 min-h-[160px] flex items-center shadow-inner cursor-text backdrop-blur-sm"
+            className="text-2xl sm:text-3xl md:text-4xl leading-relaxed font-bold mb-6 p-6 bg-gradient-to-b from-indigo-500/15 to-purple-500/5 rounded-3xl border border-indigo-400/20 min-h-[160px] flex items-center shadow-inner cursor-text backdrop-blur-sm"
             onClick={() => inputRef.current?.focus()}
           >
             <div className="w-full break-words">
@@ -160,30 +160,32 @@ export default function Typing() {
               value={userInput}
               onChange={handleInputChange}
               disabled={gameState === 'completed'}
-              className="w-full bg-gray-900 border-2 border-white/10 focus:border-indigo-500 rounded-xl px-6 py-4 text-xl text-white placeholder-gray-600 focus:outline-none transition-colors shadow-lg"
-              placeholder="Type the text above..."
+              className="w-full bg-black/40 border-2 border-indigo-400/30 focus:border-indigo-300 rounded-2xl px-6 py-4 text-xl text-white placeholder-gray-500 focus:outline-none transition-colors shadow-lg font-medium"
+              placeholder="⌨️ Type the text above..."
               autoComplete="off"
               autoCorrect="off"
               autoCapitalize="off"
               spellCheck="false"
             />
             {gameState === 'ready' && (
-              <div className="absolute right-6 top-1/2 -translate-y-1/2 text-gray-500 animate-pulse">
-                Start typing to begin
+              <div className="absolute right-6 top-1/2 -translate-y-1/2 text-indigo-200/70 text-sm font-black animate-pulse">
+                Start typing! ✍️
               </div>
             )}
           </div>
         </div>
 
         {gameState === 'completed' && (
+          <div className="mt-6 w-full animate-pop-in">
           <GameResult
             game={gameMeta}
             score={wpm}
             isNewBest={isNewBest}
             bestScore={bestWpm}
             onRestart={initGame}
-            message={`Accuracy: ${accuracy}%`}
+            message={`⌨️ ${wpm} WPM • 🎯 ${accuracy}% accurate!`}
           />
+          </div>
         )}
       </div>
     </GameLayout>

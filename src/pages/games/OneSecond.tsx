@@ -86,9 +86,9 @@ export default function OneSecond() {
   return (
     <GameLayout title={gameMeta.name}>
       <div className="flex flex-col items-center relative w-full max-w-2xl mx-auto">
-        <div className="flex justify-between w-full mb-4 px-4 text-gray-400 font-medium bg-gray-950/80 py-3 rounded-xl border border-white/5 shadow-inner">
-          <span className="text-xl">Target: <span className="text-white">1.000s</span></span>
-          <span className="text-xl">Best: <span className="text-white">{bestAccuracy ? `${bestAccuracy.toFixed(2)}%` : '—'}</span></span>
+        <div className="flex justify-between w-full mb-4 px-5 text-sm font-black bg-gradient-to-r from-cyan-500/20 to-blue-500/10 py-3 rounded-2xl border border-cyan-400/20 shadow-inner">
+          <span className="text-cyan-200">🎯 TARGET <span className="text-white text-xl ml-1 tabular-nums">1.000s</span></span>
+          <span className="text-gray-300">👑 BEST <span className="text-white text-xl ml-1 tabular-nums">{bestAccuracy ? `${bestAccuracy.toFixed(2)}%` : '—'}</span></span>
         </div>
 
         <div 
@@ -97,45 +97,48 @@ export default function OneSecond() {
           onKeyDown={handleStart}
           onKeyUp={handleStop}
           tabIndex={0}
-          className={`w-full h-80 rounded-3xl flex flex-col items-center justify-center cursor-pointer transition-colors select-none shadow-2xl touch-none focus:outline-none focus-visible:ring-4 focus-visible:ring-cyan-500
-            ${gameState === 'idle' ? 'bg-gray-800 hover:bg-gray-700' : ''}
-            ${gameState === 'holding' ? 'bg-cyan-600 scale-95' : ''}
-            ${gameState === 'result' ? 'bg-gray-900' : ''}
+          className={`w-full h-80 rounded-3xl flex flex-col items-center justify-center cursor-pointer transition-all select-none shadow-2xl touch-none focus:outline-none focus-visible:ring-4 focus-visible:ring-cyan-500 border-2
+            ${gameState === 'idle' ? 'bg-gradient-to-b from-cyan-500/15 to-blue-600/5 border-cyan-400/25 hover:border-cyan-300/40' : ''}
+            ${gameState === 'holding' ? 'bg-gradient-to-b from-cyan-400 to-blue-500 border-white/40 scale-95 shadow-[0_0_60px_rgba(34,211,238,0.5)]' : ''}
+            ${gameState === 'result' ? 'bg-gradient-to-b from-slate-500/15 to-slate-700/10 border-white/15' : ''}
           `}
         >
           {gameState === 'idle' && (
-            <div className="text-center">
-              <span className="block text-4xl sm:text-5xl font-black text-white mb-2">Hold down</span>
-              <span className="block text-xl text-gray-400">Release at exactly 1.000s</span>
+            <div className="text-center flex flex-col items-center gap-2">
+              <span className="text-5xl animate-float">⏱️</span>
+              <span className="block text-4xl sm:text-5xl font-black text-white">Hold down</span>
+              <span className="block text-base font-bold text-cyan-200/80">Release at exactly 1.000s</span>
+              <span className="block text-xs font-black uppercase tracking-widest text-white/40 mt-2">Timer vanishes after 300ms 😈</span>
             </div>
           )}
-          
+
           {gameState === 'holding' && (
-            <div className="text-6xl sm:text-8xl font-black text-white tabular-nums tracking-tight">
+            <div className="text-6xl sm:text-8xl font-black text-white tabular-nums tracking-tight drop-shadow-lg">
               {showTimer ? (timeElapsed / 1000).toFixed(3) : '?.???'}
             </div>
           )}
 
           {gameState === 'result' && (
-            <div className="text-center animate-in zoom-in duration-300">
+            <div className="text-center animate-pop-in">
               <div className="text-6xl sm:text-8xl font-black text-white tabular-nums tracking-tight mb-2">
                 {(timeElapsed / 1000).toFixed(3)}s
               </div>
-              <div className={`text-2xl font-bold ${Math.abs(1000 - timeElapsed) < 50 ? 'text-green-400' : 'text-rose-400'}`}>
-                {timeElapsed < 1000 ? 'Too Early!' : timeElapsed > 1000 ? 'Too Late!' : 'Perfect!'}
+              <div className={`text-2xl font-black ${Math.abs(1000 - timeElapsed) < 50 ? 'text-emerald-300' : 'text-rose-300'}`}>
+                {timeElapsed < 1000 ? '🐢 Too Early!' : timeElapsed > 1000 ? '🐇 Too Late!' : '🎯 Perfect!'}
               </div>
             </div>
           )}
         </div>
 
         {gameState === 'result' && (
-          <div className="mt-8 w-full animate-in slide-in-from-bottom-4">
+          <div className="mt-6 w-full animate-pop-in">
             <GameResult
               game={gameMeta}
               score={parseFloat((100 - Math.abs(1000 - timeElapsed) / 10).toFixed(2))}
               isNewBest={isNewBest}
               bestScore={bestAccuracy}
               onRestart={restart}
+              message={`⏱️ You hit ${(timeElapsed / 1000).toFixed(3)}s`}
             />
           </div>
         )}

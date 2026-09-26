@@ -163,17 +163,17 @@ export default function Memory() {
   return (
     <GameLayout title={gameMeta.name}>
       <div className="flex flex-col items-center max-w-2xl mx-auto relative">
-        <div className="flex justify-between w-full mb-6 text-gray-400 font-medium bg-gray-950/80 px-6 py-4 rounded-xl border border-white/5 shadow-inner">
-          <span className="text-xl">Moves: <span className="text-white">{moves}</span></span>
-          <span className="text-xl">
-            Time: <span className="text-white tabular-nums">{formatTime(timeElapsed)}s</span>
+        <div className="flex justify-between w-full mb-6 px-6 py-3 rounded-2xl border border-purple-400/20 bg-gradient-to-r from-purple-500/15 to-fuchsia-500/10 text-sm font-black shadow-inner">
+          <span className="text-purple-200">👣 MOVES <span className="text-white text-xl ml-1 tabular-nums">{moves}</span></span>
+          <span className="text-fuchsia-200">
+            ⏱️ TIME <span className="text-white text-xl ml-1 tabular-nums">{formatTime(timeElapsed)}s</span>
           </span>
-          <span className="text-xl hidden sm:inline">
-            Best: <span className="text-white tabular-nums">{bestTime ? `${bestTime}s` : '—'}</span>
+          <span className="hidden sm:inline text-gray-300">
+            👑 BEST <span className="text-white text-xl ml-1 tabular-nums">{bestTime ? `${bestTime}s` : '—'}</span>
           </span>
         </div>
 
-        <div className="grid grid-cols-4 gap-3 sm:gap-4 w-full aspect-[2/1]">
+        <div className="grid grid-cols-4 gap-3 sm:gap-4 w-full">
           {cards.map((card) => {
             const Icon = ICONS[card.symbol]
             const show = card.isFlipped || card.isMatched
@@ -183,7 +183,7 @@ export default function Memory() {
                 key={card.id}
                 onClick={() => handleCardClick(card.id)}
                 disabled={show || isProcessing || gameState === 'completed'}
-                className="relative transition-transform duration-300 ease-in-out focus:outline-none focus-visible:ring-4 focus-visible:ring-purple-400 rounded-xl"
+                className="relative aspect-square transition-transform duration-300 ease-in-out focus:outline-none focus-visible:ring-4 focus-visible:ring-purple-400 rounded-2xl hover:-translate-y-1 active:scale-95"
                 style={{
                   transform: show ? 'rotateY(180deg)' : 'rotateY(0deg)',
                   transformStyle: 'preserve-3d',
@@ -191,20 +191,20 @@ export default function Memory() {
                 }}
               >
                 <div 
-                  className="absolute inset-0 bg-gray-800 hover:bg-gray-700 rounded-xl border border-gray-700 flex items-center justify-center shadow-lg"
+                  className="absolute inset-0 bg-gradient-to-br from-indigo-600 to-purple-700 hover:from-indigo-500 hover:to-purple-600 rounded-2xl border-2 border-white/20 flex items-center justify-center shadow-lg text-3xl"
                   style={{ backfaceVisibility: 'hidden' }}
                 >
-                  <div className="w-12 h-12 rounded-full border-2 border-gray-600/30"></div>
+                  ❓
                 </div>
                 
                 <div 
-                  className={`absolute inset-0 rounded-xl flex items-center justify-center ${card.isMatched ? 'bg-purple-900/50 border-purple-500/50' : 'bg-purple-600'} border-2`}
+                  className={`absolute inset-0 rounded-2xl flex items-center justify-center border-2 shadow-[0_0_20px_rgba(168,85,247,0.35)] ${card.isMatched ? 'bg-emerald-500/90 border-emerald-200' : 'bg-gradient-to-br from-amber-300 to-orange-400 border-white/40'}`}
                   style={{ 
                     backfaceVisibility: 'hidden',
                     transform: 'rotateY(180deg)'
                   }}
                 >
-                  <Icon size={40} className={card.isMatched ? 'text-purple-400/50' : 'text-white'} />
+                  <Icon size={40} className={card.isMatched ? 'text-white' : 'text-gray-900'} />
                 </div>
               </button>
             )
@@ -212,25 +212,27 @@ export default function Memory() {
         </div>
         
         {gameState !== 'completed' && (
-          <div className="mt-12 flex justify-center w-full">
+          <div className="mt-8 flex justify-center w-full">
             <button
               onClick={initGame}
-              className="text-gray-500 hover:text-gray-300 font-medium transition-colors"
+              className="text-sm text-gray-400 hover:text-white font-bold bg-white/5 hover:bg-white/10 border border-white/10 px-5 py-2.5 rounded-full transition-colors"
             >
-              Restart Game
+              🔀 Shuffle & Restart
             </button>
           </div>
         )}
 
         {gameState === 'completed' && (
+          <div className="mt-6 w-full animate-pop-in">
           <GameResult
             game={gameMeta}
             score={parseFloat((timeElapsed / 1000).toFixed(1))}
             isNewBest={isNewBest}
             bestScore={bestTime}
-            message={`Completed in ${moves} moves!`}
+            message={`🎉 Completed in ${moves} moves!`}
             onRestart={initGame}
           />
+          </div>
         )}
       </div>
     </GameLayout>

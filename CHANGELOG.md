@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-09-26
+
+### Added
+- Complete arcade visual redesign across all 26 games with neon gradients, glowing focus borders, vibrant stat pills, and playful 3D button interactions.
+- Today's Challenge hero card on Homepage with glowing badges, completion counters, and animated highlights.
+- Playful victory and status indicators (`animate-pop-in`, particle confetti, customized feedback messages per game).
+- 2-Player UI modernization for `ConnectFour`, `DotsAndBoxes`, `ReactionDuel`, and `TicTacToe` with dual-color player indicators.
+
+### Fixed
+- Stale React closure bugs in high-frequency animation loops (`PerfectTiming`, `RiskIt`, `DontTouchRed`, `ReactionDuel`, `OneSecond`).
+- Ghost clicks and race conditions after game over by synchronizing animation callbacks with state and score refs.
+- Timer teardown and resource leaks on game resets and page navigation.
+
 ## [1.0.0] - 2026-09-25
 
 ### Added

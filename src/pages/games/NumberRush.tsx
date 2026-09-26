@@ -93,27 +93,32 @@ export default function NumberRush() {
   return (
     <GameLayout title={gameMeta.name}>
       <div className="flex flex-col items-center max-w-2xl mx-auto relative">
-        <div className="flex justify-between w-full mb-6 text-gray-400 font-medium">
-          <span className="text-xl">
-            Time: <span className="text-white tabular-nums">{formatTime(timeElapsed)}s</span>
-          </span>
-          <span className="text-xl">
-            Best: <span className="text-white tabular-nums">{bestTime ? `${bestTime}s` : '—'}</span>
-          </span>
+        <div className="flex justify-between w-full mb-4 px-5 text-sm font-black bg-gradient-to-r from-blue-500/20 to-cyan-500/10 py-3 rounded-2xl border border-blue-400/20 shadow-inner">
+          <span className="text-blue-200">🔢 NEXT <span className="text-white text-2xl ml-1 tabular-nums">{nextExpected}</span></span>
+          <span className="text-cyan-200">⏱️ TIME <span className="text-white text-xl ml-1 tabular-nums">{formatTime(timeElapsed)}s</span></span>
+          <span className="text-gray-300">👑 BEST <span className="text-white text-xl ml-1 tabular-nums">{bestTime ? `${bestTime}s` : '—'}</span></span>
         </div>
 
-        <div className="grid grid-cols-4 sm:grid-cols-5 gap-3 sm:gap-4 w-full">
+        {/* progress */}
+        <div className="w-full h-3 bg-white/10 rounded-full overflow-hidden mb-5 border border-white/10">
+          <div className="h-full bg-gradient-to-r from-blue-400 via-cyan-300 to-emerald-300 rounded-full transition-all duration-200" style={{ width: `${((nextExpected - 1) / 20) * 100}%` }} />
+        </div>
+
+        <div className="grid grid-cols-4 sm:grid-cols-5 gap-2.5 sm:gap-3 w-full">
           {numbers.map((num) => {
             const isClicked = num < nextExpected
             const isWrong = wrongFeedback === num
+            const isNext = num === nextExpected
             
-            let btnClass = "bg-gray-800 hover:bg-gray-700 text-white"
+            let btnClass = "bg-white/5 border-white/10 text-white"
             if (isClicked) {
-              btnClass = "bg-emerald-500/20 text-emerald-500/50 cursor-default"
+              btnClass = "bg-emerald-500/20 border-emerald-400/30 text-emerald-300/50 cursor-default scale-95"
             } else if (isWrong) {
-              btnClass = "bg-red-500 text-white animate-shake"
+              btnClass = "bg-red-500 border-red-300 text-white animate-shake"
+            } else if (isNext) {
+              btnClass = "bg-gradient-to-b from-amber-300 to-orange-400 border-white/40 text-gray-950 shadow-[0_0_20px_rgba(251,191,36,0.5)] animate-pulse scale-105"
             } else if (gameState === 'playing' || gameState === 'ready') {
-              btnClass = "bg-blue-600 hover:bg-blue-500 text-white shadow-lg hover:-translate-y-1"
+              btnClass = "bg-gradient-to-b from-blue-500 to-blue-700 border-white/20 text-white shadow-lg hover:-translate-y-1 hover:brightness-110 active:scale-95"
             }
 
             return (
@@ -121,33 +126,36 @@ export default function NumberRush() {
                 key={num}
                 onClick={() => handleNumberClick(num)}
                 disabled={isClicked}
-                className={`aspect-square flex items-center justify-center rounded-xl font-bold text-2xl sm:text-3xl transition-all select-none ${btnClass} focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-400`}
+                className={`aspect-square flex items-center justify-center rounded-2xl font-black text-2xl sm:text-3xl transition-all select-none border-2 tabular-nums ${btnClass} focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-400`}
               >
-                {num}
+                {isClicked ? '✅' : num}
               </button>
             )
           })}
         </div>
         
         {gameState !== 'completed' && (
-          <div className="mt-8 flex justify-center w-full">
+          <div className="mt-6 flex justify-center w-full">
             <button
               onClick={initGame}
-              className="text-gray-500 hover:text-gray-300 font-medium transition-colors"
+              className="text-sm text-gray-300 hover:text-white font-bold bg-white/5 hover:bg-white/10 border border-white/10 px-5 py-2.5 rounded-full transition-colors"
             >
-              Restart Game
+              🔀 Shuffle Numbers
             </button>
           </div>
         )}
 
         {gameState === 'completed' && (
+          <div className="mt-6 w-full animate-pop-in">
           <GameResult
             game={gameMeta}
             score={parseFloat((timeElapsed / 1000).toFixed(2))}
             isNewBest={isNewBest}
             bestScore={bestTime}
             onRestart={initGame}
+            message={`🔢 1→20 in lightning time!`}
           />
+          </div>
         )}
       </div>
       

@@ -128,16 +128,16 @@ export default function DotsAndBoxes() {
     <GameLayout title={gameMeta.name}>
       <div className="flex flex-col items-center w-full max-w-2xl mx-auto">
         
-        <div className="flex justify-between items-center w-full mb-6 px-8 text-gray-400 font-medium bg-gray-950/80 py-3 rounded-xl border border-white/5 shadow-inner">
-          <div className={`flex flex-col items-center transition-opacity ${currentPlayer === 'p1' && gameState === 'playing' ? 'opacity-100 scale-110' : 'opacity-40'}`}>
-            <span className="text-xs uppercase text-orange-500 font-bold mb-1">Player 1</span>
+        <div className="flex justify-between items-center w-full mb-6 px-6 sm:px-8 font-black bg-gradient-to-r from-orange-500/15 via-purple-500/10 to-blue-500/15 py-3 rounded-2xl border border-white/10 shadow-inner">
+          <div className={`flex flex-col items-center transition-all ${currentPlayer === 'p1' && gameState === 'playing' ? 'scale-110 drop-shadow-[0_0_12px_rgba(249,115,22,0.8)]' : 'opacity-40'}`}>
+            <span className="text-xs uppercase text-orange-400 font-black mb-1 tracking-wider">🟠 Player 1</span>
             <span className="text-3xl font-black text-orange-400 tabular-nums">{score.p1}</span>
           </div>
           
-          <span className="text-sm font-black text-gray-700">VS</span>
+          <span className="text-xs font-black px-3 py-1 bg-white/10 rounded-full border border-white/15 text-white/70">VS</span>
           
-          <div className={`flex flex-col items-center transition-opacity ${currentPlayer === 'p2' && gameState === 'playing' ? 'opacity-100 scale-110' : 'opacity-40'}`}>
-            <span className="text-xs uppercase text-blue-400 font-bold mb-1">Player 2</span>
+          <div className={`flex flex-col items-center transition-all ${currentPlayer === 'p2' && gameState === 'playing' ? 'scale-110 drop-shadow-[0_0_12px_rgba(59,130,246,0.8)]' : 'opacity-40'}`}>
+            <span className="text-xs uppercase text-blue-400 font-black mb-1 tracking-wider">🔵 Player 2</span>
             <span className="text-3xl font-black text-blue-400 tabular-nums">{score.p2}</span>
           </div>
         </div>

@@ -142,40 +142,40 @@ export default function Sequence() {
   return (
     <GameLayout title={gameMeta.name}>
       <div className="flex flex-col items-center w-full max-w-2xl mx-auto relative">
-        <div className="flex justify-between w-full mb-4 px-4 text-gray-400 font-medium bg-gray-950/80 py-3 rounded-xl border border-white/5 shadow-inner">
-          <span className="text-xl">Score: <span className="text-white">{score}</span></span>
-          <span className={`text-xl ${timeLeft <= 5 ? 'text-red-500 animate-pulse font-bold' : ''}`}>
-            Time: <span className="text-white tabular-nums">{timeLeft}s</span>
-          </span>
+        <div className="flex justify-between w-full mb-4 px-5 text-sm font-black bg-gradient-to-r from-blue-500/20 to-cyan-500/10 py-3 rounded-2xl border border-blue-400/20 shadow-inner">
+          <span className="text-blue-200">⭐ SCORE <span className="text-white text-2xl ml-1 tabular-nums">{score}</span></span>
+          <span className={`${timeLeft <= 5 ? 'text-red-400 animate-pulse' : 'text-gray-300'}`}>⏳ TIME <span className="text-white text-2xl ml-1 tabular-nums">{timeLeft}s</span></span>
         </div>
 
         <div 
           id="seq-container"
-          className="w-full bg-gray-900 border-2 border-white/10 rounded-3xl p-6 sm:p-12 shadow-2xl relative transition-colors duration-200"
+          className="w-full bg-gradient-to-b from-blue-500/15 to-indigo-600/5 border-2 border-blue-400/20 rounded-3xl p-6 sm:p-12 shadow-[0_0_50px_rgba(59,130,246,0.2)] relative transition-colors duration-200"
         >
           {gameState === 'idle' && (
-            <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-20 backdrop-blur-sm rounded-3xl">
+            <div className="absolute inset-0 bg-black/60 flex flex-col gap-3 items-center justify-center z-20 backdrop-blur-sm rounded-3xl p-6 text-center">
+              <p className="text-5xl animate-float">🔢</p>
               <button
                 onClick={startGame}
-                className="bg-blue-600 hover:bg-blue-500 text-white px-8 py-4 rounded-xl font-bold text-xl shadow-lg transition-transform active:scale-95 animate-in zoom-in"
+                className="bg-gradient-to-r from-blue-500 to-cyan-400 hover:brightness-110 text-white px-8 py-4 rounded-2xl font-black text-xl shadow-lg shadow-blue-500/30 transition-transform hover:-translate-y-0.5 active:scale-95"
               >
-                Start Game
+                🔢 Play Sequences
               </button>
+              <p className="text-blue-200/70 text-sm font-bold">Crack the pattern. What comes next?</p>
             </div>
           )}
 
           <div className="flex flex-col items-center justify-center min-h-[250px]">
             {currentLevel && gameState !== 'idle' && (
               <>
-                <h2 className="text-gray-400 text-lg mb-8 uppercase tracking-widest font-bold">What comes next?</h2>
+                <h2 className="text-blue-200 text-sm mb-8 uppercase tracking-[0.25em] font-black">🤔 What comes next?</h2>
                 
                 <div className="flex flex-wrap justify-center gap-2 sm:gap-4 mb-12">
                   {currentLevel.sequence.map((num, i) => (
                     <div key={i} className="text-4xl sm:text-5xl font-black text-white tabular-nums">
-                      {num}<span className="text-gray-600">,</span>
+                      {num}<span className="text-blue-300/40">,</span>
                     </div>
                   ))}
-                  <div className="text-4xl sm:text-5xl font-black text-blue-400 border-b-4 border-blue-400 pb-1">
+                  <div className="text-4xl sm:text-5xl font-black text-amber-300 border-b-4 border-amber-300 pb-1 animate-pulse">
                     ?
                   </div>
                 </div>
@@ -185,7 +185,7 @@ export default function Sequence() {
                     <button
                       key={i}
                       onClick={() => handleOptionClick(opt)}
-                      className="bg-gray-800 hover:bg-gray-700 text-white py-6 rounded-2xl text-3xl font-bold shadow-sm active:scale-95 transition-transform tabular-nums touch-manipulation"
+                      className="bg-gradient-to-b from-indigo-500 to-indigo-700 hover:brightness-110 text-white py-6 rounded-2xl text-3xl font-black shadow-lg active:scale-95 transition-transform tabular-nums touch-manipulation border border-white/20"
                     >
                       {opt}
                     </button>
@@ -198,13 +198,14 @@ export default function Sequence() {
         </div>
 
         {gameState === 'gameover' && (
-          <div className="mt-8 w-full animate-in slide-in-from-bottom-4">
+          <div className="mt-6 w-full animate-pop-in">
             <GameResult
               game={gameMeta}
               score={score}
               isNewBest={isNewBest}
               bestScore={bestScore}
               onRestart={startGame}
+              message={`🔢 ${score} patterns cracked!`}
             />
           </div>
         )}

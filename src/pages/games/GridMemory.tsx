@@ -93,28 +93,36 @@ export default function GridMemory() {
     <GameLayout title={gameMeta.name}>
       <div className="flex flex-col items-center w-full max-w-md mx-auto relative">
         
-        <div className="flex justify-between w-full mb-4 px-4 text-gray-400 font-medium bg-gray-950/80 py-3 rounded-xl border border-white/5 shadow-inner">
-          <span className="text-xl">Level: <span className="text-white">{score + 1}</span></span>
-          <span className="text-xl">Best: <span className="text-white">{bestScore || 0}</span></span>
+        <div className="flex justify-between w-full mb-3 px-5 text-sm font-black bg-gradient-to-r from-purple-500/20 to-fuchsia-500/10 py-3 rounded-2xl border border-purple-400/20 shadow-inner">
+          <span className="text-purple-200">🧠 LEVEL <span className="text-white text-xl ml-1 tabular-nums">{score + 1}</span></span>
+          <span className="text-gray-300">👑 BEST <span className="text-white text-xl ml-1 tabular-nums">{bestScore || 0}</span></span>
         </div>
 
-        <div className="h-8 mb-2 flex items-center justify-center">
+        <div className="h-10 mb-2 flex items-center justify-center">
+          {gameState === 'showing' && (
+            <div className="text-amber-300 font-black text-lg animate-pulse">👀 Memorize the glow!</div>
+          )}
+          {gameState === 'playing' && (
+            <div className="text-cyan-300 font-black text-lg">👆 Now tap them!</div>
+          )}
           {message && (
-            <div className="text-emerald-400 font-bold text-xl animate-in fade-in zoom-in duration-200">
+            <div className="text-emerald-300 font-black text-xl animate-pop-in">
               {message}
             </div>
           )}
         </div>
 
-        <div className="bg-gray-800 p-3 sm:p-4 rounded-2xl shadow-2xl w-full aspect-square flex flex-col relative touch-none select-none">
+        <div className="bg-gradient-to-b from-purple-500/15 to-indigo-500/5 border border-purple-400/20 p-3 sm:p-4 rounded-3xl shadow-[0_0_40px_rgba(168,85,247,0.25)] w-full aspect-square flex flex-col relative touch-none select-none">
           {gameState === 'idle' && score === 0 && (
-            <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-20 backdrop-blur-sm rounded-2xl">
+            <div className="absolute inset-0 bg-black/60 flex flex-col gap-3 items-center justify-center z-20 backdrop-blur-sm rounded-3xl p-6 text-center">
+              <p className="text-5xl animate-float">🧠</p>
               <button
                 onClick={startGame}
-                className="bg-purple-600 hover:bg-purple-500 text-white px-8 py-4 rounded-xl font-bold text-xl shadow-lg transition-transform active:scale-95 animate-in zoom-in"
+                className="bg-gradient-to-r from-purple-500 to-fuchsia-500 text-white px-8 py-4 rounded-2xl font-black text-xl shadow-lg shadow-purple-500/30 transition-transform hover:-translate-y-0.5 active:scale-95"
               >
-                Start Game
+                🧠 Test Memory
               </button>
+              <p className="text-purple-200/70 text-sm font-bold">Watch, remember, repeat!</p>
             </div>
           )}
 
@@ -129,16 +137,18 @@ export default function GridMemory() {
               const isActive = activeTiles.includes(i)
               const isClicked = clickedTiles.includes(i)
               
-              let tileClass = 'bg-gray-700 shadow-md'
+              let tileClass = 'bg-white/5 border-white/10'
               
               if (gameState === 'showing' && isActive) {
-                tileClass = 'bg-white shadow-[0_0_20px_rgba(255,255,255,0.8)] scale-105'
+                tileClass = 'bg-gradient-to-br from-amber-200 to-yellow-400 border-white/60 shadow-[0_0_25px_rgba(251,191,36,0.8)] scale-105'
               } else if (gameState === 'playing' && isClicked) {
-                tileClass = 'bg-white scale-95 opacity-50'
+                tileClass = 'bg-emerald-400 border-emerald-200 scale-95 shadow-[0_0_15px_rgba(52,211,153,0.6)]'
+              } else if (gameState === 'playing') {
+                tileClass = 'bg-white/5 border-white/10 hover:bg-white/15 hover:scale-[1.03] active:scale-95'
               } else if (gameState === 'gameover') {
-                if (isActive && !isClicked) tileClass = 'bg-emerald-500/50' // missed
-                if (isActive && isClicked) tileClass = 'bg-white' // got it
-                if (!isActive && isClicked) tileClass = 'bg-red-500' // wrong click
+                if (isActive && !isClicked) tileClass = 'bg-emerald-500/40 border-emerald-300/40' // missed
+                if (isActive && isClicked) tileClass = 'bg-emerald-400 border-emerald-200' // got it
+                if (!isActive && isClicked) tileClass = 'bg-red-500 border-red-300' // wrong click
               }
 
               return (
@@ -146,26 +156,28 @@ export default function GridMemory() {
                   key={i}
                   onMouseDown={() => handleTileClick(i)}
                   onTouchStart={(e) => { e.preventDefault(); handleTileClick(i); }}
-                  className={`rounded-xl transition-all duration-200 cursor-pointer ${tileClass} ${gameState === 'playing' ? 'hover:bg-gray-600 active:scale-95' : ''}`}
-                />
+                  className={`rounded-2xl border-2 transition-all duration-200 cursor-pointer flex items-center justify-center text-xl ${tileClass}`}
+                >
+                  {(gameState === 'showing' && isActive) ? '✨' : (isClicked ? '✅' : '')}
+                </div>
               )
             })}
           </div>
           
           {gameState === 'gameover' && (
-            <div className="absolute inset-0 bg-red-500/10 z-10 animate-in fade-in rounded-2xl pointer-events-none" />
+            <div className="absolute inset-0 bg-red-500/10 z-10 rounded-3xl pointer-events-none" />
           )}
         </div>
 
         {gameState === 'gameover' && (
-          <div className="mt-8 w-full animate-in slide-in-from-bottom-4">
+          <div className="mt-6 w-full animate-pop-in">
             <GameResult
               game={gameMeta}
               score={score}
               isNewBest={isNewBest}
               bestScore={bestScore}
               onRestart={startGame}
-              message={`You reached Level ${score + 1}`}
+              message={`🧠 You reached Level ${score + 1}`}
             />
           </div>
         )}

@@ -24,12 +24,14 @@ export default function PerfectTiming() {
 
   const requestRef = useRef<number | null>(null)
   const lastTimeRef = useRef<number | null>(null)
+  const gameStateRef = useRef(gameState)
+  gameStateRef.current = gameState
 
   const [uiBarPos, setUiBarPos] = useState(0)
   const [uiTarget, setUiTarget] = useState({ start: 40, width: 20 })
 
   const update = useCallback((time: number) => {
-    if (gameState !== 'playing') return
+    if (gameStateRef.current !== 'playing') return
     
     if (lastTimeRef.current !== null) {
       const deltaTime = (time - lastTimeRef.current) / 1000
@@ -50,7 +52,7 @@ export default function PerfectTiming() {
     
     lastTimeRef.current = time
     requestRef.current = requestAnimationFrame(update)
-  }, [gameState])
+  }, [])
 
   useEffect(() => {
     if (gameState === 'playing') {
@@ -62,9 +64,12 @@ export default function PerfectTiming() {
     }
   }, [gameState, update])
 
+  const scoreRef = useRef(0)
+
   const startGame = () => {
     setGameState('playing')
     setScore(0)
+    scoreRef.current = 0
     setIsNewBest(false)
     
     barPosRef.current = 0
@@ -77,12 +82,12 @@ export default function PerfectTiming() {
   }
 
   const handleAction = () => {
-    if (gameState === 'idle') {
+    if (gameStateRef.current === 'idle') {
       startGame()
       return
     }
     
-    if (gameState !== 'playing') return
+    if (gameStateRef.current !== 'playing') return
 
     const pos = barPosRef.current
     const targetStart = targetStartRef.current
@@ -90,8 +95,8 @@ export default function PerfectTiming() {
 
     if (pos >= targetStart && pos <= targetEnd) {
       // Hit!
-      const newScore = score + 1
-      setScore(newScore)
+      scoreRef.current += 1
+      setScore(scoreRef.current)
       
       // Increase difficulty
       speedRef.current = Math.min(200, speedRef.current + 10)
@@ -102,7 +107,7 @@ export default function PerfectTiming() {
     } else {
       // Miss
       setGameState('gameover')
-      const { isNewBest, bestScore: newBest } = saveScore(gameMeta, score)
+      const { isNewBest, bestScore: newBest } = saveScore(gameMeta, scoreRef.current)
       setIsNewBest(isNewBest)
       setBestScore(newBest)
     }
@@ -117,33 +122,36 @@ export default function PerfectTiming() {
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [gameState, score])
+  }, [])
 
   return (
     <GameLayout title={gameMeta.name}>
       <div className="flex flex-col items-center w-full max-w-2xl mx-auto">
-        <div className="flex justify-between w-full mb-8 px-4 text-gray-400 font-medium bg-gray-950/80 py-3 rounded-xl border border-white/5 shadow-inner">
-          <span className="text-xl">Score: <span className="text-white">{score}</span></span>
-          <span className="text-xl">Best: <span className="text-white">{bestScore || 0}</span></span>
+        <div className="flex justify-between w-full mb-6 px-5 text-sm font-black bg-gradient-to-r from-rose-500/20 to-amber-500/10 py-3 rounded-2xl border border-rose-400/20 shadow-inner">
+          <span className="text-rose-200">🎯 HITS <span className="text-white text-xl ml-1 tabular-nums">{score}</span></span>
+          <span className="text-gray-300">👑 BEST <span className="text-white text-xl ml-1 tabular-nums">{bestScore || 0}</span></span>
         </div>
 
         <div 
           onClick={handleAction}
-          className="w-full h-64 sm:h-80 bg-gray-900 border-2 border-white/10 rounded-3xl flex flex-col items-center justify-center relative cursor-pointer shadow-2xl overflow-hidden group select-none touch-manipulation"
+          className="w-full h-64 sm:h-80 bg-gradient-to-b from-[#2b0f2e] to-[#140b24] border-2 border-rose-400/25 rounded-3xl flex flex-col items-center justify-center relative cursor-pointer shadow-[0_0_50px_rgba(244,63,94,0.2)] overflow-hidden group select-none touch-manipulation"
         >
           {gameState === 'idle' && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-[2px] z-20">
-              <span className="text-3xl sm:text-5xl font-black text-white px-8 py-4 bg-rose-600 rounded-2xl shadow-xl transition-transform group-active:scale-95">
-                Click to Start
+            <div className="absolute inset-0 flex flex-col gap-3 items-center justify-center bg-black/40 backdrop-blur-[2px] z-20 p-6 text-center">
+              <p className="text-5xl animate-float">⏱️</p>
+              <span className="text-2xl sm:text-3xl font-black text-white px-8 py-4 bg-gradient-to-r from-rose-500 to-orange-500 rounded-2xl shadow-xl transition-transform group-active:scale-95">
+                Tap to Start!
               </span>
+              <p className="text-rose-200/70 text-sm font-bold">Stop the beam inside the green zone!</p>
             </div>
           )}
 
+          <p className="text-rose-200/70 text-sm font-black uppercase tracking-widest mb-4">Stop inside the glow ✨</p>
           {/* Track */}
-          <div className="w-[90%] h-12 sm:h-16 bg-gray-800 rounded-full relative overflow-hidden shadow-inner border border-gray-700">
+          <div className="w-[90%] h-12 sm:h-16 bg-black/50 rounded-full relative overflow-hidden shadow-inner border border-white/15">
             {/* Target Zone */}
             <div 
-              className="absolute h-full bg-emerald-500/30 border-l-2 border-r-2 border-emerald-400 transition-all duration-200"
+              className="absolute h-full bg-emerald-400/30 border-l-2 border-r-2 border-emerald-300 shadow-[0_0_20px_rgba(52,211,153,0.6)] transition-all duration-200"
               style={{ 
                 left: `${uiTarget.start}%`, 
                 width: `${uiTarget.width}%` 
@@ -152,28 +160,29 @@ export default function PerfectTiming() {
             
             {/* Moving Indicator */}
             <div 
-              className="absolute h-full w-2 sm:w-3 bg-white rounded-full shadow-[0_0_15px_rgba(255,255,255,0.8)] -ml-1 sm:-ml-1.5 pointer-events-none"
+              className="absolute h-full w-2 sm:w-3 bg-gradient-to-b from-white to-amber-200 rounded-full shadow-[0_0_18px_rgba(255,255,255,0.9)] -ml-1 sm:-ml-1.5 pointer-events-none"
               style={{ left: `${uiBarPos}%` }}
             />
           </div>
 
-          <div className="absolute bottom-8 text-gray-500 font-bold hidden sm:block">
-            Press SPACE or CLICK to stop the indicator
+          <div className="absolute bottom-8 text-rose-200/60 font-bold text-sm hidden sm:block">
+            ⌨️ Press SPACE or CLICK to stop the beam
           </div>
           
           {gameState === 'gameover' && (
-            <div className="absolute inset-0 bg-red-500/20 z-10 animate-in fade-in" />
+            <div className="absolute inset-0 bg-red-500/20 z-10 pointer-events-none" />
           )}
         </div>
 
         {gameState === 'gameover' && (
-          <div className="mt-8 w-full animate-in slide-in-from-bottom-4">
+          <div className="mt-6 w-full animate-pop-in">
             <GameResult
               game={gameMeta}
               score={score}
               isNewBest={isNewBest}
               bestScore={bestScore}
               onRestart={startGame}
+              message={`🎯 ${score} perfect stops!`}
             />
           </div>
         )}

@@ -179,33 +179,33 @@ export default function Sudoku() {
   return (
     <GameLayout title={gameMeta.name}>
       <div className="flex flex-col items-center w-full max-w-md mx-auto">
-        <div className="flex justify-between w-full mb-4 px-4 text-gray-400 font-medium bg-gray-950/80 py-3 rounded-xl border border-white/5 shadow-inner">
-          <span className="text-xl">Time: <span className="text-white">{formatTime(timeElapsed)}</span></span>
-          <span className="text-xl">Best: <span className="text-white">{bestTime ? formatTime(bestTime) : '—'}</span></span>
+        <div className="flex justify-between w-full mb-4 px-5 text-sm font-black bg-gradient-to-r from-indigo-500/20 to-blue-500/10 py-3 rounded-2xl border border-indigo-400/20 shadow-inner">
+          <span className="text-indigo-200">⏱️ TIME <span className="text-white text-xl ml-1 tabular-nums">{formatTime(timeElapsed)}</span></span>
+          <span className="text-gray-300">👑 BEST <span className="text-white text-xl ml-1 tabular-nums">{bestTime ? formatTime(bestTime) : '—'}</span></span>
         </div>
 
-        <div className="bg-gray-800 p-2 rounded-xl shadow-2xl mb-6 w-full max-w-[400px] aspect-square flex flex-col">
+        <div className="bg-gradient-to-b from-indigo-500/15 to-blue-500/5 p-2 rounded-3xl shadow-[0_0_40px_rgba(99,102,241,0.25)] border border-indigo-400/20 mb-6 w-full max-w-[400px] aspect-square flex flex-col">
           {grid.map((row, r) => (
             <div key={r} className="flex flex-1">
               {row.map((cell, c) => {
                 const isSelected = selectedCell?.[0] === r && selectedCell?.[1] === c
                 const isHighlighted = selectedCell && !isSelected && (selectedCell[0] === r || selectedCell[1] === c)
                 
-                let cellClass = 'bg-gray-900 border-gray-700 hover:bg-gray-800'
-                if (isSelected) cellClass = 'bg-indigo-500/40 border-indigo-500'
-                else if (isHighlighted) cellClass = 'bg-gray-800 border-gray-700'
-                if (cell.isError) cellClass = 'bg-red-500/20 border-red-500/50 text-red-400'
-                if (cell.isFixed) cellClass += ' font-black text-gray-300'
-                else cellClass += ' text-indigo-400 font-bold'
+                let cellClass = 'bg-[#0b1030] hover:bg-white/10'
+                if (isSelected) cellClass = 'bg-indigo-500/50'
+                else if (isHighlighted) cellClass = 'bg-indigo-500/15'
+                if (cell.isError) cellClass = 'bg-red-500/30 text-red-300'
+                if (cell.isFixed) cellClass += ' font-black text-indigo-100'
+                else cellClass += ' text-amber-300 font-black'
                 
-                const borderB = r === 2 || r === 5 ? 'border-b-4 border-b-gray-950' : 'border-b'
-                const borderR = c === 2 || c === 5 ? 'border-r-4 border-r-gray-950' : 'border-r'
+                const borderB = r === 2 || r === 5 ? 'border-b-4 border-b-indigo-300/40' : 'border-b'
+                const borderR = c === 2 || c === 5 ? 'border-r-4 border-r-indigo-300/40' : 'border-r'
 
                 return (
                   <div
                     key={c}
                     onClick={() => setSelectedCell([r, c])}
-                    className={`flex-1 flex items-center justify-center text-lg sm:text-2xl cursor-pointer transition-colors border-t border-l ${borderB} ${borderR} ${cellClass}`}
+                    className={`flex-1 flex items-center justify-center text-lg sm:text-2xl cursor-pointer transition-colors border-t border-l border-white/10 ${borderB} ${borderR} ${cellClass}`}
                   >
                     {cell.value || ''}
                   </div>
@@ -221,28 +221,28 @@ export default function Sudoku() {
             <button
               key={num}
               onClick={() => handleInput(num)}
-              className="bg-gray-800 hover:bg-gray-700 text-white h-12 rounded-lg font-bold text-xl active:scale-95 transition-transform touch-manipulation"
+              className="bg-gradient-to-b from-indigo-500 to-indigo-700 hover:brightness-110 text-white h-12 rounded-2xl font-black text-xl active:scale-95 transition-transform touch-manipulation border border-white/20 shadow-lg"
             >
               {num}
             </button>
           ))}
           <button
             onClick={() => handleInput(null)}
-            className="bg-red-900/50 hover:bg-red-800/50 text-red-400 h-12 rounded-lg font-bold text-xl active:scale-95 transition-transform touch-manipulation"
+            className="bg-red-500/30 hover:bg-red-500/50 text-red-200 h-12 rounded-2xl font-black text-xl active:scale-95 transition-transform touch-manipulation border border-red-400/30"
           >
             ⌫
           </button>
         </div>
 
         {gameState === 'won' && (
-          <div className="mt-8 w-full animate-in slide-in-from-bottom-4">
+          <div className="mt-6 w-full animate-pop-in">
             <GameResult
               game={gameMeta}
               score={timeElapsed}
               isNewBest={isNewBest}
               bestScore={bestTime}
               onRestart={initGame}
-              message="Puzzle Solved!"
+              message="🧩 Puzzle Solved!"
             />
           </div>
         )}

@@ -25,6 +25,8 @@ export default function Pong() {
   
   const requestRef = useRef<number | null>(null)
   const lastTimeRef = useRef<number | null>(null)
+  const gameStateRef = useRef(gameState)
+  gameStateRef.current = gameState
 
   const paddleW = 20
   const paddleH = 3
@@ -51,11 +53,12 @@ export default function Pong() {
     
     p1Ref.current = 50
     p2Ref.current = 50
+    setPaddle1X(50)
+    setPaddle2X(50)
     resetBall(true)
+    setBall({ x: 50, y: 50 })
     
     lastTimeRef.current = performance.now()
-    if (requestRef.current) cancelAnimationFrame(requestRef.current)
-    requestRef.current = requestAnimationFrame(update)
   }
 
   const handleScore = (scorer: 'p1' | 'ai') => {
@@ -73,7 +76,7 @@ export default function Pong() {
   }
 
   const update = useCallback((time: number) => {
-    if (gameState !== 'playing') return
+    if (gameStateRef.current !== 'playing') return
     
     if (lastTimeRef.current !== null) {
       const dt = (time - lastTimeRef.current) / 1000
@@ -130,12 +133,23 @@ export default function Pong() {
     
     lastTimeRef.current = time
     requestRef.current = requestAnimationFrame(update)
-  }, [gameState])
+  }, [])
+
+  // Game-loop driver
+  useEffect(() => {
+    if (gameState === 'playing') {
+      lastTimeRef.current = performance.now()
+      requestRef.current = requestAnimationFrame(update)
+    }
+    return () => {
+      if (requestRef.current) cancelAnimationFrame(requestRef.current)
+    }
+  }, [gameState, update])
 
   // Input Handling
   useEffect(() => {
     const handleMove = (clientX: number) => {
-      if (!containerRef.current || gameState !== 'playing') return
+      if (!containerRef.current || gameStateRef.current !== 'playing') return
       const rect = containerRef.current.getBoundingClientRect()
       let percent = ((clientX - rect.left) / rect.width) * 100
       percent = Math.max(paddleW/2, Math.min(100 - paddleW/2, percent))
@@ -158,45 +172,47 @@ export default function Pong() {
       window.removeEventListener('mousemove', handleMouseMove)
       window.removeEventListener('touchmove', handleTouchMove)
     }
-  }, [gameState])
+  }, [])
 
   return (
     <GameLayout title={gameMeta.name}>
       <div className="flex flex-col items-center w-full max-w-2xl mx-auto">
         
-        <div className="flex justify-between items-center w-full mb-4 px-8 text-gray-400 font-medium bg-gray-950/80 py-3 rounded-xl border border-white/5 shadow-inner">
+        <div className="flex justify-between items-center w-full mb-4 px-8 py-3 rounded-2xl border border-cyan-400/20 bg-gradient-to-r from-zinc-500/15 via-cyan-500/10 to-blue-500/15 shadow-inner">
           <div className="flex flex-col items-center">
-            <span className="text-xs uppercase">AI</span>
-            <span className="text-3xl text-zinc-500 font-black tabular-nums">{score.ai}</span>
+            <span className="text-xs uppercase font-black text-zinc-400">🤖 AI</span>
+            <span className="text-3xl text-zinc-300 font-black tabular-nums">{score.ai}</span>
           </div>
-          <span className="text-sm font-black text-gray-700">VS</span>
+          <span className="text-xs font-black text-white/40 bg-white/5 px-3 py-1 rounded-full border border-white/10">FIRST TO {WIN_SCORE} 🏆</span>
           <div className="flex flex-col items-center">
-            <span className="text-xs uppercase text-blue-400">You</span>
+            <span className="text-xs uppercase font-black text-cyan-300">😎 You</span>
             <span className="text-3xl text-white font-black tabular-nums">{score.p1}</span>
           </div>
         </div>
 
         <div 
           ref={containerRef}
-          className="w-full bg-gray-900 border-2 border-white/10 rounded-3xl relative overflow-hidden shadow-2xl aspect-[3/4] touch-none select-none"
+          className="w-full bg-gradient-to-b from-[#0b1e3a] to-[#0a0f24] border-2 border-cyan-400/25 rounded-3xl relative overflow-hidden shadow-[0_0_50px_rgba(34,211,238,0.2)] aspect-[3/4] touch-none select-none"
         >
           {/* Center Line */}
-          <div className="absolute top-1/2 left-0 w-full h-[2px] bg-white/5 border-t border-dashed border-white/20" />
+          <div className="absolute top-1/2 left-0 w-full border-t-2 border-dashed border-white/20" />
 
           {gameState === 'idle' && (
-            <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-20 backdrop-blur-sm">
+            <div className="absolute inset-0 bg-black/60 flex flex-col gap-3 items-center justify-center z-20 backdrop-blur-sm p-6 text-center">
+              <p className="text-5xl animate-float">🏓</p>
               <button
                 onClick={startGame}
-                className="bg-white hover:bg-gray-200 text-gray-900 px-8 py-4 rounded-xl font-bold text-xl shadow-lg transition-transform active:scale-95 animate-in zoom-in"
+                className="bg-gradient-to-r from-cyan-400 to-blue-500 text-gray-950 px-8 py-4 rounded-2xl font-black text-xl shadow-lg shadow-cyan-500/30 transition-transform hover:-translate-y-0.5 active:scale-95"
               >
-                Start Game
+                🏓 Start Rally
               </button>
+              <p className="text-cyan-200/70 text-sm font-bold">Move mouse / finger. First to {WIN_SCORE} wins!</p>
             </div>
           )}
 
           {/* Ball */}
           <div
-            className="absolute bg-white rounded-full shadow-[0_0_15px_rgba(255,255,255,1)]"
+            className="absolute rounded-full bg-gradient-to-br from-white to-cyan-200 shadow-[0_0_18px_rgba(255,255,255,1)]"
             style={{
               left: `${ball.x - ballR}%`,
               top: `${ball.y - ballR}%`,
@@ -207,7 +223,7 @@ export default function Pong() {
 
           {/* AI Paddle (Top) */}
           <div
-            className="absolute bg-zinc-600 rounded-full shadow-[0_0_15px_rgba(82,82,91,0.5)] border border-zinc-500"
+            className="absolute bg-gradient-to-r from-zinc-400 to-zinc-600 rounded-full shadow-lg border border-white/30"
             style={{
               left: `${paddle2X - paddleW/2}%`,
               top: `10%`,
@@ -218,7 +234,7 @@ export default function Pong() {
 
           {/* Player Paddle (Bottom) */}
           <div
-            className="absolute bg-blue-500 rounded-full shadow-[0_0_15px_rgba(59,130,246,0.5)] border border-blue-400"
+            className="absolute bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full shadow-[0_0_20px_rgba(34,211,238,0.7)] border border-white/40"
             style={{
               left: `${paddle1X - paddleW/2}%`,
               top: `90%`,
@@ -229,11 +245,11 @@ export default function Pong() {
         </div>
 
         {gameState === 'gameover' && (
-          <div className="mt-8 w-full animate-in slide-in-from-bottom-4">
+          <div className="mt-6 w-full animate-pop-in">
             <GameResult
               game={gameMeta}
               isWin={winner === 'p1'}
-              message={winner === 'p1' ? 'You beat the AI!' : 'The AI beat you!'}
+              message={winner === 'p1' ? '🏆 You beat the AI!' : '🤖 The AI beat you!'}
               onRestart={startGame}
             />
           </div>

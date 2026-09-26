@@ -88,21 +88,21 @@ export default function ConnectFour() {
     <GameLayout title={gameMeta.name}>
       <div className="flex flex-col items-center w-full max-w-2xl mx-auto">
         
-        <div className="flex justify-between items-center w-full mb-6 px-8 text-gray-400 font-medium bg-gray-950/80 py-3 rounded-xl border border-white/5 shadow-inner">
-          <div className={`flex flex-col items-center transition-opacity ${currentPlayer === 'red' && gameState === 'playing' ? 'opacity-100 scale-110' : 'opacity-40'}`}>
-            <span className="text-xs uppercase text-red-500 font-bold mb-1">Player 1</span>
-            <div className="w-8 h-8 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)] border-2 border-red-400" />
+        <div className="flex justify-between items-center w-full mb-6 px-6 sm:px-8 font-black bg-gradient-to-r from-red-500/15 via-purple-500/10 to-yellow-500/15 py-3 rounded-2xl border border-white/10 shadow-inner">
+          <div className={`flex flex-col items-center transition-all ${currentPlayer === 'red' && gameState === 'playing' ? 'scale-110 drop-shadow-[0_0_12px_rgba(239,68,68,0.8)]' : 'opacity-40'}`}>
+            <span className="text-xs uppercase text-red-400 font-black mb-1 tracking-wider">🔴 Player 1</span>
+            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-red-600 to-rose-400 shadow-[0_0_15px_rgba(239,68,68,0.6)] border-2 border-red-300 ring-2 ring-red-500/40" />
           </div>
           
-          <span className="text-sm font-black text-gray-700">VS</span>
+          <span className="text-xs font-black px-3 py-1 bg-white/10 rounded-full border border-white/15 text-white/70">VS</span>
           
-          <div className={`flex flex-col items-center transition-opacity ${currentPlayer === 'yellow' && gameState === 'playing' ? 'opacity-100 scale-110' : 'opacity-40'}`}>
-            <span className="text-xs uppercase text-yellow-400 font-bold mb-1">Player 2</span>
-            <div className="w-8 h-8 rounded-full bg-yellow-400 shadow-[0_0_10px_rgba(250,204,21,0.5)] border-2 border-yellow-300" />
+          <div className={`flex flex-col items-center transition-all ${currentPlayer === 'yellow' && gameState === 'playing' ? 'scale-110 drop-shadow-[0_0_12px_rgba(250,204,21,0.8)]' : 'opacity-40'}`}>
+            <span className="text-xs uppercase text-yellow-300 font-black mb-1 tracking-wider">🟡 Player 2</span>
+            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-amber-500 to-yellow-300 shadow-[0_0_15px_rgba(250,204,21,0.6)] border-2 border-yellow-200 ring-2 ring-yellow-400/40" />
           </div>
         </div>
 
-        <div className="w-full max-w-[500px] bg-blue-600 p-2 sm:p-4 rounded-xl shadow-[0_10px_30px_rgba(37,99,235,0.4)] relative border-b-8 border-blue-800 touch-none">
+        <div className="w-full max-w-[500px] bg-gradient-to-b from-blue-600 to-blue-800 p-3 sm:p-5 rounded-3xl shadow-[0_15px_40px_rgba(37,99,235,0.4)] relative border-4 border-blue-400/40 border-b-8 border-b-blue-900 touch-none">
           <div className="grid grid-cols-7 gap-1 sm:gap-2">
             {board.map((row, rIndex) => 
               row.map((cell, cIndex) => (
@@ -139,11 +139,11 @@ export default function ConnectFour() {
         </div>
 
         {gameState !== 'playing' && (
-          <div className="mt-8 w-full animate-in slide-in-from-bottom-4 relative z-20">
+          <div className="mt-6 w-full animate-pop-in relative z-20">
             <GameResult
               game={gameMeta}
               isWin={gameState.startsWith('won')}
-              message={gameState === 'won_red' ? 'Player 1 (Red) Wins!' : gameState === 'won_yellow' ? 'Player 2 (Yellow) Wins!' : "It's a draw!"}
+              message={gameState === 'won_red' ? '🎉 Player 1 (Red) Wins!' : gameState === 'won_yellow' ? '🎉 Player 2 (Yellow) Wins!' : "🤝 It's a draw!"}
               onRestart={restart}
             />
           </div>

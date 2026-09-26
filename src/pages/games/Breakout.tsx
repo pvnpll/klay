@@ -42,6 +42,8 @@ export default function Breakout() {
   
   const requestRef = useRef<number | null>(null)
   const lastTimeRef = useRef<number | null>(null)
+  const gameStateRef = useRef(gameState)
+  gameStateRef.current = gameState
 
   const paddleW = 20
   const ballR = 2
@@ -99,12 +101,10 @@ export default function Breakout() {
     setBricks(newBricks)
     
     lastTimeRef.current = performance.now()
-    if (requestRef.current) cancelAnimationFrame(requestRef.current)
-    requestRef.current = requestAnimationFrame(update)
   }
 
   const update = useCallback((time: number) => {
-    if (gameState !== 'playing') return
+    if (gameStateRef.current !== 'playing') return
     
     if (lastTimeRef.current !== null) {
       const dt = (time - lastTimeRef.current) / 1000
@@ -187,12 +187,23 @@ export default function Breakout() {
     
     lastTimeRef.current = time
     requestRef.current = requestAnimationFrame(update)
-  }, [gameState])
+  }, [])
+
+  // Single game-loop driver: starts whenever gameState becomes playing.
+  useEffect(() => {
+    if (gameState === 'playing') {
+      lastTimeRef.current = performance.now()
+      requestRef.current = requestAnimationFrame(update)
+    }
+    return () => {
+      if (requestRef.current) cancelAnimationFrame(requestRef.current)
+    }
+  }, [gameState, update])
 
   // Input Handling
   useEffect(() => {
     const handleMove = (clientX: number) => {
-      if (!containerRef.current || gameState !== 'playing') return
+      if (!containerRef.current || gameStateRef.current !== 'playing') return
       const rect = containerRef.current.getBoundingClientRect()
       let percent = ((clientX - rect.left) / rect.width) * 100
       percent = Math.max(paddleW/2, Math.min(100 - paddleW/2, percent))
@@ -220,35 +231,39 @@ export default function Breakout() {
   return (
     <GameLayout title={gameMeta.name}>
       <div className="flex flex-col items-center w-full max-w-2xl mx-auto">
-        <div className="flex justify-between w-full mb-4 px-4 text-gray-400 font-medium bg-gray-950/80 py-3 rounded-xl border border-white/5 shadow-inner">
-          <span className="text-xl">Score: <span className="text-white">{score}</span></span>
-          <span className="text-xl">Level: <span className="text-white">{level}</span></span>
-          <span className="text-xl hidden sm:inline">Best: <span className="text-white">{bestScore || 0}</span></span>
+        <div className="flex justify-between w-full mb-4 px-5 text-sm font-black bg-gradient-to-r from-red-500/20 via-orange-500/10 to-amber-500/20 py-3 rounded-2xl border border-red-400/20 shadow-inner">
+          <span className="text-red-200">🧱 SCORE <span className="text-white text-xl ml-1 tabular-nums">{score}</span></span>
+          <span className="text-amber-200">🏁 LEVEL <span className="text-white text-xl ml-1 tabular-nums">{level}</span></span>
+          <span className="hidden sm:inline text-gray-300">👑 BEST <span className="text-white text-xl ml-1 tabular-nums">{bestScore || 0}</span></span>
         </div>
 
         <div 
           ref={containerRef}
-          className="w-full bg-gray-900 border-2 border-white/10 rounded-3xl relative overflow-hidden shadow-2xl aspect-[3/4] touch-none select-none"
+          className="w-full bg-gradient-to-b from-[#160a2e] to-[#0b1030] border-2 border-fuchsia-400/25 rounded-3xl relative overflow-hidden shadow-[0_0_50px_rgba(217,70,239,0.25)] aspect-[3/4] touch-none select-none"
         >
+          <div className="absolute inset-0 pointer-events-none opacity-30" style={{ backgroundImage: 'radial-gradient(rgba(255,255,255,0.35) 1px, transparent 1px)', backgroundSize: '22px 22px' }} />
           {gameState === 'idle' && (
-            <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-20 backdrop-blur-sm">
+            <div className="absolute inset-0 bg-black/60 flex flex-col gap-3 items-center justify-center z-20 backdrop-blur-sm p-6 text-center">
+              <p className="text-5xl animate-float">🧱</p>
               <button
                 onClick={() => startLevel(1)}
-                className="bg-red-600 hover:bg-red-500 text-white px-8 py-4 rounded-xl font-bold text-xl shadow-lg transition-transform active:scale-95 animate-in zoom-in"
+                className="bg-gradient-to-r from-red-500 to-orange-500 text-white px-8 py-4 rounded-2xl font-black text-xl shadow-lg shadow-red-500/30 transition-transform hover:-translate-y-0.5 active:scale-95"
               >
-                Start Game
+                🕹️ Smash Bricks
               </button>
+              <p className="text-orange-200/80 text-sm font-bold">Move with mouse / finger. Don't drop the ball!</p>
             </div>
           )}
 
           {gameState === 'won' && (
-            <div className="absolute inset-0 bg-emerald-900/80 flex flex-col items-center justify-center z-20 backdrop-blur-sm animate-in fade-in">
-              <span className="text-4xl font-black text-white mb-6">Level {level} Cleared!</span>
+            <div className="absolute inset-0 bg-emerald-950/80 flex flex-col gap-4 items-center justify-center z-20 backdrop-blur-sm animate-pop-in p-6 text-center">
+              <span className="text-5xl">🎉</span>
+              <span className="text-4xl font-black text-white">Level {level} Cleared!</span>
               <button
                 onClick={() => startLevel(level + 1, true)}
-                className="bg-emerald-500 hover:bg-emerald-400 text-white px-8 py-4 rounded-xl font-bold text-xl shadow-lg transition-transform active:scale-95 animate-in zoom-in"
+                className="bg-gradient-to-r from-emerald-400 to-lime-400 text-gray-950 px-8 py-4 rounded-2xl font-black text-xl shadow-lg transition-transform hover:-translate-y-0.5 active:scale-95"
               >
-                Next Level
+                Next Level ➜
               </button>
             </div>
           )}
@@ -257,7 +272,7 @@ export default function Breakout() {
           {bricks.map(b => b.active && (
             <div
               key={b.id}
-              className={`absolute border border-gray-900 shadow-sm ${b.color}`}
+              className={`absolute rounded-lg border border-black/30 shadow-[inset_0_2px_0_rgba(255,255,255,0.35)] ${b.color}`}
               style={{
                 left: `${b.x}%`,
                 top: `${b.y}%`,
@@ -269,7 +284,7 @@ export default function Breakout() {
 
           {/* Ball */}
           <div
-            className="absolute bg-white rounded-full shadow-[0_0_10px_rgba(255,255,255,0.8)]"
+            className="absolute rounded-full bg-gradient-to-br from-white to-amber-200 shadow-[0_0_16px_rgba(255,255,255,0.9)]"
             style={{
               left: `${ball.x - ballR}%`,
               top: `${ball.y - ballR}%`,
@@ -280,7 +295,7 @@ export default function Breakout() {
 
           {/* Paddle */}
           <div
-            className="absolute bg-blue-500 rounded-full shadow-[0_0_15px_rgba(59,130,246,0.5)] border border-blue-400"
+            className="absolute bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full shadow-[0_0_20px_rgba(59,130,246,0.7)] border border-white/40"
             style={{
               left: `${paddleX - paddleW/2}%`,
               top: `90%`,
@@ -290,19 +305,19 @@ export default function Breakout() {
           />
           
           {gameState === 'gameover' && (
-            <div className="absolute inset-0 bg-red-500/20 z-10 animate-in fade-in pointer-events-none" />
+            <div className="absolute inset-0 bg-red-500/20 z-10 pointer-events-none" />
           )}
         </div>
 
         {gameState === 'gameover' && (
-          <div className="mt-8 w-full animate-in slide-in-from-bottom-4">
+          <div className="mt-6 w-full animate-pop-in">
             <GameResult
               game={gameMeta}
               score={score}
               isNewBest={isNewBest}
               bestScore={bestScore}
               onRestart={() => startLevel(1)}
-              message={`You reached Level ${level}`}
+              message={`🧱 You reached Level ${level}`}
             />
           </div>
         )}

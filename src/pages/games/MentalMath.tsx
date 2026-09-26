@@ -132,25 +132,23 @@ export default function MentalMath() {
     <GameLayout title={gameMeta.name}>
       <div className="flex flex-col items-center w-full max-w-md mx-auto relative">
         
-        <div className="flex justify-between w-full mb-4 px-4 text-gray-400 font-medium bg-gray-950/80 py-3 rounded-xl border border-white/5 shadow-inner">
-          <span className="text-xl">Score: <span className="text-white">{score}</span></span>
-          <span className={`text-xl ${timeLeft <= 5 ? 'text-red-500 animate-pulse font-bold' : ''}`}>
-            Time: <span className="text-white tabular-nums">{timeLeft}s</span>
-          </span>
+        <div className="flex justify-between w-full mb-4 px-5 text-sm font-black bg-gradient-to-r from-amber-500/20 to-orange-500/10 py-3 rounded-2xl border border-amber-400/20 shadow-inner">
+          <span className="text-amber-200">⭐ SCORE <span className="text-white text-2xl ml-1 tabular-nums">{score}</span></span>
+          <span className={`${timeLeft <= 5 ? 'text-red-400 animate-pulse' : 'text-gray-300'}`}>⏳ TIME <span className="text-white text-2xl ml-1 tabular-nums">{timeLeft}s</span></span>
         </div>
 
-        <div className={`w-full bg-gray-900 border-2 rounded-2xl p-6 sm:p-8 flex flex-col items-center shadow-2xl transition-colors duration-150
-          ${flash === 'correct' ? 'border-emerald-500 bg-emerald-950/30' : ''}
-          ${flash === 'wrong' ? 'border-red-500 bg-red-950/30' : ''}
-          ${flash === null ? 'border-white/10' : ''}
+        <div className={`w-full bg-gradient-to-b from-amber-500/15 to-orange-600/5 border-2 rounded-3xl p-6 sm:p-8 flex flex-col items-center shadow-[0_0_50px_rgba(251,146,60,0.2)] transition-colors duration-150
+          ${flash === 'correct' ? 'border-emerald-400 bg-emerald-950/40' : ''}
+          ${flash === 'wrong' ? 'border-red-500 bg-red-950/40' : ''}
+          ${flash === null ? 'border-amber-400/20' : ''}
         `}>
           
           {gameState === 'idle' && (
             <button
               onClick={startGame}
-              className="bg-amber-600 hover:bg-amber-500 text-white px-8 py-4 rounded-xl font-bold text-xl shadow-lg transition-transform active:scale-95 w-full"
+              className="bg-gradient-to-r from-amber-400 to-orange-500 hover:brightness-110 text-gray-950 px-8 py-4 rounded-2xl font-black text-xl shadow-lg shadow-amber-500/30 transition-transform hover:-translate-y-0.5 active:scale-95 w-full"
             >
-              Start Timer
+              ⏱️ Start Timer
             </button>
           )}
 
@@ -165,7 +163,7 @@ export default function MentalMath() {
                     </span>
                   </span>
                 ) : (
-                  <span className="text-gray-500">Time's Up!</span>
+                  <span className="text-amber-300/70">⌛ Time's Up!</span>
                 )}
               </div>
 
@@ -176,7 +174,7 @@ export default function MentalMath() {
                     key={num}
                     onClick={() => handleKeyClick(num.toString())}
                     disabled={gameState !== 'playing'}
-                    className="bg-gray-800 hover:bg-gray-700 text-white h-14 sm:h-16 rounded-xl font-bold text-2xl active:scale-95 transition-transform disabled:opacity-50 touch-manipulation"
+                    className="bg-gradient-to-b from-slate-600 to-slate-800 hover:brightness-125 text-white h-14 sm:h-16 rounded-2xl font-black text-2xl active:scale-95 transition-transform disabled:opacity-50 touch-manipulation border border-white/20 shadow-lg"
                   >
                     {num}
                   </button>
@@ -184,21 +182,21 @@ export default function MentalMath() {
                 <button
                   onClick={() => handleKeyClick('BACKSPACE')}
                   disabled={gameState !== 'playing'}
-                  className="bg-gray-800 hover:bg-gray-700 text-rose-400 h-14 sm:h-16 rounded-xl font-bold text-xl active:scale-95 transition-transform disabled:opacity-50 touch-manipulation"
+                  className="bg-rose-500/30 hover:bg-rose-500/50 text-rose-200 h-14 sm:h-16 rounded-2xl font-black text-xl active:scale-95 transition-transform disabled:opacity-50 touch-manipulation border border-rose-400/30"
                 >
                   ⌫
                 </button>
                 <button
                   onClick={() => handleKeyClick('0')}
                   disabled={gameState !== 'playing'}
-                  className="bg-gray-800 hover:bg-gray-700 text-white h-14 sm:h-16 rounded-xl font-bold text-2xl active:scale-95 transition-transform disabled:opacity-50 touch-manipulation"
+                  className="bg-gradient-to-b from-slate-600 to-slate-800 hover:brightness-125 text-white h-14 sm:h-16 rounded-2xl font-black text-2xl active:scale-95 transition-transform disabled:opacity-50 touch-manipulation border border-white/20 shadow-lg"
                 >
                   0
                 </button>
                 <button
                   onClick={() => handleKeyClick('ENTER')}
                   disabled={gameState !== 'playing'}
-                  className="bg-amber-600 hover:bg-amber-500 text-white h-14 sm:h-16 rounded-xl font-bold text-xl active:scale-95 transition-transform disabled:opacity-50 touch-manipulation"
+                  className="bg-gradient-to-b from-amber-400 to-orange-500 hover:brightness-110 text-gray-950 h-14 sm:h-16 rounded-2xl font-black text-xl active:scale-95 transition-transform disabled:opacity-50 touch-manipulation shadow-lg"
                 >
                   Enter
                 </button>
@@ -209,13 +207,14 @@ export default function MentalMath() {
         </div>
 
         {gameState === 'gameover' && (
-          <div className="mt-8 w-full animate-in slide-in-from-bottom-4">
+          <div className="mt-6 w-full animate-pop-in">
             <GameResult
               game={gameMeta}
               score={score}
               isNewBest={isNewBest}
               bestScore={bestScore}
               onRestart={startGame}
+              message={`🧠 ${score} correct answers!`}
             />
           </div>
         )}

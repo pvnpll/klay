@@ -112,33 +112,33 @@ export default function StroopTest() {
   return (
     <GameLayout title={gameMeta.name}>
       <div className="flex flex-col items-center w-full max-w-2xl mx-auto relative">
-        <div className="flex justify-between w-full mb-4 px-4 text-gray-400 font-medium bg-gray-950/80 py-3 rounded-xl border border-white/5 shadow-inner">
-          <span className="text-xl">Score: <span className="text-white">{score}</span></span>
-          <span className={`text-xl ${timeLeft <= 5 ? 'text-red-500 animate-pulse font-bold' : ''}`}>
-            Time: <span className="text-white tabular-nums">{timeLeft}s</span>
-          </span>
+        <div className="flex justify-between w-full mb-4 px-5 text-sm font-black bg-gradient-to-r from-rose-500/20 to-orange-500/10 py-3 rounded-2xl border border-rose-400/20 shadow-inner">
+          <span className="text-rose-200">⭐ SCORE <span className="text-white text-2xl ml-1 tabular-nums">{score}</span></span>
+          <span className={`${timeLeft <= 5 ? 'text-red-400 animate-pulse' : 'text-gray-300'}`}>⏳ TIME <span className="text-white text-2xl ml-1 tabular-nums">{timeLeft}s</span></span>
         </div>
 
         <div 
           id="stroop-container"
-          className="w-full bg-gray-900 border-2 border-white/10 rounded-3xl p-6 shadow-2xl relative transition-colors duration-200 flex flex-col items-center"
+          className="w-full bg-gradient-to-b from-rose-500/15 to-purple-600/5 border-2 border-rose-400/20 rounded-3xl p-6 shadow-[0_0_50px_rgba(244,63,94,0.2)] relative transition-colors duration-200 flex flex-col items-center"
         >
           {gameState === 'idle' && (
-            <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-20 backdrop-blur-sm rounded-3xl">
+            <div className="absolute inset-0 bg-black/60 flex flex-col gap-3 items-center justify-center z-20 backdrop-blur-sm rounded-3xl p-6 text-center">
+              <p className="text-5xl animate-float">🎨</p>
               <button
                 onClick={startGame}
-                className="bg-rose-600 hover:bg-rose-500 text-white px-8 py-4 rounded-xl font-bold text-xl shadow-lg transition-transform active:scale-95 animate-in zoom-in"
+                className="bg-gradient-to-r from-rose-500 to-orange-500 hover:brightness-110 text-white px-8 py-4 rounded-2xl font-black text-xl shadow-lg shadow-rose-500/30 transition-transform hover:-translate-y-0.5 active:scale-95"
               >
-                Start Game
+                🎨 Test Your Brain
               </button>
+              <p className="text-rose-200/70 text-sm font-bold">Say the INK color, not the word! Tricky 😵‍💫</p>
             </div>
           )}
 
           <div className="flex-1 flex flex-col items-center justify-center min-h-[200px] w-full text-center">
             {gameState !== 'idle' && (
               <>
-                <h2 className="text-gray-400 text-lg sm:text-xl mb-4 font-bold uppercase tracking-wider">
-                  Select the INK color
+                <h2 className="text-rose-200 text-sm sm:text-base mb-4 font-black uppercase tracking-[0.2em]">
+                  🎯 Tap the INK color
                 </h2>
                 <div className={`text-6xl sm:text-8xl font-black uppercase tracking-tighter ${currentColorClass.class} drop-shadow-lg`}>
                   {currentWord.name}
@@ -153,10 +153,10 @@ export default function StroopTest() {
                 key={c.name}
                 onClick={() => handleColorClick(c.name)}
                 disabled={gameState !== 'playing'}
-                className="bg-gray-800 hover:bg-gray-700 text-white py-4 rounded-xl text-xl sm:text-2xl font-bold shadow-sm active:scale-95 transition-transform touch-manipulation relative group overflow-hidden"
+                className="bg-gradient-to-b from-slate-600 to-slate-800 hover:brightness-125 text-white py-4 rounded-2xl text-xl sm:text-2xl font-black shadow-lg active:scale-95 transition-transform touch-manipulation relative group overflow-hidden border border-white/20"
               >
                 <div className="relative z-10 flex items-center justify-center gap-2">
-                  <span className="hidden sm:inline text-gray-500 text-sm">{i + 1}</span>
+                  <span className="hidden sm:inline text-white/50 text-sm">{i + 1}</span>
                   {c.name}
                 </div>
               </button>
@@ -165,13 +165,14 @@ export default function StroopTest() {
         </div>
 
         {gameState === 'gameover' && (
-          <div className="mt-8 w-full animate-in slide-in-from-bottom-4">
+          <div className="mt-6 w-full animate-pop-in">
             <GameResult
               game={gameMeta}
               score={score}
               isNewBest={isNewBest}
               bestScore={bestScore}
               onRestart={startGame}
+              message={`🎨 ${score} correct inks!`}
             />
           </div>
         )}

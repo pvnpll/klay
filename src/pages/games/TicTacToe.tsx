@@ -140,24 +140,26 @@ export default function TicTacToe() {
   if (!mode) {
     return (
       <GameLayout title={gameMeta.name}>
-        <div className="flex flex-col items-center justify-center min-h-[400px]">
-          <h2 className="text-3xl font-black text-white mb-8">Choose Game Mode</h2>
+        <div className="flex flex-col items-center justify-center min-h-[400px] text-center">
+          <p className="text-5xl mb-4 animate-float">⭕</p>
+          <h2 className="text-3xl font-black text-white mb-2">Choose Your Battle! ⚔️</h2>
+          <p className="text-gray-300 font-medium mb-8">Outsmart the computer or a friend!</p>
           <div className="flex flex-col sm:flex-row gap-6">
             <button
               onClick={() => setMode('pvc')}
-              className="flex flex-col items-center gap-4 bg-gray-900 hover:bg-gray-800 text-white p-8 rounded-3xl border border-white/10 shadow-xl transition-transform hover:-translate-y-2 focus:outline-none focus-visible:ring-4 focus-visible:ring-emerald-500"
+              className="flex flex-col items-center gap-2 bg-gradient-to-b from-emerald-500/20 to-emerald-500/5 hover:from-emerald-500/30 text-white p-8 rounded-3xl border border-emerald-400/25 shadow-xl transition-transform hover:-translate-y-2 active:scale-95 focus:outline-none focus-visible:ring-4 focus-visible:ring-emerald-500"
             >
-              <Cpu size={48} className="text-emerald-400" />
-              <span className="text-xl font-bold">1 Player</span>
-              <span className="text-gray-400 text-sm">vs Computer</span>
+              <Cpu size={48} className="text-emerald-300" />
+              <span className="text-xl font-black">🤖 1 Player</span>
+              <span className="text-emerald-200/70 text-sm font-bold">vs Unbeatable Computer</span>
             </button>
             <button
               onClick={() => setMode('pvp')}
-              className="flex flex-col items-center gap-4 bg-gray-900 hover:bg-gray-800 text-white p-8 rounded-3xl border border-white/10 shadow-xl transition-transform hover:-translate-y-2 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-500"
+              className="flex flex-col items-center gap-2 bg-gradient-to-b from-blue-500/20 to-blue-500/5 hover:from-blue-500/30 text-white p-8 rounded-3xl border border-blue-400/25 shadow-xl transition-transform hover:-translate-y-2 active:scale-95 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-500"
             >
-              <User size={48} className="text-blue-400" />
-              <span className="text-xl font-bold">2 Players</span>
-              <span className="text-gray-400 text-sm">Local Match</span>
+              <User size={48} className="text-blue-300" />
+              <span className="text-xl font-black">👯 2 Players</span>
+              <span className="text-blue-200/70 text-sm font-bold">Local Match</span>
             </button>
           </div>
         </div>
@@ -166,9 +168,9 @@ export default function TicTacToe() {
   }
 
   let getResultMessage = () => {
-    if (gameState === 'winner_x') return 'Player X Wins!'
-    if (gameState === 'winner_o') return mode === 'pvc' ? 'Computer Wins!' : 'Player O Wins!'
-    if (gameState === 'draw') return 'It\'s a Draw!'
+    if (gameState === 'winner_x') return '🎉 Player X Wins!'
+    if (gameState === 'winner_o') return mode === 'pvc' ? '🤖 Computer Wins!' : '🎉 Player O Wins!'
+    if (gameState === 'draw') return '🤝 It\'s a Draw!'
     return ''
   }
 
@@ -181,27 +183,27 @@ export default function TicTacToe() {
   return (
     <GameLayout title={gameMeta.name}>
       <div className="flex flex-col items-center relative">
-        <div className="flex justify-between items-center w-full max-w-sm mb-8 px-6 py-4 bg-gray-950/80 rounded-2xl border border-white/5 shadow-inner">
-          <div className={`text-2xl font-black ${xIsNext ? 'text-blue-400 scale-110' : 'text-gray-500'} transition-all`}>
-            Player X
+        <div className="flex justify-between items-center w-full max-w-sm mb-6 px-6 py-3 bg-white/5 rounded-2xl border border-white/10 shadow-inner">
+          <div className={`text-xl font-black px-3 py-1 rounded-xl transition-all ${xIsNext ? 'text-blue-300 bg-blue-500/20 scale-110 shadow-lg' : 'text-gray-500'}`}>
+            ❌ X
           </div>
-          <div className="text-gray-600 font-bold">VS</div>
-          <div className={`text-2xl font-black ${!xIsNext ? 'text-red-400 scale-110' : 'text-gray-500'} transition-all`}>
-            {mode === 'pvc' ? 'Computer O' : 'Player O'}
+          <div className="text-white/30 font-black text-sm">VS</div>
+          <div className={`text-xl font-black px-3 py-1 rounded-xl transition-all ${!xIsNext ? 'text-red-300 bg-red-500/20 scale-110 shadow-lg' : 'text-gray-500'}`}>
+            {mode === 'pvc' ? '🤖 O' : '⭕ O'}
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-3 bg-gray-800 p-3 rounded-3xl shadow-2xl">
+        <div className="grid grid-cols-3 gap-3 bg-gradient-to-b from-indigo-500/20 to-fuchsia-500/10 p-3 rounded-3xl shadow-[0_0_40px_rgba(139,92,246,0.25)] border border-white/15">
           {board.map((cell, i) => (
             <button
               key={i}
               onClick={() => handleClick(i)}
-              className="w-24 h-24 sm:w-28 sm:h-28 bg-gray-900 rounded-2xl flex items-center justify-center text-6xl font-black hover:bg-gray-800 transition-colors focus:outline-none focus-visible:ring-4 focus-visible:ring-emerald-500"
+              className="w-24 h-24 sm:w-28 sm:h-28 bg-[#0d0d24] rounded-2xl flex items-center justify-center text-6xl font-black hover:bg-[#17173a] hover:scale-[1.03] active:scale-95 transition-all border border-white/10 focus:outline-none focus-visible:ring-4 focus-visible:ring-emerald-500 shadow-inner"
               disabled={!!cell || gameState !== 'playing' || (mode === 'pvc' && !xIsNext)}
             >
               {cell && (
-                <span className={cell === 'X' ? 'text-blue-500' : 'text-red-500'}>
-                  {cell}
+                <span className={`animate-pop-in ${cell === 'X' ? 'text-blue-400 text-glow' : 'text-rose-400 text-glow'}`}>
+                  {cell === 'X' ? '❌' : '⭕'}
                 </span>
               )}
             </button>
@@ -209,23 +211,25 @@ export default function TicTacToe() {
         </div>
 
         {gameState !== 'playing' && (
+          <div className="mt-6 w-full max-w-sm animate-pop-in">
           <GameResult
             game={gameMeta}
             message={getResultMessage()}
             isWin={getIsWin()}
             onRestart={resetGame}
           />
+          </div>
         )}
         
-        <div className="mt-12 flex justify-center w-full">
+        <div className="mt-8 flex justify-center w-full">
           <button
             onClick={() => {
               setMode(null)
               resetGame()
             }}
-            className="text-gray-500 hover:text-gray-300 font-medium transition-colors"
+            className="text-sm text-gray-400 hover:text-white font-bold bg-white/5 hover:bg-white/10 border border-white/10 px-5 py-2.5 rounded-full transition-colors"
           >
-            Change Mode
+            🔀 Change Mode
           </button>
         </div>
       </div>

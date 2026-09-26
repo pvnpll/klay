@@ -85,18 +85,18 @@ export default function WordGuess() {
     <GameLayout title={gameMeta.name}>
       <div className="flex flex-col items-center max-w-lg mx-auto">
         
-        <div className="mb-8 mt-4 text-center">
-          <h2 className="text-gray-400 mb-2">Unscramble the word:</h2>
+        <div className="mb-6 mt-2 text-center w-full bg-gradient-to-b from-orange-500/15 to-amber-500/5 border border-orange-400/20 rounded-3xl p-5">
+          <h2 className="text-orange-200 font-black text-sm uppercase tracking-widest mb-3">🔤 Unscramble the word!</h2>
           <div className="flex gap-2 justify-center flex-wrap">
             {scrambled.map((item) => (
               <button
                 key={item.id}
                 onClick={() => handleLetterClick(item.id)}
                 disabled={item.used || gameState !== 'playing'}
-                className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl text-2xl font-black uppercase transition-all
+                className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl text-2xl font-black uppercase transition-all border-2
                   ${item.used 
-                    ? 'bg-gray-800 text-gray-700 cursor-not-allowed scale-95' 
-                    : 'bg-indigo-500 hover:bg-indigo-400 text-white shadow-lg active:scale-95'
+                    ? 'bg-white/5 text-white/20 border-white/5 cursor-not-allowed scale-95' 
+                    : 'bg-gradient-to-b from-indigo-400 to-indigo-600 hover:from-indigo-300 hover:to-indigo-500 text-white border-white/30 shadow-lg hover:-translate-y-1 active:scale-95'
                   }`}
               >
                 {item.letter}
@@ -105,22 +105,22 @@ export default function WordGuess() {
           </div>
         </div>
 
-        <div className="w-full flex flex-col items-center mb-8">
-          <div className="flex gap-2 mb-4">
+        <div className="w-full flex flex-col items-center mb-6">
+          <div className="flex gap-2 mb-4 flex-wrap justify-center">
             {Array(targetWord.length).fill(null).map((_, i) => {
               const letterId = currentGuess[i]
               const letter = letterId !== undefined ? scrambled.find(s => s.id === letterId)?.letter : ''
               
-              let boxClass = 'bg-gray-900 border-gray-700 text-white'
-              if (gameState === 'won') boxClass = 'bg-emerald-500 border-emerald-500 text-white scale-105'
-              else if (gameState === 'lost') boxClass = 'bg-red-500 border-red-500 text-white'
+              let boxClass = 'bg-black/40 border-white/15 text-white'
+              if (gameState === 'won') boxClass = 'bg-gradient-to-b from-emerald-400 to-emerald-600 border-emerald-200 text-white scale-105 shadow-[0_0_20px_rgba(52,211,153,0.5)]'
+              else if (gameState === 'lost') boxClass = 'bg-gradient-to-b from-red-500 to-red-700 border-red-300 text-white'
 
               return (
                 <div
                   key={i}
-                  className={`w-12 h-12 sm:w-14 sm:h-14 border-2 rounded-xl flex items-center justify-center text-2xl font-black uppercase transition-all duration-300 ${boxClass}`}
+                  className={`w-12 h-12 sm:w-14 sm:h-14 border-2 rounded-2xl flex items-center justify-center text-2xl font-black uppercase transition-all duration-300 animate-pop-in ${boxClass}`}
                 >
-                  {letter}
+                  {letter || <span className="text-white/20">?</span>}
                 </div>
               )
             })}
@@ -129,19 +129,21 @@ export default function WordGuess() {
           <button
             onClick={handleRemoveLetter}
             disabled={currentGuess.length === 0 || gameState !== 'playing'}
-            className="text-gray-400 hover:text-white px-4 py-2 font-bold disabled:opacity-50 transition-colors"
+            className="text-sm text-gray-300 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 px-5 py-2.5 rounded-full font-bold disabled:opacity-40 transition-colors"
           >
-            ⌫ Backspace
+            ⌫ Undo letter
           </button>
         </div>
 
         {gameState !== 'playing' && (
+          <div className="w-full animate-pop-in">
           <GameResult
             game={gameMeta}
             isWin={gameState === 'won'}
-            message={gameState === 'won' ? 'Perfect!' : `Word was ${targetWord}`}
+            message={gameState === 'won' ? '🎉 Brilliant! You got it!' : `😅 Word was ${targetWord}`}
             onRestart={initGame}
           />
+          </div>
         )}
       </div>
     </GameLayout>
