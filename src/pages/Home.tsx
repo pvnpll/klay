@@ -62,6 +62,9 @@ export default function Home() {
         <p className="text-base text-gray-300 max-w-md mx-auto font-medium">
           No accounts, no downloads. Pick a solo game and beat your best. Playing with a friend? Open the Kupple tab.
         </p>
+        <a href="https://kupple.pvnpll.in" className="mt-5 inline-flex items-center gap-2 rounded-full border border-rose-300/30 bg-rose-400/10 px-5 py-3 text-sm font-black text-rose-200 hover:bg-rose-400/20 transition-colors">
+          👥 Playing together? Open Kupple ↗
+        </a>
         {totalPlays > 0 && (
           <div className="mt-5 inline-flex items-center gap-2 bg-gradient-to-r from-amber-400/20 to-fuchsia-500/20 border border-amber-300/20 rounded-full px-5 py-2 text-sm font-black text-amber-200">
             <Trophy size={16} /> You've played {totalPlays} times — keep going!

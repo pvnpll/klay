@@ -11,7 +11,7 @@ function App() {
         <div className="absolute bottom-0 left-1/3 w-96 h-96 bg-amber-500/10 rounded-full blur-[120px] animate-float" style={{ animationDelay: '-4s' }} />
       </div>
       <header className="border-b border-white/10 bg-black/40 backdrop-blur-md p-4 sticky top-0 z-50">
-        <div className="container mx-auto flex items-center justify-between">
+        <div className="container mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <Link to="/" className="flex items-center gap-2 text-2xl font-black tracking-tight hover:scale-105 active:scale-95 transition-transform">
             <span className="w-10 h-10 rounded-2xl bg-gradient-to-br from-fuchsia-500 via-purple-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-fuchsia-500/30 rotate-3">
               <Gamepad2 size={22} className="text-white" />
@@ -23,9 +23,9 @@ function App() {
               arcade
             </span>
           </Link>
-          <nav aria-label="Main navigation" className="flex items-center gap-2">
-            <Link to="/" className="text-sm text-gray-300 hover:text-white transition-colors font-bold bg-white/5 hover:bg-white/10 border border-white/10 px-3 sm:px-4 py-2 rounded-full">Solo games</Link>
-            <a href="https://kupple.pvnpll.in" className="text-sm text-rose-200 hover:text-white transition-colors font-bold bg-rose-400/10 hover:bg-rose-400/20 border border-rose-300/20 px-3 sm:px-4 py-2 rounded-full">Kupple ↗</a>
+          <nav aria-label="Main navigation" className="grid grid-cols-2 gap-1 w-full sm:w-auto rounded-2xl bg-black/30 border border-white/15 p-1">
+            <Link to="/" aria-current="page" className="text-center text-sm text-white font-black bg-white/15 border border-white/15 px-5 py-3 rounded-xl">Klay · Solo</Link>
+            <a href="https://kupple.pvnpll.in" className="text-center text-sm text-gray-950 font-black bg-gradient-to-r from-rose-300 to-orange-200 hover:brightness-110 border border-rose-200 px-5 py-3 rounded-xl transition-all">Kupple · 2 players ↗</a>
           </nav>
         </div>
       </header>
