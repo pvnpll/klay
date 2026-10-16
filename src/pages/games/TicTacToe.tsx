@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { GameLayout } from '../../components/GameLayout'
 import { GameResult } from '../../components/GameResult'
 import { GAMES } from '../../data/games'
@@ -18,6 +18,8 @@ const WIN_COMBOS = [
 ]
 
 export default function TicTacToe() {
+  const aiTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  useEffect(() => () => { if (aiTimer.current) clearTimeout(aiTimer.current) }, [])
   const [mode, setMode] = useState<GameMode>(null)
   const [board, setBoard] = useState<Player[]>(Array(9).fill(null))
   const [xIsNext, setXIsNext] = useState<boolean>(true)
@@ -121,7 +123,7 @@ export default function TicTacToe() {
 
     // Computer's turn
     if (mode === 'pvc' && newState === 'playing') {
-      setTimeout(() => {
+      aiTimer.current = setTimeout(() => {
         const bestMoveIndex = getBestMove([...newBoard])
         newBoard[bestMoveIndex] = 'O'
         setBoard([...newBoard])
@@ -132,6 +134,7 @@ export default function TicTacToe() {
   }
 
   const resetGame = () => {
+    if (aiTimer.current) clearTimeout(aiTimer.current)
     setBoard(Array(9).fill(null))
     setXIsNext(true)
     setGameState('playing')

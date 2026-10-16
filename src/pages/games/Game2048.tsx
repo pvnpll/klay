@@ -126,8 +126,8 @@ export default function Game2048() {
   const handleMove = useCallback((direction: 'UP' | 'DOWN' | 'LEFT' | 'RIGHT') => {
     if (gameOver || (won && !hasContinued)) return
 
-    setBoard(prev => {
-      let currentBoard = prev
+    {
+      let currentBoard = board
       let rotations = 0
 
       if (direction === 'RIGHT') rotations = 2
@@ -173,14 +173,15 @@ export default function Game2048() {
           setBestScore(newBest)
         }
         
-        return spawnedBoard
+        setBoard(spawnedBoard)
+        return
       }
-      return prev
-    })
-  }, [gameOver, won, hasContinued, score])
+    }
+  }, [board, gameOver, won, hasContinued, score])
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) e.preventDefault()
       if (e.key === 'ArrowUp' || e.key === 'w') handleMove('UP')
       else if (e.key === 'ArrowDown' || e.key === 's') handleMove('DOWN')
       else if (e.key === 'ArrowLeft' || e.key === 'a') handleMove('LEFT')
@@ -272,7 +273,7 @@ export default function Game2048() {
         </div>
 
         <div 
-          className="relative bg-gradient-to-b from-amber-500/15 to-orange-600/5 p-3 md:p-4 rounded-3xl backdrop-blur-md shadow-[0_0_50px_rgba(251,146,60,0.2)] border border-amber-400/20 touch-none"
+          className="w-full relative bg-gradient-to-b from-amber-500/15 to-orange-600/5 p-3 md:p-4 rounded-3xl backdrop-blur-md shadow-[0_0_50px_rgba(251,146,60,0.2)] border border-amber-400/20 touch-none"
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
@@ -281,7 +282,7 @@ export default function Game2048() {
               row.map((cell, c) => (
                 <div 
                   key={`${r}-${c}`}
-                  className={`w-16 h-16 md:w-20 md:h-20 rounded-xl md:rounded-2xl flex items-center justify-center font-black text-3xl md:text-4xl transition-all duration-150 tabular-nums ${getColor(cell)} ${cell !== 0 ? 'scale-100' : 'scale-95'}`}
+                  className={`min-w-0 aspect-square rounded-xl md:rounded-2xl flex items-center justify-center font-black text-3xl md:text-4xl transition-all duration-150 tabular-nums ${getColor(cell)} ${cell !== 0 ? 'scale-100' : 'scale-95'}`}
                 >
                   {cell !== 0 ? cell : ''}
                 </div>

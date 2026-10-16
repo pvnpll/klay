@@ -51,15 +51,36 @@ const generateSudoku = () => {
 
   fillBoard(board)
 
+  const countSolutions = (grid: (number | null)[][]): number => {
+    let best: { row: number; col: number; choices: number[] } | null = null
+    for (let row = 0; row < 9; row++) for (let col = 0; col < 9; col++) {
+      if (grid[row][col] !== null) continue
+      const choices = [1,2,3,4,5,6,7,8,9].filter(n => isValid(grid, row, col, n))
+      if (!choices.length) return 0
+      if (!best || choices.length < best.choices.length) best = { row, col, choices }
+    }
+    if (!best) return 1
+    let count = 0
+    for (const n of best.choices) {
+      grid[best.row][best.col] = n
+      count += countSolutions(grid)
+      grid[best.row][best.col] = null
+      if (count >= 2) return 2
+    }
+    return count
+  }
   // Remove cells for Hard difficulty (around 50-55 removed)
   const cellsToRemove = 53
   let removed = 0
-  while (removed < cellsToRemove) {
+  let attempts = 0
+  while (removed < cellsToRemove && attempts++ < 150) {
     const r = Math.floor(Math.random() * 9)
     const c = Math.floor(Math.random() * 9)
     if (board[r][c] !== null) {
+      const value = board[r][c]
       board[r][c] = null
-      removed++
+      if (countSolutions(board) === 1) removed++
+      else board[r][c] = value
     }
   }
 
@@ -155,6 +176,7 @@ export default function Sudoku() {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (gameState !== 'playing') return
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Backspace'].includes(e.key)) e.preventDefault()
       if (e.key >= '1' && e.key <= '9') handleInput(parseInt(e.key))
       if (e.key === 'Backspace' || e.key === 'Delete') handleInput(null)
       
@@ -168,7 +190,7 @@ export default function Sudoku() {
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [selectedCell, gameState, grid])
+  })
 
   const formatTime = (secs: number) => {
     const m = Math.floor(secs / 60)

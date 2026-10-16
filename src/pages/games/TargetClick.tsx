@@ -35,8 +35,8 @@ export default function TargetClick() {
   const generateTarget = () => {
     // Keep target away from edges, between 10% and 90%
     setTargetPos({
-      top: 10 + Math.random() * 80,
-      left: 10 + Math.random() * 80
+      top: 15 + Math.random() * 70,
+      left: 15 + Math.random() * 70
     })
   }
 
@@ -53,7 +53,7 @@ export default function TargetClick() {
     }, 10)
   }
 
-  const handleTargetClick = (e: React.MouseEvent | React.TouchEvent) => {
+  const handleTargetClick = (e: React.PointerEvent) => {
     e.stopPropagation() // Prevent container click
     if (gameState !== 'playing') return
 
@@ -121,8 +121,7 @@ export default function TargetClick() {
 
           {gameState === 'playing' && (
             <button
-              onMouseDown={handleTargetClick}
-              onTouchStart={handleTargetClick}
+              onPointerDown={handleTargetClick}
               className="absolute w-12 h-12 sm:w-16 sm:h-16 -ml-6 -mt-6 sm:-ml-8 sm:-mt-8 rounded-full flex items-center justify-center bg-gradient-to-br from-amber-300 to-orange-500 shadow-[0_0_25px_rgba(251,146,60,0.8)] border-2 border-white/50 focus:outline-none animate-pop-in active:scale-90 transition-transform"
               style={{
                 top: `${targetPos.top}%`,

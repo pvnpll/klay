@@ -23,8 +23,8 @@ export default function OneSecond() {
     animationRef.current = requestAnimationFrame(updateTime)
   }
 
-  const handleStart = (e: React.MouseEvent | React.TouchEvent | React.KeyboardEvent) => {
-    if (gameState === 'result') return
+  const handleStart = (e: React.PointerEvent | React.KeyboardEvent) => {
+    if (gameState !== 'idle') return
     if (e.type === 'keydown' && (e as React.KeyboardEvent).key !== ' ') return
     if (e.type === 'keydown' && (e as React.KeyboardEvent).repeat) return
     
@@ -36,7 +36,7 @@ export default function OneSecond() {
     animationRef.current = requestAnimationFrame(updateTime)
   }
 
-  const handleStop = (e?: React.MouseEvent | React.TouchEvent | React.KeyboardEvent) => {
+  const handleStop = (e?: React.PointerEvent | React.KeyboardEvent) => {
     if (gameState !== 'holding') return
     if (e && e.type === 'keyup' && (e as React.KeyboardEvent).key !== ' ') return
     if (e) e.preventDefault()
@@ -70,9 +70,12 @@ export default function OneSecond() {
     return () => {
       window.removeEventListener('mouseup', handleMouseUp)
       window.removeEventListener('touchend', handleTouchEnd)
-      if (animationRef.current) cancelAnimationFrame(animationRef.current)
     }
   }, [gameState])
+
+  useEffect(() => () => {
+    if (animationRef.current) cancelAnimationFrame(animationRef.current)
+  }, [])
 
   const restart = () => {
     setGameState('idle')
@@ -92,8 +95,10 @@ export default function OneSecond() {
         </div>
 
         <div 
-          onMouseDown={handleStart}
-          onTouchStart={handleStart}
+          onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); handleStart(e) }}
+          onPointerUp={handleStop}
+          onPointerCancel={handleStop}
+          onBlur={() => handleStop()}
           onKeyDown={handleStart}
           onKeyUp={handleStop}
           tabIndex={0}
@@ -134,7 +139,7 @@ export default function OneSecond() {
           <div className="mt-6 w-full animate-pop-in">
             <GameResult
               game={gameMeta}
-              score={parseFloat((100 - Math.abs(1000 - timeElapsed) / 10).toFixed(2))}
+              score={Math.max(0, parseFloat((100 - Math.abs(1000 - timeElapsed) / 10).toFixed(2)))}
               isNewBest={isNewBest}
               bestScore={bestAccuracy}
               onRestart={restart}

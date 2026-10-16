@@ -1,39 +1,40 @@
-import React from 'react'
+import React, { lazy, Suspense } from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import App from './App.tsx'
 import Home from './pages/Home.tsx'
-import FallingTiles from './pages/games/FallingTiles.tsx'
-import NumberRush from './pages/games/NumberRush.tsx'
-import Memory from './pages/games/Memory.tsx'
-import TicTacToe from './pages/games/TicTacToe.tsx'
-import Typing from './pages/games/Typing.tsx'
-import Snake from './pages/games/Snake.tsx'
-import WordGuess from './pages/games/WordGuess.tsx'
-import ChessGame from './pages/games/ChessGame.tsx'
-import Game2048 from './pages/games/Game2048.tsx'
-import TargetClick from './pages/games/TargetClick.tsx'
-import Sudoku from './pages/games/Sudoku.tsx'
-import PerfectTiming from './pages/games/PerfectTiming.tsx'
-import OneSecond from './pages/games/OneSecond.tsx'
-import MentalMath from './pages/games/MentalMath.tsx'
-import DontTouchRed from './pages/games/DontTouchRed.tsx'
-import GridMemory from './pages/games/GridMemory.tsx'
-import RiskIt from './pages/games/RiskIt.tsx'
-import OddOneOut from './pages/games/OddOneOut.tsx'
-import Sequence from './pages/games/Sequence.tsx'
-import StroopTest from './pages/games/StroopTest.tsx'
-import Breakout from './pages/games/Breakout.tsx'
-import Pong from './pages/games/Pong.tsx'
-import Stack from './pages/games/Stack.tsx'
-import ConnectFour from './pages/games/ConnectFour.tsx'
-import DotsAndBoxes from './pages/games/DotsAndBoxes.tsx'
-import ReactionDuel from './pages/games/ReactionDuel.tsx'
+const FallingTiles = lazy(() => import('./pages/games/FallingTiles.tsx'))
+const NumberRush = lazy(() => import('./pages/games/NumberRush.tsx'))
+const Memory = lazy(() => import('./pages/games/Memory.tsx'))
+const TicTacToe = lazy(() => import('./pages/games/TicTacToe.tsx'))
+const Typing = lazy(() => import('./pages/games/Typing.tsx'))
+const Snake = lazy(() => import('./pages/games/Snake.tsx'))
+const WordGuess = lazy(() => import('./pages/games/WordGuess.tsx'))
+const ChessGame = lazy(() => import('./pages/games/ChessGame.tsx'))
+const Game2048 = lazy(() => import('./pages/games/Game2048.tsx'))
+const TargetClick = lazy(() => import('./pages/games/TargetClick.tsx'))
+const Sudoku = lazy(() => import('./pages/games/Sudoku.tsx'))
+const PerfectTiming = lazy(() => import('./pages/games/PerfectTiming.tsx'))
+const OneSecond = lazy(() => import('./pages/games/OneSecond.tsx'))
+const MentalMath = lazy(() => import('./pages/games/MentalMath.tsx'))
+const DontTouchRed = lazy(() => import('./pages/games/DontTouchRed.tsx'))
+const GridMemory = lazy(() => import('./pages/games/GridMemory.tsx'))
+const RiskIt = lazy(() => import('./pages/games/RiskIt.tsx'))
+const OddOneOut = lazy(() => import('./pages/games/OddOneOut.tsx'))
+const Sequence = lazy(() => import('./pages/games/Sequence.tsx'))
+const StroopTest = lazy(() => import('./pages/games/StroopTest.tsx'))
+const Breakout = lazy(() => import('./pages/games/Breakout.tsx'))
+const Pong = lazy(() => import('./pages/games/Pong.tsx'))
+const Stack = lazy(() => import('./pages/games/Stack.tsx'))
+const ConnectFour = lazy(() => import('./pages/games/ConnectFour.tsx'))
+const DotsAndBoxes = lazy(() => import('./pages/games/DotsAndBoxes.tsx'))
+const ReactionDuel = lazy(() => import('./pages/games/ReactionDuel.tsx'))
 import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <BrowserRouter>
+      <Suspense fallback={<div className="p-12 text-center text-white" role="status">Loading game…</div>}>
       <Routes>
         <Route path="/" element={<App />}>
           <Route index element={<Home />} />
@@ -65,6 +66,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           <Route path="reaction-duel" element={<ReactionDuel />} />
         </Route>
       </Routes>
+      </Suspense>
     </BrowserRouter>
   </React.StrictMode>,
 )

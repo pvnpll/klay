@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { GameLayout } from '../../components/GameLayout'
 import { GameResult } from '../../components/GameResult'
 import { GAMES } from '../../data/games'
@@ -7,6 +7,8 @@ import { saveScore, getStats } from '../../utils/storage'
 const gameMeta = GAMES.find(g => g.id === 'grid-memory')!
 
 export default function GridMemory() {
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current) }, [])
   const [gameState, setGameState] = useState<'idle' | 'showing' | 'playing' | 'gameover'>('idle')
   const [score, setScore] = useState(0)
   
@@ -47,7 +49,7 @@ export default function GridMemory() {
     // Show tiles for a bit, then hide
     const showDuration = Math.max(800, 2000 - currentScore * 100)
     
-    setTimeout(() => {
+    timerRef.current = setTimeout(() => {
       setGameState('playing')
     }, showDuration)
   }
@@ -75,7 +77,7 @@ export default function GridMemory() {
         if (newScore === 8) nextSize = 5
         if (newScore === 15) nextSize = 6
         
-        setTimeout(() => {
+        timerRef.current = setTimeout(() => {
           setMessage('')
           startLevel(nextSize, newScore + 1)
         }, 1000)

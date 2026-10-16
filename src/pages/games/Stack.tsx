@@ -85,7 +85,7 @@ export default function Stack() {
     if (gameStateRef.current !== 'playing') return
     
     if (lastTimeRef.current !== null && activeRef.current) {
-      const dt = (time - lastTimeRef.current) / 1000
+      const dt = Math.min((time - lastTimeRef.current) / 1000, 0.032)
       let { x, width } = activeRef.current
       
       x += speedRef.current * dirRef.current * dt
@@ -178,14 +178,14 @@ export default function Stack() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === ' ' || e.key === 'Enter') {
+      if ((e.key === ' ' || e.key === 'Enter') && !e.repeat && !(e.target instanceof HTMLButtonElement)) {
         e.preventDefault()
         handleTap()
       }
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [])
+  })
 
   return (
     <GameLayout title={gameMeta.name}>
@@ -197,15 +197,15 @@ export default function Stack() {
 
         <div 
           id="stack-container"
-          onMouseDown={handleTap}
-          onTouchStart={(e) => { e.preventDefault(); handleTap(); }}
+          onPointerDown={handleTap}
           className="w-full bg-gradient-to-b from-[#12082e] to-[#1b0f3a] border-2 border-indigo-400/25 rounded-3xl relative overflow-hidden shadow-[0_0_50px_rgba(129,140,248,0.25)] aspect-[3/4] cursor-pointer touch-none select-none transition-all duration-100"
         >
           {gameState === 'idle' && (
             <div className="absolute inset-0 bg-black/60 flex flex-col gap-3 items-center justify-center z-20 backdrop-blur-sm p-6 text-center">
               <p className="text-5xl animate-float">🏗️</p>
               <button
-                onClick={(e) => { e.stopPropagation(); startGame(); }}
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={startGame}
                 className="bg-gradient-to-r from-indigo-500 to-fuchsia-500 text-white px-8 py-4 rounded-2xl font-black text-xl shadow-lg shadow-indigo-500/30 transition-transform hover:-translate-y-0.5 active:scale-95"
               >
                 🏗️ Build Tower

@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { Chess, Move } from 'chess.js'
 import { Chessboard } from 'react-chessboard'
 import { GameLayout } from '../../components/GameLayout'
@@ -9,6 +9,7 @@ import { saveScore } from '../../utils/storage'
 const gameMeta = GAMES.find(g => g.id === 'chess')!
 
 export default function ChessGame() {
+  const aiTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [game, setGame] = useState(new Chess())
   const [fen, setFen] = useState(game.fen())
   const [status, setStatus] = useState('White to move')
@@ -20,13 +21,13 @@ export default function ChessGame() {
   const updateStatus = useCallback((currentGame: Chess) => {
     if (currentGame.isCheckmate()) {
       setStatus(`Checkmate! ${currentGame.turn() === 'w' ? 'Black' : 'White'} wins!`)
-      saveScore(gameMeta, 1)
+      saveScore(gameMeta, currentGame.isCheckmate() && currentGame.turn() === 'b' ? 1 : 0)
     } else if (currentGame.isDraw()) {
       setStatus('Draw!')
-      saveScore(gameMeta, 1)
+      saveScore(gameMeta, currentGame.isCheckmate() && currentGame.turn() === 'b' ? 1 : 0)
     } else if (currentGame.isStalemate()) {
       setStatus('Stalemate!')
-      saveScore(gameMeta, 1)
+      saveScore(gameMeta, currentGame.isCheckmate() && currentGame.turn() === 'b' ? 1 : 0)
     } else {
       let statusText = currentGame.turn() === 'w' ? 'White to move' : 'Black to move'
       if (currentGame.isCheck()) {
@@ -54,6 +55,8 @@ export default function ChessGame() {
   }
 
   const minimax = (chess: Chess, depth: number, isMaximizing: boolean): number => {
+    if (chess.isCheckmate()) return chess.turn() === 'w' ? -100000 : 100000
+    if (chess.isDraw()) return 0
     if (depth === 0 || chess.isGameOver()) {
       return evaluateBoard(chess)
     }
@@ -117,7 +120,7 @@ export default function ChessGame() {
     setIsComputing(true)
     
     // Simulate thinking time
-    setTimeout(() => {
+    aiTimer.current = setTimeout(() => {
       let chosenMove: Move | null = null
       
       if (difficulty === 'easy') {
@@ -141,7 +144,7 @@ export default function ChessGame() {
           to: chosenMove.to,
           promotion: 'q'
         })
-        setGame(new Chess(game.fen()))
+        setGame(game)
         updateStatus(game)
       } catch (e) {
         console.error(e)
@@ -154,6 +157,7 @@ export default function ChessGame() {
     if (gameMode === '1P' && game.turn() === 'b' && !game.isGameOver()) {
       makeComputerMove()
     }
+    return () => { if (aiTimer.current) clearTimeout(aiTimer.current) }
   }, [fen, game, gameMode, makeComputerMove])
 
   const onDrop = ({ sourceSquare, targetSquare }: { sourceSquare: string; targetSquare: string | null }) => {
@@ -173,7 +177,7 @@ export default function ChessGame() {
 
       if (move === null) return false
 
-      setGame(new Chess(game.fen()))
+      setGame(game)
       updateStatus(game)
       return true
     } catch (e) {
@@ -182,6 +186,7 @@ export default function ChessGame() {
   }
 
   const resetGame = () => {
+    if (aiTimer.current) clearTimeout(aiTimer.current)
     const newGame = new Chess()
     setGame(newGame)
     setFen(newGame.fen())

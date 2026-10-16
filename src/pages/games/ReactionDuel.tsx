@@ -16,9 +16,11 @@ export default function ReactionDuel() {
   const [falseStartBy, setFalseStartBy] = useState<Player | null>(null)
 
   const timeoutRef = useRef<number | null>(null)
+  const lockedRef = useRef(false)
   const WIN_SCORE = 5
 
   const startRound = () => {
+    lockedRef.current = false
     setGameState('waiting')
     setRoundWinner(null)
     setFalseStartBy(null)
@@ -38,6 +40,7 @@ export default function ReactionDuel() {
   }
 
   const handleTap = (player: Player) => {
+    if (lockedRef.current) return
     if (gameState === 'idle' || gameState === 'result' || gameState === 'gameover') return
     
     if (gameState === 'waiting') {
@@ -53,15 +56,17 @@ export default function ReactionDuel() {
   }
 
   const finishRound = (winner: Player) => {
+    lockedRef.current = true
     setRoundWinner(winner)
     setGameState('result')
     
-    setScore(prev => {
-      const newScore = { ...prev }
+    {
+      const newScore = { ...score }
       newScore[winner] += 1
+      setScore(newScore)
       
       if (newScore[winner] >= WIN_SCORE) {
-        setTimeout(() => {
+        timeoutRef.current = window.setTimeout(() => {
           setGameState('gameover')
           if (winner === 'p1') {
             confetti({ particleCount: 150, origin: { y: 0.9 }, angle: 90 }) // Bottom
@@ -70,12 +75,11 @@ export default function ReactionDuel() {
           }
         }, 1000)
       } else {
-        setTimeout(() => {
+        timeoutRef.current = window.setTimeout(() => {
           startRound()
         }, 2000)
       }
-      return newScore
-    })
+    }
   }
 
   useEffect(() => {
@@ -124,8 +128,7 @@ export default function ReactionDuel() {
             
             {/* Player 2 (TOP - Inverted) */}
             <div 
-              onMouseDown={() => handleTap('p2')}
-              onTouchStart={(e) => { e.preventDefault(); handleTap('p2') }}
+              onPointerDown={() => handleTap('p2')}
               className={`relative flex-1 flex flex-col items-center justify-center cursor-pointer transition-colors duration-100 rotate-180
                 ${gameState === 'waiting' ? 'bg-gradient-to-b from-rose-600 to-rose-500 active:brightness-110' : ''}
                 ${gameState === 'ready' ? 'bg-gradient-to-b from-lime-400 to-emerald-500 active:brightness-110 animate-pulse' : ''}
@@ -144,8 +147,7 @@ export default function ReactionDuel() {
 
             {/* Player 1 (BOTTOM) */}
             <div 
-              onMouseDown={() => handleTap('p1')}
-              onTouchStart={(e) => { e.preventDefault(); handleTap('p1') }}
+              onPointerDown={() => handleTap('p1')}
               className={`relative flex-1 flex flex-col items-center justify-center cursor-pointer transition-colors duration-100
                 ${gameState === 'waiting' ? 'bg-gradient-to-b from-rose-600 to-rose-500 active:brightness-110' : ''}
                 ${gameState === 'ready' ? 'bg-gradient-to-b from-lime-400 to-emerald-500 active:brightness-110 animate-pulse' : ''}

@@ -15,14 +15,16 @@ export interface UserStats {
 const STORAGE_KEY = 'klay_user_stats'
 
 export const getStats = (): UserStats => {
-  const data = localStorage.getItem(STORAGE_KEY)
-  if (data) {
-    try {
-      return JSON.parse(data)
-    } catch (e) {
-      console.error("Failed to parse Klay stats")
+  try {
+    const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null')
+    if (data && typeof data.bests === 'object' && data.bests &&
+        typeof data.playCounts === 'object' && data.playCounts && Array.isArray(data.recentlyPlayed)) {
+      return data
     }
+  } catch {
+    // Games remain playable when storage is unavailable or contains invalid data.
   }
+
   return {
     bests: {},
     playCounts: {},
@@ -58,10 +60,10 @@ export const saveScore = (game: GameMetadata, score: number) => {
     stats.bests[game.id] = score
   }
 
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(stats))
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(stats)) } catch { /* Session result still works. */ }
   
   return {
     isNewBest,
-    bestScore: stats.bests[game.id] || score
+    bestScore: stats.bests[game.id] ?? score
   }
 }

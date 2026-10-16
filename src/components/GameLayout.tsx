@@ -12,9 +12,9 @@ interface GameLayoutProps {
 }
 
 export function GameLayout({ title, description, rules, children }: GameLayoutProps) {
-  const [showRules, setShowRules] = useState(false)
+  const [showRules, setShowRules] = useState(true)
   
-  const gameInfo = GAMES.find(g => g.name === title)
+  const gameInfo = GAMES.find(g => g.name === title || title.endsWith(g.name))
   const displayRules = rules || gameInfo?.rules
   const displayDesc = description || gameInfo?.description
 

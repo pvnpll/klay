@@ -37,6 +37,7 @@ export default function Memory() {
   })
   const [isNewBest, setIsNewBest] = useState(false)
 
+  const pairTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const timerRef = useRef<number | null>(null)
   const startTimeRef = useRef<number>(0)
   
@@ -45,11 +46,12 @@ export default function Memory() {
 
   useEffect(() => {
     initGame()
-    return () => stopTimer()
+    return () => { stopTimer(); if (pairTimer.current) clearTimeout(pairTimer.current) }
   }, [])
 
   const initGame = () => {
     stopTimer()
+    if (pairTimer.current) clearTimeout(pairTimer.current)
     
     // Create 4 pairs
     let newCards: Card[] = []
@@ -113,17 +115,16 @@ export default function Memory() {
       
       if (card1.symbol === card2.symbol) {
         // Match!
-        setTimeout(() => {
-          setCards(prev => prev.map(c => 
-            newFlippedIds.includes(c.id) ? { ...c, isMatched: true } : c
-          ))
+        pairTimer.current = setTimeout(() => {
+          const matched = newCards.map(c => newFlippedIds.includes(c.id) ? { ...c, isMatched: true } : c)
+          setCards(matched)
           setFlippedIds([])
           setIsProcessing(false)
-          checkWinCondition()
+          checkWinCondition(matched)
         }, 500)
       } else {
         // No match
-        setTimeout(() => {
+        pairTimer.current = setTimeout(() => {
           setCards(prev => prev.map(c => 
             newFlippedIds.includes(c.id) ? { ...c, isFlipped: false } : c
           ))
@@ -134,26 +135,15 @@ export default function Memory() {
     }
   }
 
-  const checkWinCondition = () => {
-    setCards(currentCards => {
-      setTimeout(() => {
-        setCards(latestCards => {
-          if (latestCards.every(c => c.isMatched)) {
-            stopTimer()
-            setGameState('completed')
-            const finalTime = Math.round(performance.now() - startTimeRef.current)
-            setTimeElapsed(finalTime)
-            
-            const timeInSeconds = parseFloat((finalTime / 1000).toFixed(1))
-            const { isNewBest, bestScore } = saveScore(gameMeta, timeInSeconds)
-            setIsNewBest(isNewBest)
-            setBestTime(bestScore)
-          }
-          return latestCards
-        })
-      }, 0)
-      return currentCards
-    })
+  const checkWinCondition = (currentCards: Card[]) => {
+    if (!currentCards.every(c => c.isMatched)) return
+    stopTimer()
+    setGameState('completed')
+    const finalTime = Math.round(performance.now() - startTimeRef.current)
+    setTimeElapsed(finalTime)
+    const result = saveScore(gameMeta, parseFloat((finalTime / 1000).toFixed(1)))
+    setIsNewBest(result.isNewBest)
+    setBestTime(result.bestScore)
   }
 
   const formatTime = (ms: number) => {

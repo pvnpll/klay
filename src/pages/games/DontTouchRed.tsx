@@ -75,7 +75,9 @@ export default function DontTouchRed() {
         lifespan: Math.max(1000, 3000 - scoreRef.current * 30)
       }
       
-      targetsRef.current = [...targetsRef.current, newTarget]
+      if (!targetsRef.current.some(t => Math.abs(t.x - newTarget.x) < 22 && Math.abs(t.y - newTarget.y) < 30)) {
+        targetsRef.current = [...targetsRef.current, newTarget]
+      }
       lastSpawnRef.current = time
     }
     
@@ -110,9 +112,9 @@ export default function DontTouchRed() {
     }
   }, [gameState, update])
 
-  const handleTargetClick = (e: React.MouseEvent | React.TouchEvent, id: number, color: string) => {
+  const handleTargetClick = (e: React.PointerEvent, id: number, color: string) => {
     e.stopPropagation()
-    if (gameStateRef.current !== 'playing') return
+    if (gameStateRef.current !== 'playing' || !targetsRef.current.some(t => t.id === id)) return
     
     if (color === 'red') {
       handleGameOver("You touched RED!")
@@ -152,8 +154,7 @@ export default function DontTouchRed() {
         </div>
 
         <div 
-          onMouseDown={handleMissClick}
-          onTouchStart={handleMissClick}
+          onPointerDown={handleMissClick}
           className="relative bg-gradient-to-b from-[#23102b] to-[#0f1a2e] border-2 border-red-400/25 rounded-3xl overflow-hidden w-full aspect-[4/3] sm:aspect-video shadow-[0_0_50px_rgba(239,68,68,0.2)] cursor-crosshair touch-none select-none"
         >
           <p className="absolute top-3 left-0 w-full text-center text-sm font-black text-white/50 pointer-events-none">Tap safe colors • NEVER red 🔴</p>
@@ -172,13 +173,12 @@ export default function DontTouchRed() {
 
           {targets.map(target => {
             const age = performance.now() - target.createdAt
-            const scale = Math.max(0, 1 - (age / target.lifespan))
+            const scale = Math.max(0.65, 1 - (age / target.lifespan))
             
             return (
               <button
                 key={target.id}
-                onMouseDown={(e) => handleTargetClick(e, target.id, target.color)}
-                onTouchStart={(e) => handleTargetClick(e, target.id, target.color)}
+                onPointerDown={(e) => handleTargetClick(e, target.id, target.color)}
                 className={`absolute w-12 h-12 sm:w-16 sm:h-16 -ml-6 -mt-6 sm:-ml-8 sm:-mt-8 rounded-full border-2 border-white/30 transition-transform flex items-center justify-center text-xl ${getColorClass(target.color)} active:scale-90`}
                 style={{
                   left: `${target.x}%`,

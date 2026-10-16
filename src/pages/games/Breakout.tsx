@@ -107,7 +107,7 @@ export default function Breakout() {
     if (gameStateRef.current !== 'playing') return
     
     if (lastTimeRef.current !== null) {
-      const dt = (time - lastTimeRef.current) / 1000
+      const dt = Math.min((time - lastTimeRef.current) / 1000, 0.032)
       let { x, y, dx, dy } = ballRef.current
       
       x += dx * dt

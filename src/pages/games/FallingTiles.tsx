@@ -69,7 +69,7 @@ export default function FallingTiles() {
     if (gameStateRef.current !== 'playing') return
     
     if (lastTimeRef.current !== null) {
-      const deltaTime = (time - lastTimeRef.current) / 1000
+      const deltaTime = Math.min((time - lastTimeRef.current) / 1000, 0.032)
       
       // Speed increases slightly over time
       speedRef.current += deltaTime * 2
@@ -134,7 +134,7 @@ export default function FallingTiles() {
     // Must click the lowest unclicked tile
     const lowestUnclicked = tilesRef.current
       .filter(t => !t.clicked)
-      .reduce((max, t) => t.y > max.y ? t : max, tilesRef.current[0])
+      .sort((a, b) => b.y - a.y)[0]
       
     if (lowestUnclicked && lowestUnclicked.id !== id) {
       // Clicked wrong tile (out of order)
@@ -170,8 +170,7 @@ export default function FallingTiles() {
 
         <div 
           ref={containerRef}
-          onMouseDown={handleMissClick}
-          onTouchStart={handleMissClick}
+          onPointerDown={handleMissClick}
           className="relative bg-gradient-to-b from-[#1a1440] to-[#0d0b26] border-2 border-indigo-400/25 rounded-3xl overflow-hidden w-full aspect-[3/4] shadow-[0_0_50px_rgba(99,102,241,0.25)] cursor-pointer touch-none select-none"
         >
           {gameState === 'idle' && (
@@ -199,9 +198,8 @@ export default function FallingTiles() {
           {tiles.map((tile) => (
             <div
               key={tile.id}
-              onMouseDown={(e) => { e.stopPropagation(); handleTileClick(tile.id) }}
-              onTouchStart={(e) => { e.stopPropagation(); handleTileClick(tile.id) }}
-              className={`absolute w-1/4 h-[25%] rounded-xl border-2 transition-all duration-100 ${
+              onPointerDown={(e) => { e.stopPropagation(); handleTileClick(tile.id) }}
+              className={`absolute w-1/4 h-[25%] rounded-xl border-2 ${
                 tile.clicked ? 'bg-white/10 border-white/10 scale-95' : 'bg-gradient-to-b from-gray-900 to-black border-cyan-300/40 hover:border-cyan-200 shadow-[0_0_18px_rgba(34,211,238,0.35)] active:scale-95'
               }`}
               style={{

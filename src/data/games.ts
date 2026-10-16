@@ -81,7 +81,7 @@ export const GAMES: GameMetadata[] = [
     name: "Breakout",
     description: "Destroy all the bricks with the bouncing ball.",
     rules: [
-      "Move the paddle to bounce the ball.",
+      "Move your mouse or drag your finger across the board to control the bottom paddle.",
       "Break all the bricks to complete the level.",
       "Don't let the ball fall past your paddle!",
       "The ball gets faster over time."
@@ -100,7 +100,7 @@ export const GAMES: GameMetadata[] = [
     name: "Pong",
     description: "Classic paddle and ball action against an AI.",
     rules: [
-      "Control the bottom paddle.",
+      "Move your mouse or drag your finger across the board to control the bottom paddle.",
       "Hit the ball past the AI's top paddle to score.",
       "First to 5 points wins!",
       "The angle changes based on where the ball hits the paddle."
@@ -122,7 +122,7 @@ export const GAMES: GameMetadata[] = [
       "A block will move back and forth.",
       "Tap to drop it on the stack.",
       "Any part of the block hanging over the edge is sliced off.",
-      "The block gets smaller and faster with every mistake!"
+      "Overhang is trimmed away. Blocks speed up after each successful drop."
     ],
     category: "Arcade",
     difficulty: "Hard",
@@ -178,7 +178,7 @@ export const GAMES: GameMetadata[] = [
     rules: [
       "A word will appear on screen.",
       "The word will spell a color (e.g., 'RED').",
-      "But the text itself will be painted a DIFFERENT color.",
+      "The ink may be a different color from the word.",
       "You must click the button that matches the INK color."
     ],
     category: "Brain",
@@ -217,7 +217,7 @@ export const GAMES: GameMetadata[] = [
       "The multiplier will continuously increase.",
       "Click BANK to secure your current score.",
       "If the system CRASHES before you bank, you lose the round.",
-      "Reach the target score across multiple rounds to win!"
+      "Play 5 rounds. Banked points stay safe; a crash earns zero for that round."
     ],
     category: "Strategy",
     difficulty: "Medium",
@@ -348,7 +348,7 @@ export const GAMES: GameMetadata[] = [
     rules: [
       "Tiles will fall from the top of the screen.",
       "Click the lowest black tile in the sequence.",
-      "If you miss a tile or click a red tile, game over!",
+      "Tap black tiles from bottom to top. Missing a tile, tapping out of order, or tapping empty space ends the game.",
       "Survive as long as possible to get a high score."
     ],
     category: "Quick",
@@ -463,7 +463,7 @@ export const GAMES: GameMetadata[] = [
     rules: [
       "You will be given a scrambled word.",
       "Click the letters in the correct order to spell the word.",
-      "Use backspace if you make a mistake.",
+      "Use Undo letter to correct a mistake. The clue gives you the first letter.",
       "Find the word to win!"
     ],
     category: "Word",

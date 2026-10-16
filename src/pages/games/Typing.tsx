@@ -64,7 +64,7 @@ export default function Typing() {
     
     const val = e.target.value
     
-    if (gameState === 'ready' && val.length === 1) {
+    if (gameState === 'ready' && val.length > 0) {
       setGameState('playing')
       startTimer()
     }
@@ -95,7 +95,7 @@ export default function Typing() {
     setTimeElapsed(finalTimeMs)
     
     // WPM calculation: (characters / 5) / (time in minutes)
-    const timeInMinutes = finalTimeMs / 60000
+    const timeInMinutes = Math.max(1, finalTimeMs) / 60000
     const words = totalChars / 5
     const finalWpm = Math.round(words / timeInMinutes)
     

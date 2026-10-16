@@ -40,8 +40,8 @@ export default function Pong() {
     ballRef.current = {
       x: 50,
       y: 50,
-      dx: speed * Math.sin(angle),
-      dy: speed * Math.cos(angle)
+      dx: speed * Math.cos(angle),
+      dy: speed * Math.sin(angle)
     }
   }
 
@@ -72,6 +72,8 @@ export default function Pong() {
       saveScore(gameMeta, scorer === 'p1' ? 1 : 0)
     } else {
       resetBall(scorer === 'ai') // serve to loser
+      lastTimeRef.current = performance.now()
+      requestRef.current = requestAnimationFrame(update)
     }
   }
 
@@ -79,7 +81,7 @@ export default function Pong() {
     if (gameStateRef.current !== 'playing') return
     
     if (lastTimeRef.current !== null) {
-      const dt = (time - lastTimeRef.current) / 1000
+      const dt = Math.min((time - lastTimeRef.current) / 1000, 0.032)
       let { x, y, dx, dy } = ballRef.current
       
       x += dx * dt
@@ -172,7 +174,7 @@ export default function Pong() {
       window.removeEventListener('mousemove', handleMouseMove)
       window.removeEventListener('touchmove', handleTouchMove)
     }
-  }, [])
+  }, [gameState])
 
   return (
     <GameLayout title={gameMeta.name}>

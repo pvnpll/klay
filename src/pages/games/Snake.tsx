@@ -25,6 +25,8 @@ export default function Snake() {
   const [isNewBest, setIsNewBest] = useState(false)
   const [gameState, setGameState] = useState<GameState>('idle')
 
+  const snakeRef = useRef(snake)
+  const turnedRef = useRef(false)
   const directionRef = useRef(direction)
   const lastUpdateRef = useRef(0)
   const requestRef = useRef<number>(0)
@@ -49,6 +51,8 @@ export default function Snake() {
 
   const resetGame = () => {
     const start = [{ x: 10, y: 10 }]
+    snakeRef.current = start
+    turnedRef.current = false
     setSnake(start)
     setDirection(INITIAL_DIRECTION)
     directionRef.current = INITIAL_DIRECTION
@@ -62,6 +66,7 @@ export default function Snake() {
 
   const gameOver = () => {
     if (gameStateRef.current !== 'playing') return
+    gameStateRef.current = 'gameover'
     setGameState('gameover')
     const { isNewBest, bestScore: newBest } = saveScore(gameMeta, scoreRef.current)
     setIsNewBest(isNewBest)
@@ -72,7 +77,9 @@ export default function Snake() {
     if (gameStateRef.current !== 'playing') return
 
     if (time - lastUpdateRef.current > 120) {
-      setSnake(prevSnake => {
+      {
+        const prevSnake = snakeRef.current
+        turnedRef.current = false
         const head = prevSnake[0]
         const newHead = {
           x: head.x + directionRef.current.x,
@@ -87,13 +94,14 @@ export default function Snake() {
           newHead.y >= GRID_SIZE
         ) {
           gameOver()
-          return prevSnake
+          return
         }
 
         // Check self collision
-        if (prevSnake.some(segment => segment.x === newHead.x && segment.y === newHead.y)) {
+        const eating = newHead.x === food.x && newHead.y === food.y
+        if ((eating ? prevSnake : prevSnake.slice(0, -1)).some(segment => segment.x === newHead.x && segment.y === newHead.y)) {
           gameOver()
-          return prevSnake
+          return
         }
 
         const newSnake = [newHead, ...prevSnake]
@@ -102,13 +110,20 @@ export default function Snake() {
         if (newHead.x === food.x && newHead.y === food.y) {
           scoreRef.current += 10
           setScore(scoreRef.current)
+          if (newSnake.length === GRID_SIZE * GRID_SIZE) {
+            snakeRef.current = newSnake
+            setSnake(newSnake)
+            gameOver()
+            return
+          }
           setFood(generateFood(newSnake))
         } else {
           newSnake.pop()
         }
 
-        return newSnake
-      })
+        snakeRef.current = newSnake
+        setSnake(newSnake)
+      }
       lastUpdateRef.current = time
     }
 
@@ -138,7 +153,9 @@ export default function Snake() {
         return
       }
 
+      if (turnedRef.current) return
       const currentDir = directionRef.current
+      turnedRef.current = true
       switch (e.key) {
         case 'ArrowUp':
         case 'w':
@@ -188,7 +205,9 @@ export default function Snake() {
     const absDy = Math.abs(dy)
 
     if (Math.max(absDx, absDy) > 30) {
+      if (turnedRef.current) return
       const currentDir = directionRef.current
+      turnedRef.current = true
       if (absDx > absDy) {
         if (dx > 0 && currentDir.x !== -1) directionRef.current = { x: 1, y: 0 }
         else if (dx < 0 && currentDir.x !== 1) directionRef.current = { x: -1, y: 0 }
@@ -210,7 +229,7 @@ export default function Snake() {
 
         <div 
           className="relative bg-[#0a1f14] border-2 border-lime-400/30 rounded-3xl overflow-hidden touch-none shadow-[0_0_40px_rgba(74,222,128,0.25)]"
-          style={{ width: 'min(90vw, 400px)', height: 'min(90vw, 400px)' }}
+          style={{ width: '100%', maxWidth: 400, aspectRatio: '1' }}
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >

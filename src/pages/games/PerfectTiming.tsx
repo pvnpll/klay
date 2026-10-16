@@ -34,7 +34,7 @@ export default function PerfectTiming() {
     if (gameStateRef.current !== 'playing') return
     
     if (lastTimeRef.current !== null) {
-      const deltaTime = (time - lastTimeRef.current) / 1000
+      const deltaTime = Math.min((time - lastTimeRef.current) / 1000, 0.032)
       
       let newPos = barPosRef.current + (speedRef.current * barDirRef.current * deltaTime)
       
@@ -115,14 +115,14 @@ export default function PerfectTiming() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === ' ' || e.key === 'Enter') {
+      if ((e.key === ' ' || e.key === 'Enter') && !e.repeat && !(e.target instanceof HTMLButtonElement)) {
         e.preventDefault()
         handleAction()
       }
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [])
+  })
 
   return (
     <GameLayout title={gameMeta.name}>

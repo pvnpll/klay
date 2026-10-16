@@ -57,20 +57,17 @@ export default function StroopTest() {
   useEffect(() => {
     if (gameState === 'playing') {
       timerRef.current = window.setInterval(() => {
-        setTimeLeft(t => {
-          if (t <= 1) {
-            clearInterval(timerRef.current!)
-            handleGameOver(score)
-            return 0
-          }
-          return t - 1
-        })
+        setTimeLeft(t => Math.max(0, t - 1))
       }, 1000)
     }
     return () => {
       if (timerRef.current) clearInterval(timerRef.current)
     }
-  }, [gameState, score])
+  }, [gameState])
+
+  useEffect(() => {
+    if (gameState === 'playing' && timeLeft <= 0) handleGameOver(score)
+  }, [gameState, timeLeft, score])
 
   const handleGameOver = (finalScore: number) => {
     setGameState('gameover')
@@ -80,7 +77,7 @@ export default function StroopTest() {
   }
 
   const handleColorClick = (colorName: string) => {
-    if (gameState !== 'playing') return
+    if (timeLeft <= 0 || gameState !== 'playing') return
     
     // We must match the INK color (currentColorClass)
     if (colorName === currentColorClass.name) {
@@ -99,7 +96,7 @@ export default function StroopTest() {
   // Keyboard support for 1-5
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (gameState !== 'playing') return
+      if (timeLeft <= 0 || gameState !== 'playing') return
       const num = parseInt(e.key)
       if (num >= 1 && num <= COLORS.length) {
         handleColorClick(COLORS[num - 1].name)
@@ -107,7 +104,7 @@ export default function StroopTest() {
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [gameState, currentColorClass])
+  })
 
   return (
     <GameLayout title={gameMeta.name}>

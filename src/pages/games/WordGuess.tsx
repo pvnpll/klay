@@ -17,6 +17,7 @@ const WORD_LIST = [
 type LetterObj = { id: number, letter: string, used: boolean }
 
 export default function WordGuess() {
+  const [feedback, setFeedback] = useState('')
   const [targetWord, setTargetWord] = useState('')
   const [scrambled, setScrambled] = useState<LetterObj[]>([])
   const [currentGuess, setCurrentGuess] = useState<number[]>([]) // stores ids
@@ -40,6 +41,7 @@ export default function WordGuess() {
     setTargetWord(randomWord)
     setScrambled(shuffleWord(randomWord))
     setCurrentGuess([])
+    setFeedback('')
     setGameState('playing')
   }, [])
 
@@ -68,8 +70,7 @@ export default function WordGuess() {
           colors: ['#22c55e', '#16a34a', '#4ade80']
         })
       } else {
-        setGameState('lost')
-        saveScore(gameMeta, 0)
+        setFeedback('Try another order. Undo letters to change your answer.')
       }
     }
   }
@@ -86,6 +87,7 @@ export default function WordGuess() {
       <div className="flex flex-col items-center max-w-lg mx-auto">
         
         <div className="mb-6 mt-2 text-center w-full bg-gradient-to-b from-orange-500/15 to-amber-500/5 border border-orange-400/20 rounded-3xl p-5">
+          <p className="text-white mb-3">Clue: starts with {targetWord[0]}. {feedback}</p>
           <h2 className="text-orange-200 font-black text-sm uppercase tracking-widest mb-3">🔤 Unscramble the word!</h2>
           <div className="flex gap-2 justify-center flex-wrap">
             {scrambled.map((item) => (
