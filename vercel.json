@@ -4,6 +4,32 @@
       "source": "/(.*)",
       "destination": "/index.html"
     }
+  ],
+  "redirects": [
+    {
+      "source": "/connect-four",
+      "destination": "https://kupple.pvnpll.in/connect-four",
+      "permanent": true
+    },
+    {
+      "source": "/dots-and-boxes",
+      "destination": "https://kupple.pvnpll.in/dots-and-boxes",
+      "permanent": true
+    },
+    {
+      "source": "/reaction-duel",
+      "destination": "https://kupple.pvnpll.in/reaction-duel",
+      "permanent": true
+    },
+    {
+      "source": "/tic-tac-toe",
+      "destination": "https://kupple.pvnpll.in/tic-tac-toe",
+      "permanent": true
+    },
+    {
+      "source": "/chess",
+      "destination": "https://kupple.pvnpll.in/chess",
+      "permanent": true
+    }
   ]
 }
-

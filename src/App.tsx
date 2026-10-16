@@ -23,8 +23,9 @@ function App() {
               arcade
             </span>
           </Link>
-          <nav className="flex items-center gap-2">
-            <Link to="/" className="text-sm text-gray-300 hover:text-white transition-colors font-bold bg-white/5 hover:bg-white/10 border border-white/10 px-4 py-2 rounded-full">🎮 All Games</Link>
+          <nav aria-label="Main navigation" className="flex items-center gap-2">
+            <Link to="/" className="text-sm text-gray-300 hover:text-white transition-colors font-bold bg-white/5 hover:bg-white/10 border border-white/10 px-3 sm:px-4 py-2 rounded-full">Solo games</Link>
+            <a href="https://kupple.pvnpll.in" className="text-sm text-rose-200 hover:text-white transition-colors font-bold bg-rose-400/10 hover:bg-rose-400/20 border border-rose-300/20 px-3 sm:px-4 py-2 rounded-full">Kupple ↗</a>
           </nav>
         </div>
       </header>

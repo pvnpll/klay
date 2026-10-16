@@ -20,63 +20,6 @@ export interface GameMetadata {
 
 export const GAMES: GameMetadata[] = [
   {
-    id: "connect-four",
-    name: "Connect Four",
-    description: "Classic 2-player strategy. First to get 4 in a row wins!",
-    rules: [
-      "Drop your colored discs into the columns.",
-      "Get 4 of your colors in a row vertically, horizontally, or diagonally.",
-      "Block your opponent from doing the same."
-    ],
-    category: "Classic",
-    difficulty: "Medium",
-    estimatedDuration: "3 minutes",
-    scoreType: "score",
-    path: "/connect-four",
-    Icon: Grid3X3,
-    colorClass: "text-blue-400 bg-blue-400/10",
-    gradientClass: "from-blue-400/20 to-indigo-600/20"
-  },
-  {
-    id: "dots-and-boxes",
-    name: "Dots and Boxes",
-    description: "A 2-player game of claiming territory. Complete the boxes!",
-    rules: [
-      "Take turns drawing a single line between two unjoined adjacent dots.",
-      "If you complete the fourth side of a 1x1 box, you claim it and get another turn.",
-      "The game ends when no more lines can be placed.",
-      "The player with the most boxes wins!"
-    ],
-    category: "Classic",
-    difficulty: "Medium",
-    estimatedDuration: "5 minutes",
-    scoreType: "score",
-    path: "/dots-and-boxes",
-    Icon: Hash,
-    colorClass: "text-orange-400 bg-orange-400/10",
-    gradientClass: "from-orange-400/20 to-red-600/20"
-  },
-  {
-    id: "reaction-duel",
-    name: "Reaction Duel",
-    description: "A fast-paced 2-player split-screen reaction battle.",
-    rules: [
-      "Grab a friend. One player on each side of the device.",
-      "Wait for the screen to turn GREEN.",
-      "The first person to tap their side wins a point.",
-      "Tap too early (on red) and your opponent gets a free point!",
-      "First to 5 points wins the match."
-    ],
-    category: "Quick",
-    difficulty: "Medium",
-    estimatedDuration: "2 minutes",
-    scoreType: "score",
-    path: "/reaction-duel",
-    Icon: Zap,
-    colorClass: "text-yellow-400 bg-yellow-400/10",
-    gradientClass: "from-yellow-400/20 to-amber-600/20"
-  },
-  {
     id: "breakout",
     name: "Breakout",
     description: "Destroy all the bricks with the bouncing ball.",
@@ -400,25 +343,6 @@ export const GAMES: GameMetadata[] = [
     gradientClass: "from-purple-400/20 to-fuchsia-600/20"
   },
   {
-    id: "tic-tac-toe",
-    name: "Tic-Tac-Toe",
-    description: "The classic game of X's and O's. Play vs Computer or Player.",
-    rules: [
-      "Choose a game mode: VS Computer or VS Player.",
-      "Players take turns placing X or O on the 3x3 grid.",
-      "The first player to get 3 in a row (horizontally, vertically, or diagonally) wins.",
-      "If the board fills up with no winner, it's a draw."
-    ],
-    category: "Classic",
-    difficulty: "Easy",
-    estimatedDuration: "1 minute",
-    scoreType: "win-loss",
-    path: "/tic-tac-toe",
-    Icon: Grid3X3,
-    colorClass: "text-emerald-400 bg-emerald-400/10",
-    gradientClass: "from-emerald-400/20 to-teal-600/20"
-  },
-  {
     id: "typing",
     name: "Typing Race",
     description: "Test your typing speed and accuracy with quotes.",
@@ -493,22 +417,4 @@ export const GAMES: GameMetadata[] = [
     colorClass: "text-yellow-400 bg-yellow-400/10",
     gradientClass: "from-yellow-300/20 to-orange-500/20"
   },
-  {
-    id: "chess",
-    name: "Chess",
-    description: "Play chess against an AI or a friend with full animated pieces.",
-    rules: [
-      "Drag and drop your pieces to move.",
-      "Standard chess rules apply (en passant, castling, promotion).",
-      "Checkmate the opposing king to win!"
-    ],
-    category: "Strategy",
-    difficulty: "Hard",
-    estimatedDuration: "15 minutes",
-    scoreType: "win-loss",
-    path: "/chess",
-    Icon: Grid3X3,
-    colorClass: "text-zinc-400 bg-zinc-400/10",
-    gradientClass: "from-zinc-400/20 to-gray-600/20"
-  }
 ]

@@ -57,10 +57,10 @@ export default function Home() {
           Klay
         </h1>
         <p className="text-2xl font-black text-white mb-2">
-          Small games. Instant play. Big fun! 🕹️
+          Your space for solo play. 🕹️
         </p>
         <p className="text-base text-gray-300 max-w-md mx-auto font-medium">
-          No accounts, no downloads. Just click and play — beat your best! 👑
+          No accounts, no downloads. Pick a solo game and beat your best. Playing with a friend? Open the Kupple tab.
         </p>
         {totalPlays > 0 && (
           <div className="mt-5 inline-flex items-center gap-2 bg-gradient-to-r from-amber-400/20 to-fuchsia-500/20 border border-amber-300/20 rounded-full px-5 py-2 text-sm font-black text-amber-200">
