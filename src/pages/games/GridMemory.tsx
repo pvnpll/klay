@@ -1,3 +1,4 @@
+import { gameTimeout as setTimeout, clearGameTimer as clearTimeout } from '../../utils/gameClock'
 import { useState, useEffect, useRef } from 'react'
 import { GameLayout } from '../../components/GameLayout'
 import { GameResult } from '../../components/GameResult'

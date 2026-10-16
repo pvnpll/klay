@@ -35,3 +35,12 @@ This project is configured to be deployed on Vercel. Connect the GitHub reposito
 - Memory
 - Tic-Tac-Toe
 - Typing
+
+## Play experience
+
+Every game opens in a screen-filling play view. Boards automatically fit phones,
+landscape screens, and desktop. The toolbar offers help, pause, optional sound,
+and browser fullscreen. Help and background tabs pause game clocks. Results open
+in a dialog above the board; replay starts a fresh game. Reduced-motion preferences
+are respected. Run `tests/game-viewport.py` with Playwright against a running preview
+(`GAME_BASE_URL` overrides the default local URL).

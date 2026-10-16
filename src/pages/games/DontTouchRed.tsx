@@ -1,3 +1,4 @@
+import { gameNow, gameRaf as requestAnimationFrame, cancelGameRaf as cancelAnimationFrame } from '../../utils/gameClock'
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { GameLayout } from '../../components/GameLayout'
 import { GameResult } from '../../components/GameResult'
@@ -41,7 +42,7 @@ export default function DontTouchRed() {
     setIsNewBest(false)
     setTargets([])
     targetsRef.current = []
-    lastSpawnRef.current = performance.now()
+    lastSpawnRef.current = gameNow()
     setMessage('')
   }
 
@@ -172,7 +173,7 @@ export default function DontTouchRed() {
           )}
 
           {targets.map(target => {
-            const age = performance.now() - target.createdAt
+            const age = gameNow() - target.createdAt
             const scale = Math.max(0.65, 1 - (age / target.lifespan))
             
             return (

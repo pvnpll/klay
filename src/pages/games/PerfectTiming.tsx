@@ -1,3 +1,4 @@
+import { gameNow, gameRaf as requestAnimationFrame, cancelGameRaf as cancelAnimationFrame, isGamePaused } from '../../utils/gameClock'
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { GameLayout } from '../../components/GameLayout'
 import { GameResult } from '../../components/GameResult'
@@ -56,7 +57,7 @@ export default function PerfectTiming() {
 
   useEffect(() => {
     if (gameState === 'playing') {
-      lastTimeRef.current = performance.now()
+      lastTimeRef.current = gameNow()
       requestRef.current = requestAnimationFrame(update)
     }
     return () => {
@@ -115,6 +116,7 @@ export default function PerfectTiming() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (isGamePaused()) return
       if ((e.key === ' ' || e.key === 'Enter') && !e.repeat && !(e.target instanceof HTMLButtonElement)) {
         e.preventDefault()
         handleAction()

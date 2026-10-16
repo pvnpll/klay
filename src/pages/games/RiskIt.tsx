@@ -1,3 +1,4 @@
+import { gameNow, gameRaf as requestAnimationFrame, cancelGameRaf as cancelAnimationFrame } from '../../utils/gameClock'
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { GameLayout } from '../../components/GameLayout'
 import { GameResult } from '../../components/GameResult'
@@ -61,7 +62,7 @@ export default function RiskIt() {
     setMultiplier(1.00)
     multRef.current = 1.00
     setGameState('playing')
-    startTimeRef.current = performance.now()
+    startTimeRef.current = gameNow()
   }
 
   const update = useCallback((time: number) => {

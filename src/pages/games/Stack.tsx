@@ -1,3 +1,4 @@
+import { gameNow, gameRaf as requestAnimationFrame, cancelGameRaf as cancelAnimationFrame, gameTimeout as setTimeout, isGamePaused } from '../../utils/gameClock'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { GameLayout } from '../../components/GameLayout'
 import { GameResult } from '../../components/GameResult'
@@ -62,7 +63,7 @@ export default function Stack() {
     offsetRef.current = 0
     speedRef.current = 50
     
-    lastTimeRef.current = performance.now()
+    lastTimeRef.current = gameNow()
   }
 
   const spawnActiveBlock = (id: number, width: number) => {
@@ -168,7 +169,7 @@ export default function Stack() {
 
   useEffect(() => {
     if (gameState === 'playing') {
-      lastTimeRef.current = performance.now()
+      lastTimeRef.current = gameNow()
       requestRef.current = requestAnimationFrame(update)
     }
     return () => {
@@ -178,6 +179,7 @@ export default function Stack() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (isGamePaused()) return
       if ((e.key === ' ' || e.key === 'Enter') && !e.repeat && !(e.target instanceof HTMLButtonElement)) {
         e.preventDefault()
         handleTap()

@@ -10,7 +10,7 @@ with sync_playwright() as p:
   page.goto('http://127.0.0.1:5173'+path)
   page.locator('h1').wait_for()
   assert page.locator('h1').count(),path
-  assert page.get_by_text('How to play',exact=True).count(),path
+  assert page.get_by_role('button',name='How to play',exact=True).count(),path
   overflow=page.evaluate('document.documentElement.scrollWidth > innerWidth')
   print(path,'overflow' if overflow else 'OK')
  print('ERRORS',json.dumps(errors))

@@ -1,3 +1,4 @@
+import { isGamePaused, gameNow, gameRaf as requestAnimationFrame, cancelGameRaf as cancelAnimationFrame } from '../../utils/gameClock'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { GameLayout } from '../../components/GameLayout'
 import { GameResult } from '../../components/GameResult'
@@ -100,7 +101,7 @@ export default function Breakout() {
     bricksRef.current = newBricks
     setBricks(newBricks)
     
-    lastTimeRef.current = performance.now()
+    lastTimeRef.current = gameNow()
   }
 
   const update = useCallback((time: number) => {
@@ -192,7 +193,7 @@ export default function Breakout() {
   // Single game-loop driver: starts whenever gameState becomes playing.
   useEffect(() => {
     if (gameState === 'playing') {
-      lastTimeRef.current = performance.now()
+      lastTimeRef.current = gameNow()
       requestRef.current = requestAnimationFrame(update)
     }
     return () => {
@@ -203,7 +204,7 @@ export default function Breakout() {
   // Input Handling
   useEffect(() => {
     const handleMove = (clientX: number) => {
-      if (!containerRef.current || gameStateRef.current !== 'playing') return
+      if (isGamePaused() || !containerRef.current || gameStateRef.current !== 'playing') return
       const rect = containerRef.current.getBoundingClientRect()
       let percent = ((clientX - rect.left) / rect.width) * 100
       percent = Math.max(paddleW/2, Math.min(100 - paddleW/2, percent))

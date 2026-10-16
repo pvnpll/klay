@@ -1,3 +1,4 @@
+import { gameNow, gameInterval as setInterval, clearGameTimer as clearInterval, gameTimeout as setTimeout } from '../../utils/gameClock'
 import { useState, useEffect, useRef } from 'react'
 import { GameLayout } from '../../components/GameLayout'
 import { GameResult } from '../../components/GameResult'
@@ -43,9 +44,9 @@ export default function NumberRush() {
   }
 
   const startTimer = () => {
-    startTimeRef.current = performance.now()
-    timerRef.current = window.setInterval(() => {
-      setTimeElapsed(performance.now() - startTimeRef.current)
+    startTimeRef.current = gameNow()
+    timerRef.current = setInterval(() => {
+      setTimeElapsed(gameNow() - startTimeRef.current)
     }, 10) // update every 10ms
   }
 
@@ -68,7 +69,7 @@ export default function NumberRush() {
         // Win!
         stopTimer()
         setGameState('completed')
-        const finalTime = Math.round(performance.now() - startTimeRef.current)
+        const finalTime = Math.round(gameNow() - startTimeRef.current)
         setTimeElapsed(finalTime)
         
         // Save score using storage abstraction, score is in seconds? Actually gameResult expects seconds for time, so divide by 1000

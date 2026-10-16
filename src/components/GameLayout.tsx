@@ -1,78 +1,80 @@
-import type { ReactNode } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowLeft, Info } from 'lucide-react'
-import { useState } from 'react'
+import { ArrowLeft, Info, Maximize2, Minimize2, Pause, Play, Volume2, VolumeX, X } from 'lucide-react'
 import { GAMES } from '../data/games'
-
-interface GameLayoutProps {
-  title: string;
-  description?: string;
-  rules?: string[];
-  children: ReactNode;
-}
-
+import { setGamePaused } from '../utils/gameClock'
+interface GameLayoutProps { title: string; description?: string; rules?: string[]; children: ReactNode }
+const palette: Record<string, [string, string]> = { Classic: ['#f59e0b', '#f97316'], Strategy: ['#a78bfa', '#f472b6'], Dice: ['#34d399', '#60a5fa'], Memory: ['#f472b6', '#a78bfa'], Quick: ['#fbbf24', '#fb7185'], Arcade: ['#38bdf8', '#a78bfa'], Brain: ['#a78bfa', '#22d3ee'] }
 export function GameLayout({ title, description, rules, children }: GameLayoutProps) {
-  const [showRules, setShowRules] = useState(true)
-  
-  const gameInfo = GAMES.find(g => g.name === title || title.endsWith(g.name))
-  const displayRules = rules || gameInfo?.rules
-  const displayDesc = description || gameInfo?.description
-
-  return (
-    <div className="max-w-4xl mx-auto space-y-6 animate-pop-in">
-      <div className="flex items-center justify-between mb-2">
-        <Link 
-          to="/" 
-          className="inline-flex items-center gap-2 text-sm text-gray-300 hover:text-white transition-colors bg-white/5 hover:bg-white/10 border border-white/10 px-4 py-2 rounded-full font-bold"
-        >
-          <ArrowLeft size={16} />
-          All games
-        </Link>
-        
-        {displayRules && displayRules.length > 0 && (
-          <button 
-            onClick={() => setShowRules(!showRules)}
-            className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold transition-all border ${showRules ? 'bg-amber-400 text-gray-950 border-amber-300 shadow-lg shadow-amber-500/20' : 'text-gray-200 bg-white/5 hover:bg-white/10 border-white/10'}`}
-          >
-            <Info size={16} />
-            {showRules ? 'Hide rules' : '✨ How to Play'}
-          </button>
-        )}
-      </div>
-
-      <div className="text-center mb-2">
-        <p className="text-xs font-black uppercase tracking-[0.25em] text-fuchsia-300/80 mb-2">🎮 Klay arcade</p>
-        <h1 className="text-4xl md:text-5xl font-black text-white mb-2 tracking-tight text-glow">{title}</h1>
-        {displayDesc && <p className="text-gray-300 font-medium max-w-xl mx-auto">{displayDesc}</p>}
-      </div>
-
-      {showRules && displayRules && (
-        <div className="bg-gradient-to-br from-fuchsia-500/15 to-cyan-500/10 border border-white/15 rounded-3xl p-5 mb-2 shadow-xl animate-pop-in">
-          <h3 className="text-amber-300 font-black mb-3 flex items-center gap-2">
-            <Info size={18} /> How to play
-          </h3>
-          <ul className="space-y-2 text-gray-100">
-            {displayRules.map((rule, idx) => (
-              <li key={idx} className="flex gap-3 text-sm md:text-base font-medium">
-                <span className="w-7 h-7 shrink-0 rounded-full bg-white/10 border border-white/15 flex items-center justify-center text-amber-300 font-black text-sm">{idx + 1}</span>
-                <span className="pt-1">{rule}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      <div className="relative">
-        {/* Colorful blur effect behind the game */}
-        {gameInfo?.gradientClass && (
-          <div className={`absolute -inset-2 rounded-[2.5rem] blur-2xl opacity-40 bg-gradient-to-br ${gameInfo.gradientClass}`} />
-        )}
-        
-        <div className="relative bg-[#0d0d24]/90 backdrop-blur-xl border border-white/15 rounded-[2rem] p-5 md:p-8 shadow-2xl overflow-hidden">
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-white/10 to-transparent" />
-          <div className="relative">{children}</div>
-        </div>
-      </div>
-    </div>
-  )
+  const game = GAMES.find(g => g.name === title || title.endsWith(g.name))
+  const displayRules = rules || game?.rules || []
+  const [panel, setPanel] = useState<'rules' | 'pause' | null>(null)
+  const [expanded, setExpanded] = useState(false)
+  const [sound, setSound] = useState(() => { try { return localStorage.getItem('arcade-sound') === 'on' } catch { return false } })
+  const root = useRef<HTMLDivElement>(null), area = useRef<HTMLDivElement>(null), content = useRef<HTMLDivElement>(null), dialog = useRef<HTMLDialogElement>(null)
+  const audio = useRef<AudioContext | null>(null)
+  const [fit, setFit] = useState({ width: 480, scale: 1, ready: false })
+  const [primary, secondary] = palette[game?.category || ''] || ['#f472b6', '#22d3ee']
+  useLayoutEffect(() => {
+    const box = area.current, child = content.current
+    if (!box || !child) return
+    const resize = () => {
+      const limit = game?.id === 'chess' ? 880 : ['ludo', 'snakes-ladders'].includes(game?.id || '') ? 470 : 560
+      const width = Math.min(box.clientWidth, limit, Math.max(260, box.clientHeight * .9))
+      if (Math.abs(child.offsetWidth - width) > 1) child.style.width = `${width}px`
+      const scale = Math.min(1, box.clientHeight / Math.max(1, child.offsetHeight), box.clientWidth / Math.max(1, width))
+      setFit(prev => prev.width === width && Math.abs(prev.scale - scale) < .001 && prev.ready ? prev : { width, scale, ready: true })
+    }
+    const observer = new ResizeObserver(resize); observer.observe(box); observer.observe(child); resize()
+    return () => observer.disconnect()
+  }, [game?.id])
+  useEffect(() => {
+    const previous = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const visibility = () => setGamePaused(document.hidden || panel !== null)
+    visibility(); document.addEventListener('visibilitychange', visibility)
+    return () => { document.body.style.overflow = previous; document.removeEventListener('visibilitychange', visibility); setGamePaused(false) }
+  }, [panel])
+  useEffect(() => {
+    if (panel) dialog.current?.showModal(); else dialog.current?.close()
+  }, [panel])
+  useEffect(() => {
+    const changed = () => setExpanded(!!document.fullscreenElement)
+    document.addEventListener('fullscreenchange', changed)
+    return () => { document.removeEventListener('fullscreenchange', changed); void audio.current?.close() }
+  }, [])
+  const toggleFullscreen = async () => {
+    try { if (document.fullscreenElement) await document.exitFullscreen(); else await root.current?.requestFullscreen?.() } catch { /* The app still fills the viewport when browser fullscreen is unavailable. */ }
+  }
+  const tick = () => {
+    if (!sound || panel) return
+    try {
+      const ctx = audio.current ||= new AudioContext()
+      if (ctx.state === 'suspended') void ctx.resume()
+      const oscillator = ctx.createOscillator(), gain = ctx.createGain()
+      oscillator.type = 'sine'; oscillator.frequency.setValueAtTime(620, ctx.currentTime)
+      gain.gain.setValueAtTime(.035, ctx.currentTime); gain.gain.exponentialRampToValueAtTime(.001, ctx.currentTime + .045)
+      oscillator.connect(gain); gain.connect(ctx.destination); oscillator.start(); oscillator.stop(ctx.currentTime + .05)
+    } catch { /* Sound is optional. */ }
+  }
+  return <div ref={root} className="game-screen" data-game={game?.id} data-paused={panel !== null} style={{ '--game-accent': primary, '--game-secondary': secondary } as CSSProperties}>
+    <header className="game-toolbar">
+      <Link to="/" className="game-tool" aria-label="Back to all games"><ArrowLeft size={19} /><span className="game-tool-label">Games</span></Link>
+      <h1>{game?.name || title}</h1>
+      <nav aria-label="Game controls">
+        <button className="game-tool" onClick={() => setPanel('rules')} aria-label="How to play"><Info size={19} /></button>
+        <button className="game-tool" onClick={() => setPanel('pause')} aria-label="Pause game"><Pause size={19} /></button>
+        <button className="game-tool game-sound" aria-label={sound ? 'Mute sound' : 'Enable sound'} aria-pressed={sound} onClick={() => setSound(v => { try { localStorage.setItem('arcade-sound', v ? 'off' : 'on') } catch { /* Local preference is optional. */ } return !v })}>{sound ? <Volume2 size={18} /> : <VolumeX size={18} />}</button>
+        <button className="game-tool" onClick={() => void toggleFullscreen()} aria-label={expanded ? 'Exit browser fullscreen' : 'Enter browser fullscreen'}>{expanded ? <Minimize2 size={18} /> : <Maximize2 size={18} />}</button>
+      </nav>
+    </header>
+    <div className="game-stage" onPointerDown={tick}><div ref={area} className="game-fit-area"><div ref={content} className="game-fit-content" style={{ width: fit.width, opacity: fit.ready ? 1 : 0, transform: `translate(-50%, -50%) scale(${fit.scale})` }}>{children}</div></div></div>
+    <dialog ref={dialog} className="game-help" onCancel={e => { e.preventDefault(); setPanel(null) }}>
+      <div className="game-help-heading"><h2>{panel === 'pause' ? 'Take a breather' : `How to play ${game?.name || title}`}</h2><button onClick={() => setPanel(null)} className="game-tool" aria-label="Close dialog"><X size={20} /></button></div>
+      <p className="game-help-description">{panel === 'pause' ? 'Your game is paused. Everything stays right where you left it.' : description || game?.description}</p>
+      {panel === 'rules' && <ol>{displayRules.map((rule, i) => <li key={i}><span>{i + 1}</span>{rule}</li>)}</ol>}
+      <button className="game-resume" onClick={() => setPanel(null)}><Play size={18} /> {panel === 'pause' ? 'Resume game' : 'Let’s play'}</button>
+    </dialog>
+  </div>
 }

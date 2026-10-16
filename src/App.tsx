@@ -1,7 +1,10 @@
-import { Outlet, Link } from 'react-router-dom'
+import { GAMES } from './data/games'
+import { Outlet, Link, useLocation } from 'react-router-dom'
 import { Gamepad2 } from 'lucide-react'
 
 function App() {
+  const { pathname } = useLocation()
+  if (GAMES.some(game => game.path === pathname)) return <Outlet />
   return (
     <div className="min-h-screen bg-[#070714] text-gray-100 flex flex-col selection:bg-fuchsia-500/40 overflow-x-hidden">
       {/* playful background blobs */}

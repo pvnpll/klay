@@ -1,3 +1,4 @@
+import { gameNow, gameRaf as requestAnimationFrame, cancelGameRaf as cancelAnimationFrame, isGamePaused } from '../../utils/gameClock'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { GameLayout } from '../../components/GameLayout'
 import { GameResult } from '../../components/GameResult'
@@ -61,7 +62,7 @@ export default function Snake() {
     setFood(generateFood(start))
     setGameState('playing')
     setIsNewBest(false)
-    lastUpdateRef.current = performance.now()
+    lastUpdateRef.current = gameNow()
   }
 
   const gameOver = () => {
@@ -141,6 +142,7 @@ export default function Snake() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (isGamePaused()) return
       // Prevent default scrolling for arrow keys and space
       if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) {
         e.preventDefault()

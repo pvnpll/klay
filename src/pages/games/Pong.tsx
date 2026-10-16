@@ -1,3 +1,4 @@
+import { isGamePaused, gameNow, gameRaf as requestAnimationFrame, cancelGameRaf as cancelAnimationFrame } from '../../utils/gameClock'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { GameLayout } from '../../components/GameLayout'
 import { GameResult } from '../../components/GameResult'
@@ -58,7 +59,7 @@ export default function Pong() {
     resetBall(true)
     setBall({ x: 50, y: 50 })
     
-    lastTimeRef.current = performance.now()
+    lastTimeRef.current = gameNow()
   }
 
   const handleScore = (scorer: 'p1' | 'ai') => {
@@ -72,7 +73,7 @@ export default function Pong() {
       saveScore(gameMeta, scorer === 'p1' ? 1 : 0)
     } else {
       resetBall(scorer === 'ai') // serve to loser
-      lastTimeRef.current = performance.now()
+      lastTimeRef.current = gameNow()
       requestRef.current = requestAnimationFrame(update)
     }
   }
@@ -140,7 +141,7 @@ export default function Pong() {
   // Game-loop driver
   useEffect(() => {
     if (gameState === 'playing') {
-      lastTimeRef.current = performance.now()
+      lastTimeRef.current = gameNow()
       requestRef.current = requestAnimationFrame(update)
     }
     return () => {
@@ -151,7 +152,7 @@ export default function Pong() {
   // Input Handling
   useEffect(() => {
     const handleMove = (clientX: number) => {
-      if (!containerRef.current || gameStateRef.current !== 'playing') return
+      if (isGamePaused() || !containerRef.current || gameStateRef.current !== 'playing') return
       const rect = containerRef.current.getBoundingClientRect()
       let percent = ((clientX - rect.left) / rect.width) * 100
       percent = Math.max(paddleW/2, Math.min(100 - paddleW/2, percent))

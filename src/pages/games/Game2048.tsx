@@ -1,3 +1,4 @@
+import { isGamePaused } from '../../utils/gameClock'
 import { useState, useEffect, useCallback } from 'react'
 import { GameLayout } from '../../components/GameLayout'
 import { GameResult } from '../../components/GameResult'
@@ -181,6 +182,7 @@ export default function Game2048() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (isGamePaused()) return
       if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) e.preventDefault()
       if (e.key === 'ArrowUp' || e.key === 'w') handleMove('UP')
       else if (e.key === 'ArrowDown' || e.key === 's') handleMove('DOWN')
@@ -254,12 +256,6 @@ export default function Game2048() {
     <GameLayout title="🎯 2048">
       <div className="flex flex-col items-center max-w-lg mx-auto">
         <div className="w-full flex justify-between items-end mb-6">
-          <div>
-            <h2 className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-br from-amber-300 via-orange-400 to-rose-500 text-glow pb-1">
-              2048
-            </h2>
-            <p className="text-amber-100/70 text-sm font-bold">Merge tiles & reach 2048! 🔥</p>
-          </div>
           <div className="flex gap-3">
             <div className="bg-white/5 border border-white/10 px-5 py-2 rounded-2xl text-center shadow-inner">
               <p className="text-amber-200 text-xs uppercase font-black tracking-widest mb-1">⭐ Score</p>

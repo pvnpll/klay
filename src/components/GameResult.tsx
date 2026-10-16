@@ -1,95 +1,22 @@
+import { createPortal } from 'react-dom'
+import { useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { GameMetadata } from '../data/games'
 import { Trophy, RotateCcw, Home } from 'lucide-react'
-
-interface GameResultProps {
-  game: GameMetadata
-  score?: number
-  isWin?: boolean
-  message?: string
-  isNewBest?: boolean
-  bestScore?: number
-  onRestart: () => void
-  mode?: 'overlay' | 'inline'
-}
-
-export function GameResult({ 
-  game, 
-  score, 
-  isWin, 
-  message, 
-  isNewBest, 
-  bestScore, 
-  onRestart,
-  mode = 'inline',
-}: GameResultProps) {
-  const navigate = useNavigate()
-
-  const formatScore = (val: number) => {
-    if (game.scoreType === 'time' || game.scoreType === 'lower-is-better') {
-      return `${val}s`
-    }
-    if (game.scoreType === 'accuracy') {
-      return `${val}%`
-    }
-    return val
-  }
-
-  return (
-    <div className={`${mode === 'overlay' ? 'absolute inset-0 z-50 bg-gray-950/80 backdrop-blur-md rounded-[2rem] border border-white/10' : 'relative z-10 w-full bg-gradient-to-b from-white/10 to-white/[0.03] backdrop-blur-md rounded-3xl border border-white/15 shadow-2xl'} flex flex-col items-center justify-center animate-pop-in p-6 text-center overflow-hidden`}>
-      <div className="pointer-events-none absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.25),transparent_60%)]" />
-      
-      {isNewBest && (
-        <div className="relative mb-4 inline-flex items-center gap-2 bg-gradient-to-r from-amber-400 to-yellow-500 text-gray-950 px-4 py-1.5 rounded-full text-sm font-black border border-yellow-200 shadow-lg shadow-yellow-500/30 animate-pop-in">
-          <Trophy size={16} />
-          🏆 New Personal Best!
-        </div>
-      )}
-
-      <h2 className={`relative text-4xl md:text-5xl font-black mb-2 text-transparent bg-clip-text bg-gradient-to-br ${
-        isWin === false 
-          ? 'from-red-400 to-rose-600' 
-          : 'from-amber-300 via-fuchsia-400 to-cyan-300'
-      }`}>
-        {message || (isWin ? '🎉 You Won!' : (isWin === false ? '💥 Game Over' : '🏁 Finished!'))}
-      </h2>
-
-      {/* Score Display */}
-      {score !== undefined && (
-        <div className="relative my-6">
-          <p className="text-gray-300 text-sm font-black uppercase tracking-widest mb-1">
-            {game.scoreType === 'time' ? '⏱️ Time' : game.scoreType === 'accuracy' ? '🎯 Accuracy' : '⭐ Score'}
-          </p>
-          <p className="text-6xl font-black text-white leading-none text-glow">
-            {formatScore(score)}
-          </p>
-        </div>
-      )}
-
-      {/* Best Score */}
-      {bestScore !== undefined && !isNewBest && game.scoreType !== 'win-loss' && (
-        <div className="relative mb-8 bg-white/5 px-6 py-3 rounded-2xl border border-white/10">
-          <p className="text-gray-300 text-xs font-bold uppercase tracking-wider mb-1">👑 Personal Best</p>
-          <p className="text-white text-xl font-black">{formatScore(bestScore)}</p>
-        </div>
-      )}
-
-      <div className="relative flex flex-col sm:flex-row gap-3 w-full max-w-sm mt-4">
-        <button
-          onClick={onRestart}
-          className="flex-1 flex items-center justify-center gap-2 py-4 bg-gradient-to-r from-lime-400 to-emerald-400 text-gray-950 hover:brightness-110 rounded-2xl font-black shadow-lg shadow-emerald-500/30 transition-transform active:scale-95 hover:-translate-y-0.5"
-        >
-          <RotateCcw size={20} />
-          🔁 Play Again
-        </button>
-        <button
-          onClick={() => navigate('/')}
-          className="flex-1 flex items-center justify-center gap-2 py-4 bg-white/10 text-white hover:bg-white/20 rounded-2xl font-bold border border-white/10 transition-transform active:scale-95"
-        >
-          <Home size={20} />
-          Other Games
-        </button>
-      </div>
+interface GameResultProps { game: GameMetadata; score?: number; isWin?: boolean; message?: string; isNewBest?: boolean; bestScore?: number; onRestart: () => void; mode?: 'overlay' | 'inline' }
+export function GameResult({ game, score, isWin, message, isNewBest, bestScore, onRestart, mode = 'inline' }: GameResultProps) {
+  const navigate = useNavigate(), dialog = useRef<HTMLDialogElement>(null)
+  useEffect(() => { const element = dialog.current; element?.showModal(); return () => element?.close() }, [])
+  const format = (value: number) => game.scoreType === 'time' || game.scoreType === 'lower-is-better' ? `${value}s` : game.scoreType === 'accuracy' ? `${value}%` : value
+  return <><span hidden data-game-result="true" />{createPortal(<dialog ref={dialog} className="game-result-dialog" aria-label="Game result" onCancel={e => e.preventDefault()}>
+    <div data-mode={mode} className="relative flex flex-col items-center justify-center p-6 text-center overflow-hidden">
+      <div className="pointer-events-none absolute inset-0 opacity-30 bg-gradient-to-b from-fuchsia-500/20 via-transparent to-cyan-400/10" />
+      <span className="relative text-5xl mb-4" aria-hidden="true">{isWin === false ? '🎮' : isNewBest ? '🏆' : '🎉'}</span>
+      {isNewBest && <p className="relative inline-flex items-center gap-2 text-sm bg-amber-300 text-gray-950 px-4 py-2 rounded-full font-black mb-4"><Trophy size={16} /> New personal best!</p>}
+      <h2 className={`relative text-3xl font-black mb-2 ${isWin === false ? 'text-rose-300' : 'text-amber-200'}`}>{message || (isWin ? 'You won!' : isWin === false ? 'Game over' : 'Finished!')}</h2>
+      {score !== undefined && <div className="relative my-6"><p className="text-gray-300 text-xs font-bold uppercase tracking-widest mb-2">{game.scoreType === 'time' ? 'Time' : game.scoreType === 'accuracy' ? 'Accuracy' : 'Score'}</p><p className="text-6xl font-black text-white tabular-nums">{format(score)}</p></div>}
+      {bestScore !== undefined && !isNewBest && game.scoreType !== 'win-loss' && <p className="relative text-sm text-gray-300 mb-4">Personal best <strong className="text-amber-200 ml-2">{format(bestScore)}</strong></p>}
+      <div className="relative flex flex-col gap-3 w-full mt-4"><button onClick={onRestart} className="flex items-center justify-center gap-2 py-4 bg-gradient-to-r from-amber-200 to-orange-300 text-gray-950 rounded-2xl font-black"><RotateCcw size={18} /> Play again</button><button onClick={() => navigate('/')} className="flex items-center justify-center gap-2 py-3 bg-white/10 text-white rounded-2xl font-bold border border-white/10"><Home size={18} /> Other games</button></div>
     </div>
-  )
+  </dialog>, document.fullscreenElement || document.body)}</>
 }

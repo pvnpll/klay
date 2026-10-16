@@ -1,3 +1,4 @@
+import { gameNow, gameInterval as setInterval, clearGameTimer as clearInterval, gameTimeout as setTimeout } from '../../utils/gameClock'
 import { useState, useEffect, useRef } from 'react'
 import { GameLayout } from '../../components/GameLayout'
 import { GameResult } from '../../components/GameResult'
@@ -49,9 +50,9 @@ export default function Typing() {
   }
 
   const startTimer = () => {
-    startTimeRef.current = performance.now()
-    timerRef.current = window.setInterval(() => {
-      setTimeElapsed(performance.now() - startTimeRef.current)
+    startTimeRef.current = gameNow()
+    timerRef.current = setInterval(() => {
+      setTimeElapsed(gameNow() - startTimeRef.current)
     }, 100)
   }
 
@@ -91,7 +92,7 @@ export default function Typing() {
     stopTimer()
     setGameState('completed')
     
-    const finalTimeMs = performance.now() - startTimeRef.current
+    const finalTimeMs = gameNow() - startTimeRef.current
     setTimeElapsed(finalTimeMs)
     
     // WPM calculation: (characters / 5) / (time in minutes)

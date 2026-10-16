@@ -1,3 +1,4 @@
+import { gameInterval as setInterval, clearGameTimer as clearInterval, isGamePaused } from '../../utils/gameClock'
 import { useState, useEffect, useCallback } from 'react'
 import { GameLayout } from '../../components/GameLayout'
 import { GameResult } from '../../components/GameResult'
@@ -175,6 +176,7 @@ export default function Sudoku() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (isGamePaused()) return
       if (gameState !== 'playing') return
       if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Backspace'].includes(e.key)) e.preventDefault()
       if (e.key >= '1' && e.key <= '9') handleInput(parseInt(e.key))

@@ -1,3 +1,4 @@
+import { gameNow, gameRaf as requestAnimationFrame, cancelGameRaf as cancelAnimationFrame } from '../../utils/gameClock'
 import { useState, useRef, useEffect } from 'react'
 import { GameLayout } from '../../components/GameLayout'
 import { GameResult } from '../../components/GameResult'
@@ -19,7 +20,7 @@ export default function OneSecond() {
   const animationRef = useRef<number | null>(null)
 
   const updateTime = () => {
-    setTimeElapsed(performance.now() - startTimeRef.current)
+    setTimeElapsed(gameNow() - startTimeRef.current)
     animationRef.current = requestAnimationFrame(updateTime)
   }
 
@@ -32,7 +33,7 @@ export default function OneSecond() {
     setGameState('holding')
     setTimeElapsed(0)
     setIsNewBest(false)
-    startTimeRef.current = performance.now()
+    startTimeRef.current = gameNow()
     animationRef.current = requestAnimationFrame(updateTime)
   }
 
@@ -43,7 +44,7 @@ export default function OneSecond() {
     
     if (animationRef.current) cancelAnimationFrame(animationRef.current)
     
-    const finalTime = performance.now() - startTimeRef.current
+    const finalTime = gameNow() - startTimeRef.current
     setTimeElapsed(finalTime)
     setGameState('result')
     

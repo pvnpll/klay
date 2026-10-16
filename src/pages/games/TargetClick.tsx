@@ -1,3 +1,4 @@
+import { gameNow, gameInterval as setInterval, clearGameTimer as clearInterval } from '../../utils/gameClock'
 import { useState, useEffect, useRef } from 'react'
 import { GameLayout } from '../../components/GameLayout'
 import { GameResult } from '../../components/GameResult'
@@ -47,9 +48,9 @@ export default function TargetClick() {
     setIsNewBest(false)
     generateTarget()
     
-    startTimeRef.current = performance.now()
-    timerRef.current = window.setInterval(() => {
-      setTimeElapsed(performance.now() - startTimeRef.current)
+    startTimeRef.current = gameNow()
+    timerRef.current = setInterval(() => {
+      setTimeElapsed(gameNow() - startTimeRef.current)
     }, 10)
   }
 
@@ -64,7 +65,7 @@ export default function TargetClick() {
       setTargetsHit(newHits)
       setGameState('gameover')
       
-      const finalTime = Math.round(performance.now() - startTimeRef.current)
+      const finalTime = Math.round(gameNow() - startTimeRef.current)
       setTimeElapsed(finalTime)
       
       const timeInSeconds = parseFloat((finalTime / 1000).toFixed(2))

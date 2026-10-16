@@ -1,3 +1,4 @@
+import { gameInterval as setInterval, clearGameTimer as clearInterval, gameTimeout as setTimeout, isGamePaused } from '../../utils/gameClock'
 import { useState, useEffect, useRef } from 'react'
 import { GameLayout } from '../../components/GameLayout'
 import { GameResult } from '../../components/GameResult'
@@ -56,7 +57,7 @@ export default function StroopTest() {
 
   useEffect(() => {
     if (gameState === 'playing') {
-      timerRef.current = window.setInterval(() => {
+      timerRef.current = setInterval(() => {
         setTimeLeft(t => Math.max(0, t - 1))
       }, 1000)
     }
@@ -96,6 +97,7 @@ export default function StroopTest() {
   // Keyboard support for 1-5
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (isGamePaused()) return
       if (timeLeft <= 0 || gameState !== 'playing') return
       const num = parseInt(e.key)
       if (num >= 1 && num <= COLORS.length) {

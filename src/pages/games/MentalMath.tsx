@@ -1,3 +1,4 @@
+import { gameInterval as setInterval, clearGameTimer as clearInterval, gameTimeout as setTimeout, isGamePaused } from '../../utils/gameClock'
 import { useState, useEffect, useRef } from 'react'
 import { GameLayout } from '../../components/GameLayout'
 import { GameResult } from '../../components/GameResult'
@@ -62,7 +63,7 @@ export default function MentalMath() {
 
   useEffect(() => {
     if (gameState === 'playing') {
-      timerRef.current = window.setInterval(() => {
+      timerRef.current = setInterval(() => {
         setTimeLeft(t => Math.max(0, t - 1))
       }, 1000)
     }
@@ -116,6 +117,7 @@ export default function MentalMath() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (isGamePaused()) return
       if (timeLeft <= 0 || gameState !== 'playing') return
       if (e.key >= '0' && e.key <= '9') handleKeyClick(e.key)
       if (e.key === 'Backspace') handleKeyClick('BACKSPACE')

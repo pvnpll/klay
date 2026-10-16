@@ -1,3 +1,4 @@
+import { gameNow, gameRaf as requestAnimationFrame, cancelGameRaf as cancelAnimationFrame } from '../../utils/gameClock'
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { GameLayout } from '../../components/GameLayout'
 import { GameResult } from '../../components/GameResult'
@@ -62,7 +63,7 @@ export default function FallingTiles() {
     spawnTile(-75)
     
     setTiles(tilesRef.current)
-    lastTimeRef.current = performance.now()
+    lastTimeRef.current = gameNow()
   }
 
   const update = useCallback((time: number) => {
@@ -114,7 +115,7 @@ export default function FallingTiles() {
 
   useEffect(() => {
     if (gameState === 'playing') {
-      lastTimeRef.current = performance.now()
+      lastTimeRef.current = gameNow()
       requestRef.current = requestAnimationFrame(update)
     }
     return () => {

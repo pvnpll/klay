@@ -1,3 +1,4 @@
+import { gameInterval as setInterval, clearGameTimer as clearInterval, gameTimeout as setTimeout } from '../../utils/gameClock'
 import { useState, useEffect, useRef } from 'react'
 import { GameLayout } from '../../components/GameLayout'
 import { GameResult } from '../../components/GameResult'
@@ -99,7 +100,7 @@ export default function Sequence() {
 
   useEffect(() => {
     if (gameState === 'playing') {
-      timerRef.current = window.setInterval(() => {
+      timerRef.current = setInterval(() => {
         setTimeLeft(t => Math.max(0, t - 1))
       }, 1000)
     }

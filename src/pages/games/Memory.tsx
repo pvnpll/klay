@@ -1,3 +1,4 @@
+import { gameNow, gameInterval as setInterval, clearGameTimer as clearInterval, gameTimeout as setTimeout, clearGameTimer as clearTimeout } from '../../utils/gameClock'
 import { useState, useEffect, useRef } from 'react'
 import { GameLayout } from '../../components/GameLayout'
 import { GameResult } from '../../components/GameResult'
@@ -77,9 +78,9 @@ export default function Memory() {
   }
 
   const startTimer = () => {
-    startTimeRef.current = performance.now()
-    timerRef.current = window.setInterval(() => {
-      setTimeElapsed(performance.now() - startTimeRef.current)
+    startTimeRef.current = gameNow()
+    timerRef.current = setInterval(() => {
+      setTimeElapsed(gameNow() - startTimeRef.current)
     }, 100) // update every 100ms
   }
 
@@ -139,7 +140,7 @@ export default function Memory() {
     if (!currentCards.every(c => c.isMatched)) return
     stopTimer()
     setGameState('completed')
-    const finalTime = Math.round(performance.now() - startTimeRef.current)
+    const finalTime = Math.round(gameNow() - startTimeRef.current)
     setTimeElapsed(finalTime)
     const result = saveScore(gameMeta, parseFloat((finalTime / 1000).toFixed(1)))
     setIsNewBest(result.isNewBest)
