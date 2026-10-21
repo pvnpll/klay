@@ -43,8 +43,12 @@ export default function Home() {
   const recentGames = stats?.recentlyPlayed.map(id => GAMES.find(g => g.id === id)).filter(Boolean) as GameMetadata[] || []
   const totalPlays = stats ? Object.values(stats.playCounts).reduce((a, b) => a + b, 0) : 0
 
-  // Group games by category
-  const categories = Array.from(new Set(GAMES.map(g => g.category)))
+  const [selectedCategory, setSelectedCategory] = useState<string>('All')
+
+  // Group games by category, prioritizing Classic Nokia games
+  const preferredCategoryOrder = ['Classic', 'Arcade', 'Brain', 'Quick', 'Puzzle', 'Skill', 'Strategy', 'Speed', 'Word', 'Chaos']
+  const categories = preferredCategoryOrder.filter(c => GAMES.some(g => g.category === c))
+  const displayedCategories = selectedCategory === 'All' ? categories : [selectedCategory]
 
   return (
     <div className="space-y-12 pb-12 animate-pop-in">
@@ -127,9 +131,49 @@ export default function Home() {
         </section>
       )}
 
+      {/* Category Filter Pills */}
+      <div className="flex flex-wrap items-center justify-center gap-2 max-w-4xl mx-auto pt-2">
+        <button
+          type="button"
+          onClick={() => setSelectedCategory('All')}
+          className={`px-4 py-2 rounded-full text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
+            selectedCategory === 'All'
+              ? 'bg-gradient-to-r from-amber-300 to-fuchsia-400 text-gray-950 shadow-lg shadow-fuchsia-500/20'
+              : 'bg-white/5 border border-white/10 text-white/70 hover:bg-white/10 hover:text-white'
+          }`}
+        >
+          All ({GAMES.length})
+        </button>
+        {categories.map(cat => {
+          const count = GAMES.filter(g => g.category === cat).length
+          const isSelected = selectedCategory === cat
+          const isClassic = cat === 'Classic'
+          return (
+            <button
+              key={cat}
+              type="button"
+              onClick={() => setSelectedCategory(cat)}
+              className={`px-4 py-2 rounded-full text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 ${
+                isSelected
+                  ? 'bg-gradient-to-r from-amber-300 to-fuchsia-400 text-gray-950 shadow-lg shadow-fuchsia-500/20'
+                  : isClassic
+                  ? 'bg-amber-400/15 border border-amber-300/30 text-amber-200 hover:bg-amber-400/25'
+                  : 'bg-white/5 border border-white/10 text-white/70 hover:bg-white/10 hover:text-white'
+              }`}
+            >
+              <span>{CATEGORY_EMOJI[cat] || '🎮'}</span>
+              <span>{cat === 'Classic' ? 'Classic Nokia' : cat}</span>
+              <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${isSelected ? 'bg-black/20 text-gray-900' : 'bg-white/10 text-white/50'}`}>
+                {count}
+              </span>
+            </button>
+          )
+        })}
+      </div>
+
       {/* All Categories */}
       <section className="space-y-12">
-        {categories.map(category => {
+        {displayedCategories.map(category => {
           const categoryGames = GAMES.filter(g => g.category === category)
           return (
             <div key={category}>
