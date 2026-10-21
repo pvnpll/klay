@@ -11,21 +11,21 @@ import { TILE, TILE_SIZE, type Ring, type Particle, type Ball, type GameMode, ty
 
 const gameMeta = GAMES.find(g => g.id === 'bounce')!
 
-// LCD Display resolution matching Nokia 3510i screen proportions
-const SCREEN_WIDTH = 240
-const SCREEN_HEIGHT = 180
-const HUD_HEIGHT = 38
+// Screen dimensions fitting Nokia 3510i photo cutout (258 x 248)
+const SCREEN_WIDTH = 258
+const SCREEN_HEIGHT = 248
+const HUD_HEIGHT = 48
 
 // Physics constants
-const GRAVITY = 600
-const JUMP_FORCE = -330
-const BIG_JUMP_FORCE = -400
-const SUPER_BOUNCE_FORCE = -530
-const MOVE_ACCEL = 700
-const MAX_SPEED = 155
-const BIG_MAX_SPEED = 175
-const GROUND_FRICTION = 550
-const AIR_DRAG = 70
+const GRAVITY = 580
+const JUMP_FORCE = -340
+const BIG_JUMP_FORCE = -420
+const SUPER_BOUNCE_FORCE = -540
+const MOVE_ACCEL = 750
+const MAX_SPEED = 160
+const BIG_MAX_SPEED = 180
+const GROUND_FRICTION = 500
+const AIR_DRAG = 60
 const RESTITUTION = 0.65
 
 export default function Bounce() {
@@ -280,7 +280,6 @@ export default function Bounce() {
   // -------------------------------------------------------------
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Prevent scrolling when playing
       if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) {
         e.preventDefault()
       }
@@ -370,7 +369,7 @@ export default function Bounce() {
   }, [handleKeyCheat, startNewGame, advanceToNextLevel])
 
   // -------------------------------------------------------------
-  // Touch Screen Handlers (on the Nokia LCD canvas)
+  // Touch Screen Handlers (Direct Touch on the Nokia LCD Screen)
   // -------------------------------------------------------------
   const handleLcdPointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
     e.preventDefault()
@@ -387,7 +386,6 @@ export default function Bounce() {
       isTapJump: false,
     }
 
-    // Title / Menu / Level-Clear Tap
     if (gameModeRef.current === 'title') {
       startNewGame()
       return
@@ -396,11 +394,7 @@ export default function Bounce() {
       advanceToNextLevel()
       return
     }
-    if (gameModeRef.current === 'gameover') {
-      startNewGame()
-      return
-    }
-    if (gameModeRef.current === 'won') {
+    if (gameModeRef.current === 'gameover' || gameModeRef.current === 'won') {
       startNewGame()
       return
     }
@@ -409,12 +403,11 @@ export default function Bounce() {
       return
     }
 
-    // In-game touch steer / tap jump
+    // In-game touch steering
     const normX = touchX / rect.width
     const normY = touchY / rect.height
 
-    if (normY < 0.4) {
-      // Tap top half -> Jump!
+    if (normY < 0.45) {
       inputRef.current.jump = true
       touchStateRef.current.isTapJump = true
     } else {
@@ -425,7 +418,6 @@ export default function Bounce() {
         inputRef.current.right = true
         inputRef.current.left = false
       } else {
-        // Center tap -> Jump
         inputRef.current.jump = true
       }
     }
@@ -440,7 +432,7 @@ export default function Bounce() {
     touchStateRef.current.currentY = touchY
 
     const dx = touchX - touchStateRef.current.startX
-    if (Math.abs(dx) > 12) {
+    if (Math.abs(dx) > 10) {
       if (dx < 0) {
         inputRef.current.left = true
         inputRef.current.right = false
@@ -483,7 +475,6 @@ export default function Bounce() {
     }
   }
 
-  // Softkey handlers
   const handleLeftSoft = () => {
     if (gameModeRef.current === 'title') {
       startNewGame()
@@ -508,7 +499,7 @@ export default function Bounce() {
   }
 
   // -------------------------------------------------------------
-  // Canvas Rendering (EXACTLY matching the user's Nokia 3510i photo)
+  // Canvas Rendering (EXACTLY MATCHING THE NOKIA 3510i PHOTO)
   // -------------------------------------------------------------
   const renderCanvas = useCallback(() => {
     const canvas = canvasRef.current
@@ -523,21 +514,18 @@ export default function Bounce() {
     const level = currentLevelRef.current
 
     // In the photo:
-    // Upper section is light sky blue (#c2dff7)
-    // Lower section is deep cobalt/royal blue (#004ecc)
-    // Brick platform divides them in the middle!
-    const dividerY = Math.round(60 - cameraRef.current.y)
+    // Upper section: Light sky blue (#c2dff7)
+    // Lower section: Deep royal/cobalt blue (#004ecc)
     ctx.fillStyle = '#c2dff7'
-    ctx.fillRect(0, 0, SCREEN_WIDTH, Math.max(0, dividerY + 10))
+    ctx.fillRect(0, 0, SCREEN_WIDTH, 85)
 
     ctx.fillStyle = '#004ecc'
-    ctx.fillRect(0, Math.max(0, dividerY + 10), SCREEN_WIDTH, SCREEN_HEIGHT)
+    ctx.fillRect(0, 85, SCREEN_WIDTH, SCREEN_HEIGHT - 85)
 
     const camX = cameraRef.current.x
     const camY = cameraRef.current.y
 
     ctx.save()
-    // Clip drawing strictly to game area (above HUD)
     ctx.beginPath()
     ctx.rect(0, 0, SCREEN_WIDTH, playAreaHeight)
     ctx.clip()
@@ -570,7 +558,7 @@ export default function Bounce() {
           ctx.fillRect(tx, ty + TILE_SIZE - 1.5, TILE_SIZE, 1.5)
           ctx.fillRect(tx + TILE_SIZE - 1.5, ty, 1.5, TILE_SIZE)
 
-          // Brick pattern divider lines
+          // Brick pattern inner lines
           ctx.fillStyle = '#651b06'
           ctx.fillRect(tx, ty + 10, TILE_SIZE, 1)
           ctx.fillRect(tx + 10, ty, 1, 10)
@@ -585,7 +573,6 @@ export default function Bounce() {
           const centerY = 0
           const coreRadius = 4.5
 
-          // Draw 8 spiky triangular points (4 cardinal, 4 diagonal)
           const angles = [
             0,
             Math.PI * 0.25,
@@ -617,7 +604,6 @@ export default function Bounce() {
             ctx.closePath()
             ctx.fill()
 
-            // Silver gleam on cardinal spikes
             if (idx % 2 === 0) {
               ctx.strokeStyle = '#94a3b8'
               ctx.lineWidth = 1
@@ -625,7 +611,6 @@ export default function Bounce() {
             }
           })
 
-          // Central circular hub with metallic highlight
           ctx.beginPath()
           ctx.arc(centerX, centerY, coreRadius, 0, Math.PI * 2)
           ctx.fillStyle = '#334155'
@@ -634,7 +619,6 @@ export default function Bounce() {
           ctx.strokeStyle = '#0f172a'
           ctx.stroke()
 
-          // Inner blue/white core dot
           ctx.beginPath()
           ctx.arc(centerX - 1, centerY - 1, 1.5, 0, Math.PI * 2)
           ctx.fillStyle = '#67e8f9'
@@ -654,17 +638,6 @@ export default function Bounce() {
           ctx.fill()
           ctx.fillStyle = '#f8fafc'
           ctx.fillRect(tx + TILE_SIZE / 2 - 1, ty + 2, 2, 4)
-        }
-
-        // SPIKE DOWN
-        else if (tile === TILE.SPIKE_DOWN) {
-          ctx.fillStyle = '#475569'
-          ctx.beginPath()
-          ctx.moveTo(tx, ty)
-          ctx.lineTo(tx + TILE_SIZE / 2, ty + TILE_SIZE - 2)
-          ctx.lineTo(tx + TILE_SIZE, ty)
-          ctx.closePath()
-          ctx.fill()
         }
 
         // TRAMPOLINE
@@ -746,7 +719,6 @@ export default function Bounce() {
       ctx.save()
       ctx.translate(ring.x, ring.y)
 
-      // Golden vertical oval hoop (as seen in photo)
       const shimmer = Math.sin(timeNow() * 0.005 + ring.id)
       const scaleX = 0.75 + shimmer * 0.25
 
@@ -775,14 +747,13 @@ export default function Bounce() {
       ctx.globalAlpha = 1
     })
 
-    // Render Red Ball (Exact styling from photo: solid red circle with crisp black outline)
+    // Render Red Ball (solid red with crisp black outline & white specular highlight)
     const ball = ballRef.current
     if (!ball.isPopping) {
       ctx.save()
       ctx.translate(ball.x, ball.y)
       ctx.rotate(ball.rotation)
 
-      // God Mode Aura
       if (isGodModeRef.current) {
         ctx.beginPath()
         ctx.arc(0, 0, ball.radius + 3, 0, Math.PI * 2)
@@ -790,18 +761,15 @@ export default function Bounce() {
         ctx.fill()
       }
 
-      // Red body
       ctx.beginPath()
       ctx.arc(0, 0, ball.radius, 0, Math.PI * 2)
       ctx.fillStyle = '#eb3b1c'
       ctx.fill()
 
-      // Crisp Black Border (exactly as in photo)
       ctx.lineWidth = 1.6
       ctx.strokeStyle = '#111118'
       ctx.stroke()
 
-      // Specular highlight dot (Nokia 3D shine)
       ctx.beginPath()
       ctx.arc(-ball.radius * 0.35, -ball.radius * 0.35, ball.radius * 0.25, 0, Math.PI * 2)
       ctx.fillStyle = 'rgba(255, 255, 255, 0.8)'
@@ -813,23 +781,21 @@ export default function Bounce() {
     ctx.restore() // Restore clipping to game area
 
     // -------------------------------------------------------------
-    // HUD AT THE BOTTOM (EXACTLY MATCHING THE NOKIA 3510i PHOTO)
+    // HUD AT THE BOTTOM (EXACTLY MATCHING THE USER'S PHOTO)
     // -------------------------------------------------------------
-    // Deep royal blue HUD background
     ctx.fillStyle = '#004ecc'
     ctx.fillRect(0, playAreaHeight, SCREEN_WIDTH, HUD_HEIGHT)
 
     // HUD Row 1:
     // Left: 5 Red Balls for Lives
-    // Right: 7-digit Score (e.g. 0002360) in white monospace pixel font
-    const hudTopY = playAreaHeight + 14
+    // Right: 7-digit Score (e.g. 0002360)
+    const hudTopY = playAreaHeight + 16
 
     for (let i = 0; i < 5; i++) {
-      const bx = 12 + i * 14
+      const bx = 16 + i * 14
       const by = hudTopY
 
       if (i < livesRef.current) {
-        // Red ball with black rim & white glare
         ctx.beginPath()
         ctx.arc(bx, by, 5, 0, Math.PI * 2)
         ctx.fillStyle = '#ef341e'
@@ -838,13 +804,11 @@ export default function Bounce() {
         ctx.strokeStyle = '#0f172a'
         ctx.stroke()
 
-        // White highlight
         ctx.beginPath()
         ctx.arc(bx - 1.5, by - 1.5, 1.2, 0, Math.PI * 2)
         ctx.fillStyle = '#ffffff'
         ctx.fill()
       } else {
-        // Empty life slot
         ctx.beginPath()
         ctx.arc(bx, by, 4, 0, Math.PI * 2)
         ctx.fillStyle = 'rgba(0, 0, 0, 0.35)'
@@ -852,22 +816,20 @@ export default function Bounce() {
       }
     }
 
-    // 7-digit White Score (e.g. 0002360)
     ctx.fillStyle = '#ffffff'
     ctx.font = 'bold 15px monospace'
     ctx.textAlign = 'right'
-    ctx.fillText(scoreRef.current.toString().padStart(7, '0'), SCREEN_WIDTH - 12, hudTopY + 5)
+    ctx.fillText(scoreRef.current.toString().padStart(7, '0'), SCREEN_WIDTH - 14, hudTopY + 5)
 
     // HUD Row 2:
-    // Below lives: Vertical Golden Diamond Rings (◊ ◊ ◊ as in photo)
-    const hudBottomY = playAreaHeight + 28
+    // Below lives: Vertical Golden Diamond Rings (◊ ◊ ◊)
+    const hudBottomY = playAreaHeight + 32
     const remainingRings = ringsRef.current.filter(r => !r.collected).length
 
     for (let r = 0; r < Math.min(3, remainingRings); r++) {
-      const rx = 12 + r * 11
+      const rx = 16 + r * 11
       const ry = hudBottomY
 
-      // Vertical golden diamond/ring hoop
       ctx.beginPath()
       ctx.ellipse(rx, ry, 3.5, 6, 0, 0, Math.PI * 2)
       ctx.fillStyle = '#facc15'
@@ -876,16 +838,15 @@ export default function Bounce() {
       ctx.strokeStyle = '#b45309'
       ctx.stroke()
 
-      // Inner hollow
       ctx.beginPath()
       ctx.ellipse(rx, ry, 1.5, 3.5, 0, 0, Math.PI * 2)
       ctx.fillStyle = '#004ecc'
       ctx.fill()
     }
 
-    // Tiny orange square on bottom-left (as seen in photo)
+    // Tiny orange square on bottom-left
     ctx.fillStyle = '#f97316'
-    ctx.fillRect(8, SCREEN_HEIGHT - 6, 4, 4)
+    ctx.fillRect(8, SCREEN_HEIGHT - 8, 4, 4)
 
     // -------------------------------------------------------------
     // OVERLAYS (Title, Menus, Pause)
@@ -894,21 +855,19 @@ export default function Bounce() {
       ctx.fillStyle = 'rgba(0, 30, 80, 0.85)'
       ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)
 
-      // Title Shadow & Glow
       ctx.font = '900 24px monospace'
       ctx.textAlign = 'center'
       ctx.fillStyle = '#7f1d1d'
-      ctx.fillText('BOUNCE', SCREEN_WIDTH / 2 + 1, 61)
+      ctx.fillText('BOUNCE', SCREEN_WIDTH / 2 + 1, 65)
       ctx.fillStyle = '#ef4444'
-      ctx.fillText('BOUNCE', SCREEN_WIDTH / 2, 60)
+      ctx.fillText('BOUNCE', SCREEN_WIDTH / 2, 64)
 
       ctx.fillStyle = '#fde047'
       ctx.font = 'bold 10px monospace'
-      ctx.fillText('NOKIA 3510i', SCREEN_WIDTH / 2, 78)
+      ctx.fillText('NOKIA 3510i', SCREEN_WIDTH / 2, 84)
 
-      // Bouncing Demo Ball
       const demoBounce = Math.abs(Math.sin(timeNow() * 0.005)) * 18
-      const demoY = 112 - demoBounce
+      const demoY = 120 - demoBounce
       ctx.beginPath()
       ctx.arc(SCREEN_WIDTH / 2, demoY, 11, 0, Math.PI * 2)
       ctx.fillStyle = '#eb3b1c'
@@ -917,12 +876,11 @@ export default function Bounce() {
       ctx.strokeStyle = '#111118'
       ctx.stroke()
 
-      // Interactive Touch Button
       ctx.fillStyle = '#10b981'
-      ctx.fillRect(SCREEN_WIDTH / 2 - 60, 134, 120, 26)
+      ctx.fillRect(SCREEN_WIDTH / 2 - 60, 145, 120, 26)
       ctx.fillStyle = '#022c22'
       ctx.font = 'bold 11px monospace'
-      ctx.fillText('▶ TAP TO START', SCREEN_WIDTH / 2, 151)
+      ctx.fillText('▶ TAP TO START', SCREEN_WIDTH / 2, 162)
     }
 
     else if (gameModeRef.current === 'paused') {
@@ -932,13 +890,13 @@ export default function Bounce() {
       ctx.fillStyle = '#fde047'
       ctx.font = 'bold 16px monospace'
       ctx.textAlign = 'center'
-      ctx.fillText('PAUSED', SCREEN_WIDTH / 2, 75)
+      ctx.fillText('PAUSED', SCREEN_WIDTH / 2, 85)
 
       ctx.fillStyle = '#10b981'
-      ctx.fillRect(SCREEN_WIDTH / 2 - 50, 95, 100, 26)
+      ctx.fillRect(SCREEN_WIDTH / 2 - 50, 105, 100, 26)
       ctx.fillStyle = '#022c22'
       ctx.font = 'bold 11px monospace'
-      ctx.fillText('▶ RESUME', SCREEN_WIDTH / 2, 112)
+      ctx.fillText('▶ RESUME', SCREEN_WIDTH / 2, 122)
     }
 
     else if (gameModeRef.current === 'level_clear') {
@@ -948,17 +906,17 @@ export default function Bounce() {
       ctx.fillStyle = '#4ade80'
       ctx.font = 'bold 16px monospace'
       ctx.textAlign = 'center'
-      ctx.fillText('LEVEL CLEARED!', SCREEN_WIDTH / 2, 60)
+      ctx.fillText('LEVEL CLEARED!', SCREEN_WIDTH / 2, 70)
 
       ctx.fillStyle = '#fde047'
       ctx.font = 'bold 11px monospace'
-      ctx.fillText(`SCORE: ${scoreRef.current}`, SCREEN_WIDTH / 2, 85)
+      ctx.fillText(`SCORE: ${scoreRef.current}`, SCREEN_WIDTH / 2, 95)
 
       ctx.fillStyle = '#10b981'
-      ctx.fillRect(SCREEN_WIDTH / 2 - 55, 105, 110, 26)
+      ctx.fillRect(SCREEN_WIDTH / 2 - 55, 115, 110, 26)
       ctx.fillStyle = '#022c22'
       ctx.font = 'bold 11px monospace'
-      ctx.fillText('▶ NEXT LEVEL', SCREEN_WIDTH / 2, 122)
+      ctx.fillText('▶ NEXT LEVEL', SCREEN_WIDTH / 2, 132)
     }
 
     else if (gameModeRef.current === 'gameover') {
@@ -968,17 +926,17 @@ export default function Bounce() {
       ctx.fillStyle = '#f87171'
       ctx.font = 'bold 18px monospace'
       ctx.textAlign = 'center'
-      ctx.fillText('GAME OVER', SCREEN_WIDTH / 2, 65)
+      ctx.fillText('GAME OVER', SCREEN_WIDTH / 2, 75)
 
       ctx.fillStyle = '#ffffff'
       ctx.font = 'bold 11px monospace'
-      ctx.fillText(`SCORE: ${scoreRef.current}`, SCREEN_WIDTH / 2, 90)
+      ctx.fillText(`SCORE: ${scoreRef.current}`, SCREEN_WIDTH / 2, 100)
 
       ctx.fillStyle = '#ef4444'
-      ctx.fillRect(SCREEN_WIDTH / 2 - 55, 110, 110, 26)
+      ctx.fillRect(SCREEN_WIDTH / 2 - 55, 120, 110, 26)
       ctx.fillStyle = '#ffffff'
       ctx.font = 'bold 11px monospace'
-      ctx.fillText('🔄 PLAY AGAIN', SCREEN_WIDTH / 2, 127)
+      ctx.fillText('🔄 PLAY AGAIN', SCREEN_WIDTH / 2, 137)
     }
 
     else if (gameModeRef.current === 'won') {
@@ -988,20 +946,19 @@ export default function Bounce() {
       ctx.fillStyle = '#facc15'
       ctx.font = 'bold 18px monospace'
       ctx.textAlign = 'center'
-      ctx.fillText('🏆 YOU WIN! 🏆', SCREEN_WIDTH / 2, 65)
+      ctx.fillText('🏆 YOU WIN! 🏆', SCREEN_WIDTH / 2, 75)
 
       ctx.fillStyle = '#ffffff'
       ctx.font = 'bold 11px monospace'
-      ctx.fillText(`FINAL: ${scoreRef.current}`, SCREEN_WIDTH / 2, 90)
+      ctx.fillText(`FINAL: ${scoreRef.current}`, SCREEN_WIDTH / 2, 100)
 
       ctx.fillStyle = '#4ade80'
-      ctx.fillRect(SCREEN_WIDTH / 2 - 55, 110, 110, 26)
+      ctx.fillRect(SCREEN_WIDTH / 2 - 55, 120, 110, 26)
       ctx.fillStyle = '#052e16'
       ctx.font = 'bold 11px monospace'
-      ctx.fillText('▶ PLAY AGAIN', SCREEN_WIDTH / 2, 127)
+      ctx.fillText('▶ PLAY AGAIN', SCREEN_WIDTH / 2, 137)
     }
 
-    // Cheat Notification Banner
     if (cheatBanner) {
       ctx.fillStyle = 'rgba(234, 179, 8, 0.95)'
       ctx.fillRect(10, 6, SCREEN_WIDTH - 20, 20)
@@ -1012,21 +969,23 @@ export default function Bounce() {
     }
   }, [cheatBanner, timeNow])
 
+  // Helper: Is tile solid for blocking
+  const isSolid = (tile?: number) => tile === TILE.BRICK || tile === TILE.STONE
+
   // -------------------------------------------------------------
-  // Physics & Game Loop
+  // Physics & Game Loop (Separate X and Y pass - Zero Seam Snags!)
   // -------------------------------------------------------------
   useEffect(() => {
     lastTimeRef.current = gameNow()
 
     const loop = (time: number) => {
-      const dt = Math.min((time - lastTimeRef.current) / 1000, 0.05)
+      const dt = Math.min((time - lastTimeRef.current) / 1000, 0.04)
       lastTimeRef.current = time
 
       if (!isGamePaused() && gameModeRef.current === 'playing') {
         const ball = ballRef.current
         const level = currentLevelRef.current
 
-        // Pop Animation Handling
         if (ball.isPopping) {
           ball.popTimer -= dt
           if (ball.popTimer <= 0) {
@@ -1042,7 +1001,6 @@ export default function Bounce() {
           } else if (inputRef.current.right) {
             ball.vx = Math.min(ball.vx + MOVE_ACCEL * dt, maxSpd)
           } else {
-            // Apply friction
             if (ball.grounded) {
               if (ball.vx > 0) ball.vx = Math.max(0, ball.vx - GROUND_FRICTION * dt)
               else if (ball.vx < 0) ball.vx = Math.min(0, ball.vx + GROUND_FRICTION * dt)
@@ -1052,7 +1010,6 @@ export default function Bounce() {
             }
           }
 
-          // Ball Rotation
           ball.rotation += (ball.vx * dt) / ball.radius
 
           // --- VERTICAL FORCES & WATER PHYSICS ---
@@ -1076,19 +1033,13 @@ export default function Bounce() {
             nokiaSound.playBounce(1.2)
           }
 
-          // --- TILEMAP COLLISION DETECTION & RESOLUTION ---
+          // ---------------------------------------------------------
+          // PASS 1: X-AXIS MOVEMENT & COLLISION (No Seam Snags!)
+          // ---------------------------------------------------------
           const oldX = ball.x
-          const oldY = ball.y
-          const targetX = oldX + ball.vx * dt
-          const targetY = oldY + ball.vy * dt
-
-          ball.x = targetX
-          ball.y = targetY
+          ball.x += ball.vx * dt
 
           const mapW = level.width * TILE_SIZE
-          const mapH = level.height * TILE_SIZE
-
-          // Map bounds
           if (ball.x - ball.radius < 0) {
             ball.x = ball.radius
             ball.vx = 0
@@ -1098,72 +1049,98 @@ export default function Bounce() {
             ball.vx = 0
           }
 
-          // Fell off map
-          if (ball.y > mapH + 40) {
-            popBall()
-          }
-
-          // Check tiles around ball
-          const minCol = Math.max(0, Math.floor((ball.x - ball.radius - 2) / TILE_SIZE))
-          const maxCol = Math.min(level.width - 1, Math.floor((ball.x + ball.radius + 2) / TILE_SIZE))
-          const minRow = Math.max(0, Math.floor((ball.y - ball.radius - 2) / TILE_SIZE))
-          const maxRow = Math.min(level.height - 1, Math.floor((ball.y + ball.radius + 2) / TILE_SIZE))
-
-          ball.grounded = false
-          ball.inWater = false
+          let minCol = Math.max(0, Math.floor((ball.x - ball.radius - 2) / TILE_SIZE))
+          let maxCol = Math.min(level.width - 1, Math.floor((ball.x + ball.radius + 2) / TILE_SIZE))
+          let minRow = Math.max(0, Math.floor((ball.y - ball.radius - 2) / TILE_SIZE))
+          let maxRow = Math.min(level.height - 1, Math.floor((ball.y + ball.radius + 2) / TILE_SIZE))
 
           for (let r = minRow; r <= maxRow; r++) {
             for (let c = minCol; c <= maxCol; c++) {
-              const tile = level.tiles[r][c]
-              if (tile === TILE.EMPTY) continue
+              const tile = level.tiles[r]?.[c]
+              if (isSolid(tile)) {
+                const tileLeft = c * TILE_SIZE
+                const tileRight = tileLeft + TILE_SIZE
+                const tileTop = r * TILE_SIZE
+                const tileBottom = tileTop + TILE_SIZE
 
-              const tileLeft = c * TILE_SIZE
-              const tileRight = tileLeft + TILE_SIZE
-              const tileTop = r * TILE_SIZE
-              const tileBottom = tileTop + TILE_SIZE
+                // Ball intersects vertically with this tile
+                if (ball.y + ball.radius * 0.7 > tileTop && ball.y - ball.radius * 0.7 < tileBottom) {
+                  // Moving right into left wall
+                  if (ball.vx > 0 && ball.x + ball.radius > tileLeft && oldX + ball.radius <= tileLeft + 5) {
+                    // Only block if neighbor to the left is EMPTY (exposed face!)
+                    if (!isSolid(level.tiles[r]?.[c - 1])) {
+                      ball.x = tileLeft - ball.radius
+                      ball.vx = 0
+                    }
+                  }
+                  // Moving left into right wall
+                  else if (ball.vx < 0 && ball.x - ball.radius < tileRight && oldX - ball.radius >= tileRight - 5) {
+                    // Only block if neighbor to the right is EMPTY (exposed face!)
+                    if (!isSolid(level.tiles[r]?.[c + 1])) {
+                      ball.x = tileRight + ball.radius
+                      ball.vx = 0
+                    }
+                  }
+                }
+              }
+            }
+          }
 
-              // Solid block (Brick or Stone)
-              if (tile === TILE.BRICK || tile === TILE.STONE) {
-                const closeX = Math.max(tileLeft, Math.min(ball.x, tileRight))
-                const closeY = Math.max(tileTop, Math.min(ball.y, tileBottom))
+          // ---------------------------------------------------------
+          // PASS 2: Y-AXIS MOVEMENT & COLLISION (Smooth ground bounce!)
+          // ---------------------------------------------------------
+          const oldY = ball.y
+          ball.y += ball.vy * dt
+          ball.grounded = false
+          ball.inWater = false
 
-                const distX = ball.x - closeX
-                const distY = ball.y - closeY
-                const distSq = distX * distX + distY * distY
+          minCol = Math.max(0, Math.floor((ball.x - ball.radius - 2) / TILE_SIZE))
+          maxCol = Math.min(level.width - 1, Math.floor((ball.x + ball.radius + 2) / TILE_SIZE))
+          minRow = Math.max(0, Math.floor((ball.y - ball.radius - 2) / TILE_SIZE))
+          maxRow = Math.min(level.height - 1, Math.floor((ball.y + ball.radius + 2) / TILE_SIZE))
 
-                if (distSq < ball.radius * ball.radius && distSq > 0) {
-                  const dist = Math.sqrt(distSq)
-                  const overlap = ball.radius - dist
-                  const nx = distX / dist
-                  const ny = distY / dist
+          for (let r = minRow; r <= maxRow; r++) {
+            for (let c = minCol; c <= maxCol; c++) {
+              const tile = level.tiles[r]?.[c]
 
-                  ball.x += nx * overlap
-                  ball.y += ny * overlap
+              if (isSolid(tile)) {
+                const tileLeft = c * TILE_SIZE
+                const tileRight = tileLeft + TILE_SIZE
+                const tileTop = r * TILE_SIZE
+                const tileBottom = tileTop + TILE_SIZE
 
-                  // Hitting top of block (landing)
-                  if (ny < -0.6) {
-                    ball.grounded = true
-                    if (ball.vy > 30) {
-                      ball.vy = -ball.vy * RESTITUTION
-                      if (Math.abs(ball.vy) < 25) ball.vy = 0
-                      nokiaSound.playBounce(Math.min(2, Math.abs(ball.vy) / 100))
-                    } else if (ball.vy > 0) {
+                // Ball intersects horizontally with this tile
+                if (ball.x + ball.radius * 0.7 > tileLeft && ball.x - ball.radius * 0.7 < tileRight) {
+                  // Falling down onto floor
+                  if (ball.vy >= 0 && ball.y + ball.radius >= tileTop && oldY + ball.radius <= tileTop + 8) {
+                    // Only land if block above is NOT solid (exposed floor!)
+                    if (!isSolid(level.tiles[r - 1]?.[c])) {
+                      ball.y = tileTop - ball.radius
+                      ball.grounded = true
+                      if (ball.vy > 30) {
+                        ball.vy = -ball.vy * RESTITUTION
+                        if (Math.abs(ball.vy) < 25) ball.vy = 0
+                        nokiaSound.playBounce(Math.min(2, Math.abs(ball.vy) / 100))
+                      } else {
+                        ball.vy = 0
+                      }
+                    }
+                  }
+                  // Moving up into ceiling
+                  else if (ball.vy < 0 && ball.y - ball.radius <= tileBottom && oldY - ball.radius >= tileBottom - 8) {
+                    if (!isSolid(level.tiles[r + 1]?.[c])) {
+                      ball.y = tileBottom + ball.radius
                       ball.vy = 0
                     }
-                  } else if (ny > 0.6) {
-                    // Ceiling hit
-                    if (ball.vy < 0) ball.vy = 0
-                  }
-
-                  // Wall hit
-                  if (Math.abs(nx) > 0.6) {
-                    ball.vx = 0
                   }
                 }
               }
 
-              // Trampoline / Super Bounce Pad
+              // Trampoline
               else if (tile === TILE.TRAMPOLINE) {
+                const tileLeft = c * TILE_SIZE
+                const tileRight = tileLeft + TILE_SIZE
+                const tileTop = r * TILE_SIZE
                 if (
                   ball.x + ball.radius > tileLeft &&
                   ball.x - ball.radius < tileRight &&
@@ -1178,7 +1155,7 @@ export default function Bounce() {
                 }
               }
 
-              // Spikes & Spiked Star Mine
+              // Spikes & Spiked Mine
               else if (
                 tile === TILE.SPIKE_UP ||
                 tile === TILE.SPIKE_DOWN ||
@@ -1186,12 +1163,17 @@ export default function Bounce() {
                 tile === TILE.SPIKE_RIGHT ||
                 tile === TILE.MINE
               ) {
-                const spikeMargin = tile === TILE.MINE ? 1 : 2
+                const tileLeft = c * TILE_SIZE
+                const tileRight = tileLeft + TILE_SIZE
+                const tileTop = r * TILE_SIZE
+                const tileBottom = tileTop + TILE_SIZE
+                const margin = tile === TILE.MINE ? 1 : 2
+
                 if (
-                  ball.x + ball.radius * 0.7 > tileLeft + spikeMargin &&
-                  ball.x - ball.radius * 0.7 < tileRight - spikeMargin &&
-                  ball.y + ball.radius * 0.7 > tileTop + spikeMargin &&
-                  ball.y - ball.radius * 0.7 < tileBottom - spikeMargin
+                  ball.x + ball.radius * 0.7 > tileLeft + margin &&
+                  ball.x - ball.radius * 0.7 < tileRight - margin &&
+                  ball.y + ball.radius * 0.7 > tileTop + margin &&
+                  ball.y - ball.radius * 0.7 < tileBottom - margin
                 ) {
                   popBall()
                 }
@@ -1199,6 +1181,10 @@ export default function Bounce() {
 
               // Water
               else if (tile === TILE.WATER) {
+                const tileLeft = c * TILE_SIZE
+                const tileRight = tileLeft + TILE_SIZE
+                const tileTop = r * TILE_SIZE
+                const tileBottom = tileTop + TILE_SIZE
                 if (
                   ball.x + ball.radius > tileLeft &&
                   ball.x - ball.radius < tileRight &&
@@ -1209,8 +1195,12 @@ export default function Bounce() {
                 }
               }
 
-              // Expander Pump
+              // Pumps
               else if (tile === TILE.PUMP_EXPAND) {
+                const tileLeft = c * TILE_SIZE
+                const tileRight = tileLeft + TILE_SIZE
+                const tileTop = r * TILE_SIZE
+                const tileBottom = tileTop + TILE_SIZE
                 if (
                   ball.x + ball.radius > tileLeft &&
                   ball.x - ball.radius < tileRight &&
@@ -1224,9 +1214,11 @@ export default function Bounce() {
                   }
                 }
               }
-
-              // Deflater Pump
               else if (tile === TILE.PUMP_DEFLATE) {
+                const tileLeft = c * TILE_SIZE
+                const tileRight = tileLeft + TILE_SIZE
+                const tileTop = r * TILE_SIZE
+                const tileBottom = tileTop + TILE_SIZE
                 if (
                   ball.x + ball.radius > tileLeft &&
                   ball.x - ball.radius < tileRight &&
@@ -1243,6 +1235,10 @@ export default function Bounce() {
 
               // Checkpoint Flag
               else if (tile === TILE.CHECKPOINT) {
+                const tileLeft = c * TILE_SIZE
+                const tileRight = tileLeft + TILE_SIZE
+                const tileTop = r * TILE_SIZE
+                const tileBottom = tileTop + TILE_SIZE
                 if (
                   ball.x + ball.radius > tileLeft &&
                   ball.x - ball.radius < tileRight &&
@@ -1259,6 +1255,10 @@ export default function Bounce() {
 
               // Exit Gate
               else if (tile === TILE.EXIT) {
+                const tileLeft = c * TILE_SIZE
+                const tileRight = tileLeft + TILE_SIZE
+                const tileTop = r * TILE_SIZE
+                const tileBottom = tileTop + TILE_SIZE
                 const uncollected = ringsRef.current.filter(r => !r.collected).length
                 if (
                   uncollected === 0 &&
@@ -1276,6 +1276,12 @@ export default function Bounce() {
             }
           }
 
+          // Fall off map check
+          const mapH = level.height * TILE_SIZE
+          if (ball.y > mapH + 30) {
+            popBall()
+          }
+
           // --- RING PICKUPS ---
           ringsRef.current.forEach(ring => {
             if (ring.collected) return
@@ -1289,7 +1295,6 @@ export default function Bounce() {
               nokiaSound.playRing()
 
               const remaining = ringsRef.current.filter(r => !r.collected).length
-
               if (remaining === 0) {
                 nokiaSound.playExitOpen()
               }
@@ -1317,9 +1322,8 @@ export default function Bounce() {
         const maxCamX = Math.max(0, level.width * TILE_SIZE - SCREEN_WIDTH)
         cameraRef.current.x += (Math.max(0, Math.min(targetCamX, maxCamX)) - cameraRef.current.x) * 0.15
 
-        // Smooth vertical camera transition between corridors if needed
         const playAreaHeight = SCREEN_HEIGHT - HUD_HEIGHT
-        const targetCamY = ball.y > 70 ? 0 : Math.max(0, ball.y - playAreaHeight / 2)
+        const targetCamY = ball.y > 60 ? 0 : Math.max(0, ball.y - playAreaHeight / 2)
         const maxCamY = Math.max(0, level.height * TILE_SIZE - playAreaHeight)
         cameraRef.current.y += (Math.max(0, Math.min(targetCamY, maxCamY)) - cameraRef.current.y) * 0.15
 
@@ -1357,7 +1361,7 @@ export default function Bounce() {
           </span>
         </div>
 
-        {/* EXACT NOKIA 3510i MOBILE PHONE CHASSIS */}
+        {/* EXACT NOKIA 3510i MOBILE PHONE CHASSIS (Real physical handset photo) */}
         <NokiaPhone
           onLeftSoft={handleLeftSoft}
           onRightSoft={handleRightSoft}
@@ -1367,7 +1371,7 @@ export default function Bounce() {
           onEndPress={() => setGameMode('paused')}
           cheatActive={isGodMode}
         >
-          {/* LCD Touchscreen Canvas (Aspect 4:3) */}
+          {/* LCD Touchscreen Canvas (Exact 258x248 Cutout) */}
           <canvas
             ref={canvasRef}
             width={SCREEN_WIDTH}
@@ -1377,22 +1381,9 @@ export default function Bounce() {
             onPointerUp={handleLcdPointerUp}
             onPointerCancel={handleLcdPointerUp}
             className="w-full h-full block cursor-pointer touch-none"
-            title="Nokia 3510i Touch Screen (Tap/Drag to play)"
+            title="Nokia 3510i Screen (Touch or Keypad to play)"
           />
         </NokiaPhone>
-
-        {/* Quick Instructions / Controls Guide */}
-        <div className="mt-2 text-center text-slate-400 text-[11px] max-w-xs space-y-0.5">
-          <p>
-            <strong className="text-white">Touch Screen:</strong> Tap Left/Right to roll, Tap Top to jump.
-          </p>
-          <p>
-            <strong className="text-white">Keypad:</strong> 4=Left, 6=Right, 2 or 5=Jump, Navi-Bar=Action.
-          </p>
-          <p className="text-amber-300/80 font-mono text-[10px]">
-            Cheat: Enter 787898 on keypad for God Mode!
-          </p>
-        </div>
 
         {/* Game Result Modal (on game over or victory) */}
         {(gameMode === 'gameover' || gameMode === 'won') && (
