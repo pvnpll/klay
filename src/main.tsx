@@ -25,6 +25,7 @@ const StroopTest = lazy(() => import('./pages/games/StroopTest.tsx'))
 const Breakout = lazy(() => import('./pages/games/Breakout.tsx'))
 const Pong = lazy(() => import('./pages/games/Pong.tsx'))
 const Stack = lazy(() => import('./pages/games/Stack.tsx'))
+const Bounce = lazy(() => import('./pages/games/Bounce.tsx'))
 import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
@@ -60,6 +61,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <Route path="breakout" element={<Breakout />} />
           <Route path="pong" element={<Pong />} />
           <Route path="stack" element={<Stack />} />
+          <Route path="bounce" element={<Bounce />} />
         </Route>
       </Routes>
       </Suspense>

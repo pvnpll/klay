@@ -1,4 +1,4 @@
-import { Zap, Hash, Brain, Grid3X3, Keyboard, PlaySquare, Type } from 'lucide-react'
+import { Zap, Hash, Brain, Grid3X3, Keyboard, PlaySquare, Type, CircleDot } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
 export type ScoreType = 'time' | 'score' | 'accuracy' | 'lower-is-better' | 'win-loss'
@@ -379,6 +379,26 @@ export const GAMES: GameMetadata[] = [
     Icon: PlaySquare,
     colorClass: "text-green-400 bg-green-400/10",
     gradientClass: "from-green-400/20 to-emerald-600/20"
+  },
+  {
+    id: "bounce",
+    name: "Bounce",
+    description: "The classic Nokia red ball game. Collect all golden rings and reach the exit gate!",
+    rules: [
+      "Use Arrow Keys (or WASD / Nokia keypad 2, 4, 6) or touch directly on the Nokia screen.",
+      "Collect all golden hoops in the level to open the exit gate.",
+      "Avoid spikes that will pop your ball! Watch out for deep water unless you find the big ball pump.",
+      "Use trampolines for high jumps and enter the open gate to clear each level.",
+      "Pro tip: Entering 787898 on the Nokia keypad activates God Mode!"
+    ],
+    category: "Classic",
+    difficulty: "Medium",
+    estimatedDuration: "3 minutes",
+    scoreType: "score",
+    path: "/bounce",
+    Icon: CircleDot,
+    colorClass: "text-red-400 bg-red-400/10",
+    gradientClass: "from-red-500/20 to-orange-500/20"
   },
   {
     id: "word-guess",
