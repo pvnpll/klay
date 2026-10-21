@@ -1,4 +1,4 @@
-import { Zap, Hash, Brain, Grid3X3, Keyboard, PlaySquare, Type, CircleDot, Rocket } from 'lucide-react'
+import { Zap, Hash, Brain, Grid3X3, Keyboard, PlaySquare, Type, CircleDot, Rocket, Swords } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
 export type ScoreType = 'time' | 'score' | 'accuracy' | 'lower-is-better' | 'win-loss'
@@ -419,6 +419,26 @@ export const GAMES: GameMetadata[] = [
     Icon: Rocket,
     colorClass: "text-emerald-400 bg-emerald-400/10",
     gradientClass: "from-emerald-500/20 to-teal-500/20"
+  },
+  {
+    id: "prince-of-persia",
+    name: "Prince of Persia",
+    description: "The Forgotten Sands - Classic Nokia Java ME platformer! Acrobatic leaps, sword combat, Sands of Time rewind, and water freezing powers.",
+    rules: [
+      "Use Arrow Keys (or Nokia keypad 4: Left, 6: Right, 2: Jump/Climb, 8: Roll) or touch directly on the screen.",
+      "Press 5 / Navi-Key / Space to strike enemies and break clay pots with sword combos.",
+      "Hold 0 / Right Softkey or the HUD Hourglass to Rewind Time when in danger!",
+      "Press 7 or tap the Frost Gem to Freeze Water spouts into solid climbable crystal ice.",
+      "Pro tip: Entering 787898 on the Nokia keypad activates God Mode & Infinite Sands!"
+    ],
+    category: "Classic",
+    difficulty: "Hard",
+    estimatedDuration: "5 minutes",
+    scoreType: "score",
+    path: "/prince-of-persia",
+    Icon: Swords,
+    colorClass: "text-amber-400 bg-amber-400/10",
+    gradientClass: "from-amber-500/20 to-orange-500/20"
   },
   {
     id: "word-guess",

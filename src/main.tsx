@@ -27,6 +27,7 @@ const Pong = lazy(() => import('./pages/games/Pong.tsx'))
 const Stack = lazy(() => import('./pages/games/Stack.tsx'))
 const Bounce = lazy(() => import('./pages/games/Bounce.tsx'))
 const SpaceImpact = lazy(() => import('./pages/games/SpaceImpact.tsx'))
+const PrinceOfPersia = lazy(() => import('./pages/games/PrinceOfPersia.tsx'))
 import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
@@ -64,6 +65,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           <Route path="stack" element={<Stack />} />
           <Route path="bounce" element={<Bounce />} />
           <Route path="space-impact" element={<SpaceImpact />} />
+          <Route path="prince-of-persia" element={<PrinceOfPersia />} />
         </Route>
       </Routes>
       </Suspense>
