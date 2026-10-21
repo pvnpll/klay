@@ -1,4 +1,4 @@
-import { Zap, Hash, Brain, Grid3X3, Keyboard, PlaySquare, Type, CircleDot } from 'lucide-react'
+import { Zap, Hash, Brain, Grid3X3, Keyboard, PlaySquare, Type, CircleDot, Rocket } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
 export type ScoreType = 'time' | 'score' | 'accuracy' | 'lower-is-better' | 'win-loss'
@@ -399,6 +399,26 @@ export const GAMES: GameMetadata[] = [
     Icon: CircleDot,
     colorClass: "text-red-400 bg-red-400/10",
     gradientClass: "from-red-500/20 to-orange-500/20"
+  },
+  {
+    id: "space-impact",
+    name: "Space Impact",
+    description: "The iconic Nokia horizontal space shooter! Pilot your starfighter, blast alien armadas, and destroy giant sector bosses.",
+    rules: [
+      "Use Arrow Keys (or Nokia keypad 2: Up, 8: Down, 4: Left, 6: Right) or touch & drag directly on the Nokia screen.",
+      "Press 5 / Navi-Key / Space to fire primary blasters (auto-fire when held).",
+      "Press 0 / * / C or tap the HUD special icon to launch Missiles, Lasers, or Screen EMP Bombs.",
+      "Defeat the Chapter Boss at the end of each sector to advance to the next level.",
+      "Pro tip: Entering 787898 on the Nokia keypad activates God Mode!"
+    ],
+    category: "Classic",
+    difficulty: "Medium",
+    estimatedDuration: "3 minutes",
+    scoreType: "score",
+    path: "/space-impact",
+    Icon: Rocket,
+    colorClass: "text-emerald-400 bg-emerald-400/10",
+    gradientClass: "from-emerald-500/20 to-teal-500/20"
   },
   {
     id: "word-guess",
