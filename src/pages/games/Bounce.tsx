@@ -11,20 +11,21 @@ import { TILE, TILE_SIZE, type Ring, type Particle, type Ball, type GameMode, ty
 
 const gameMeta = GAMES.find(g => g.id === 'bounce')!
 
-// Canvas display resolution inside Nokia LCD
-const SCREEN_WIDTH = 260
-const SCREEN_HEIGHT = 260
+// LCD Display resolution matching Nokia 3510i screen proportions
+const SCREEN_WIDTH = 240
+const SCREEN_HEIGHT = 180
+const HUD_HEIGHT = 38
 
 // Physics constants
 const GRAVITY = 600
-const JUMP_FORCE = -340
-const BIG_JUMP_FORCE = -420
-const SUPER_BOUNCE_FORCE = -540
+const JUMP_FORCE = -330
+const BIG_JUMP_FORCE = -400
+const SUPER_BOUNCE_FORCE = -530
 const MOVE_ACCEL = 700
-const MAX_SPEED = 160
-const BIG_MAX_SPEED = 180
+const MAX_SPEED = 155
+const BIG_MAX_SPEED = 175
 const GROUND_FRICTION = 550
-const AIR_DRAG = 80
+const AIR_DRAG = 70
 const RESTITUTION = 0.65
 
 export default function Bounce() {
@@ -32,11 +33,7 @@ export default function Bounce() {
 
   // Game state hooks
   const [gameMode, setGameMode] = useState<GameMode>('title')
-  const [currentLevelIdx, setCurrentLevelIdx] = useState(0)
-  const [score, setScore] = useState(0)
-  const [lives, setLives] = useState(3)
-  const [ringsLeft, setRingsLeft] = useState(() => LEVELS[0].rings.length)
-  const [ringsTotal, setRingsTotal] = useState(() => LEVELS[0].rings.length)
+  const [score, setScore] = useState(2360)
   const [isGodMode, setIsGodMode] = useState(false)
   const [cheatBanner, setCheatBanner] = useState<string | null>(null)
   
@@ -52,8 +49,8 @@ export default function Bounce() {
 
   const currentLevelRef = useRef<LevelData>(LEVELS[0])
   const levelIdxRef = useRef(0)
-  const scoreRef = useRef(0)
-  const livesRef = useRef(3)
+  const scoreRef = useRef(2360)
+  const livesRef = useRef(5)
   const isGodModeRef = useRef(false)
   const ringsRef = useRef<Ring[]>(
     LEVELS[0].rings.map((r, i) => ({
@@ -73,7 +70,7 @@ export default function Bounce() {
     y: LEVELS[0].startY,
     vx: 0,
     vy: 0,
-    radius: 11,
+    radius: 10,
     rotation: 0,
     sizeType: 'normal',
     grounded: false,
@@ -85,7 +82,7 @@ export default function Bounce() {
   // Camera coordinates
   const cameraRef = useRef({
     x: Math.max(0, LEVELS[0].startX - SCREEN_WIDTH / 2),
-    y: Math.max(0, LEVELS[0].startY - SCREEN_HEIGHT / 2),
+    y: 0,
   })
 
   // Input states
@@ -128,7 +125,6 @@ export default function Bounce() {
     const level = LEVELS[lvlIdx % LEVELS.length]
     levelIdxRef.current = lvlIdx % LEVELS.length
     currentLevelRef.current = level
-    setCurrentLevelIdx(lvlIdx % LEVELS.length)
 
     checkpointRef.current = null
 
@@ -141,14 +137,10 @@ export default function Bounce() {
       collected: false,
     }))
 
-    setRingsLeft(ringsRef.current.length)
-    setRingsTotal(ringsRef.current.length)
-
     if (!keepScore) {
       scoreRef.current = 0
       setScore(0)
-      livesRef.current = 3
-      setLives(3)
+      livesRef.current = 5
     }
 
     // Reset ball
@@ -157,7 +149,7 @@ export default function Bounce() {
       y: level.startY,
       vx: 0,
       vy: 0,
-      radius: 11,
+      radius: 10,
       rotation: 0,
       sizeType: 'normal',
       grounded: false,
@@ -168,7 +160,7 @@ export default function Bounce() {
 
     cameraRef.current = {
       x: Math.max(0, ballRef.current.x - SCREEN_WIDTH / 2),
-      y: Math.max(0, ballRef.current.y - SCREEN_HEIGHT / 2),
+      y: 0,
     }
 
     particlesRef.current = []
@@ -193,7 +185,7 @@ export default function Bounce() {
       y: spawnPt.y,
       vx: 0,
       vy: 0,
-      radius: 11,
+      radius: 10,
       rotation: 0,
       sizeType: 'normal',
       grounded: false,
@@ -228,13 +220,12 @@ export default function Bounce() {
         vy: Math.sin(angle) * spd - 60,
         life: 0.8,
         maxLife: 0.8,
-        color: i % 2 === 0 ? '#ef4444' : '#dc2626',
+        color: i % 2 === 0 ? '#ef341e' : '#c52815',
         size: 3 + Math.random() * 2,
       })
     }
 
     livesRef.current -= 1
-    setLives(livesRef.current)
 
     if (livesRef.current <= 0) {
       setTimeout(() => {
@@ -262,7 +253,7 @@ export default function Bounce() {
       setIsGodMode(newGod)
       cheatBufferRef.current = []
       nokiaSound.playCheat()
-      setCheatBanner(newGod ? '★ GOD MODE: ACTIVATED ★' : '★ GOD MODE: DEACTIVATED ★')
+      setCheatBanner(newGod ? '★ GOD MODE: ON ★' : '★ GOD MODE: OFF ★')
       setTimeout(() => setCheatBanner(null), 2500)
     }
   }, [])
@@ -422,7 +413,7 @@ export default function Bounce() {
     const normX = touchX / rect.width
     const normY = touchY / rect.height
 
-    if (normY < 0.45) {
+    if (normY < 0.4) {
       // Tap top half -> Jump!
       inputRef.current.jump = true
       touchStateRef.current.isTapJump = true
@@ -449,7 +440,7 @@ export default function Bounce() {
     touchStateRef.current.currentY = touchY
 
     const dx = touchX - touchStateRef.current.startX
-    if (Math.abs(dx) > 15) {
+    if (Math.abs(dx) > 12) {
       if (dx < 0) {
         inputRef.current.left = true
         inputRef.current.right = false
@@ -492,7 +483,7 @@ export default function Bounce() {
     }
   }
 
-  // Left softkey: Menu / Pause / Start
+  // Softkey handlers
   const handleLeftSoft = () => {
     if (gameModeRef.current === 'title') {
       startNewGame()
@@ -507,10 +498,8 @@ export default function Bounce() {
     }
   }
 
-  // Right softkey: Reset / Exit / Mute
   const handleRightSoft = () => {
     if (gameModeRef.current === 'playing' || gameModeRef.current === 'paused') {
-      // Restart current level
       loadLevel(levelIdxRef.current, true)
       setGameMode('playing')
     } else {
@@ -519,7 +508,7 @@ export default function Bounce() {
   }
 
   // -------------------------------------------------------------
-  // Canvas Rendering (Pixel-Art Retro Style)
+  // Canvas Rendering (EXACTLY matching the user's Nokia 3510i photo)
   // -------------------------------------------------------------
   const renderCanvas = useCallback(() => {
     const canvas = canvasRef.current
@@ -530,45 +519,36 @@ export default function Bounce() {
     ctx.save()
     ctx.imageSmoothingEnabled = false
 
-    // Clear background: Retro sky gradient
-    const skyGradient = ctx.createLinearGradient(0, 0, 0, SCREEN_HEIGHT)
-    skyGradient.addColorStop(0, '#5ea5dc')
-    skyGradient.addColorStop(0.7, '#88c6ec')
-    skyGradient.addColorStop(1, '#a6ddf6')
-    ctx.fillStyle = skyGradient
-    ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)
+    const playAreaHeight = SCREEN_HEIGHT - HUD_HEIGHT
+    const level = currentLevelRef.current
+
+    // In the photo:
+    // Upper section is light sky blue (#c2dff7)
+    // Lower section is deep cobalt/royal blue (#004ecc)
+    // Brick platform divides them in the middle!
+    const dividerY = Math.round(60 - cameraRef.current.y)
+    ctx.fillStyle = '#c2dff7'
+    ctx.fillRect(0, 0, SCREEN_WIDTH, Math.max(0, dividerY + 10))
+
+    ctx.fillStyle = '#004ecc'
+    ctx.fillRect(0, Math.max(0, dividerY + 10), SCREEN_WIDTH, SCREEN_HEIGHT)
 
     const camX = cameraRef.current.x
     const camY = cameraRef.current.y
-    const level = currentLevelRef.current
 
-    // Distant Hills (Parallax background)
-    ctx.fillStyle = '#4c983d'
+    ctx.save()
+    // Clip drawing strictly to game area (above HUD)
     ctx.beginPath()
-    ctx.ellipse(SCREEN_WIDTH * 0.3 - (camX * 0.1) % 200, SCREEN_HEIGHT - 30, 160, 40, 0, 0, Math.PI * 2)
-    ctx.ellipse(SCREEN_WIDTH * 0.8 - (camX * 0.1) % 200, SCREEN_HEIGHT - 20, 190, 50, 0, 0, Math.PI * 2)
-    ctx.fill()
-
-    // Parallax Clouds
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'
-    const cloudOffsets = [30, 120, 210]
-    cloudOffsets.forEach((cx, idx) => {
-      const px = (cx - camX * 0.15 + SCREEN_WIDTH) % (SCREEN_WIDTH + 80) - 40
-      const py = 25 + idx * 22
-      ctx.beginPath()
-      ctx.arc(px, py, 14, 0, Math.PI * 2)
-      ctx.arc(px + 12, py - 4, 11, 0, Math.PI * 2)
-      ctx.arc(px + 22, py - 4, 12, 0, Math.PI * 2)
-      ctx.fill()
-    })
+    ctx.rect(0, 0, SCREEN_WIDTH, playAreaHeight)
+    ctx.clip()
 
     ctx.translate(-Math.round(camX), -Math.round(camY))
 
     // Render Tiles
     const startCol = Math.max(0, Math.floor(camX / TILE_SIZE))
     const endCol = Math.min(level.width - 1, Math.ceil((camX + SCREEN_WIDTH) / TILE_SIZE))
-    const startRow = Math.max(0, Math.floor(camY / TILE_SIZE))
-    const endRow = Math.min(level.height - 1, Math.ceil((camY + SCREEN_HEIGHT) / TILE_SIZE))
+    const startRow = 0
+    const endRow = Math.min(level.height - 1, Math.ceil((camY + playAreaHeight) / TILE_SIZE))
 
     for (let r = startRow; r <= endRow; r++) {
       for (let c = startCol; c <= endCol; c++) {
@@ -576,32 +556,91 @@ export default function Bounce() {
         const tx = c * TILE_SIZE
         const ty = r * TILE_SIZE
 
-        // BRICK
-        if (tile === TILE.BRICK) {
-          ctx.fillStyle = '#ba4a26'
+        // BRICK (Terracotta Red-Orange as in photo)
+        if (tile === TILE.BRICK || tile === TILE.STONE) {
+          ctx.fillStyle = '#cf421b'
           ctx.fillRect(tx, ty, TILE_SIZE, TILE_SIZE)
-          // Brick border bevel
-          ctx.fillStyle = '#e27448'
-          ctx.fillRect(tx, ty, TILE_SIZE, 2)
-          ctx.fillRect(tx, ty, 2, TILE_SIZE)
-          ctx.fillStyle = '#7c2b12'
-          ctx.fillRect(tx, ty + TILE_SIZE - 2, TILE_SIZE, 2)
-          ctx.fillRect(tx + TILE_SIZE - 2, ty, 2, TILE_SIZE)
-          // Inner brick seam
-          ctx.fillStyle = '#61210d'
-          ctx.fillRect(tx + 2, ty + 10, TILE_SIZE - 4, 1)
+
+          // 3D Bevel highlight & shadow
+          ctx.fillStyle = '#f4744e'
+          ctx.fillRect(tx, ty, TILE_SIZE, 1.5)
+          ctx.fillRect(tx, ty, 1.5, TILE_SIZE)
+
+          ctx.fillStyle = '#782008'
+          ctx.fillRect(tx, ty + TILE_SIZE - 1.5, TILE_SIZE, 1.5)
+          ctx.fillRect(tx + TILE_SIZE - 1.5, ty, 1.5, TILE_SIZE)
+
+          // Brick pattern divider lines
+          ctx.fillStyle = '#651b06'
+          ctx.fillRect(tx, ty + 10, TILE_SIZE, 1)
+          ctx.fillRect(tx + 10, ty, 1, 10)
         }
 
-        // STONE
-        else if (tile === TILE.STONE) {
-          ctx.fillStyle = '#64748b'
-          ctx.fillRect(tx, ty, TILE_SIZE, TILE_SIZE)
-          ctx.fillStyle = '#94a3b8'
-          ctx.fillRect(tx, ty, TILE_SIZE, 2)
-          ctx.fillRect(tx, ty, 2, TILE_SIZE)
+        // 8-DIRECTIONAL SPIKED STAR MINE (Exactly matching top-left in photo)
+        else if (tile === TILE.MINE) {
+          ctx.save()
+          ctx.translate(tx + 10, ty + 10)
+
+          const centerX = 0
+          const centerY = 0
+          const coreRadius = 4.5
+
+          // Draw 8 spiky triangular points (4 cardinal, 4 diagonal)
+          const angles = [
+            0,
+            Math.PI * 0.25,
+            Math.PI * 0.5,
+            Math.PI * 0.75,
+            Math.PI,
+            Math.PI * 1.25,
+            Math.PI * 1.5,
+            Math.PI * 1.75
+          ]
+
+          ctx.fillStyle = '#222838'
+          angles.forEach((ang, idx) => {
+            const length = idx % 2 === 0 ? 9.5 : 7.5
+            const width = 2.5
+            const tipX = Math.cos(ang) * length
+            const tipY = Math.sin(ang) * length
+
+            const perp = ang + Math.PI * 0.5
+            const b1X = Math.cos(perp) * width
+            const b1Y = Math.sin(perp) * width
+            const b2X = -b1X
+            const b2Y = -b1Y
+
+            ctx.beginPath()
+            ctx.moveTo(tipX, tipY)
+            ctx.lineTo(b1X, b1Y)
+            ctx.lineTo(b2X, b2Y)
+            ctx.closePath()
+            ctx.fill()
+
+            // Silver gleam on cardinal spikes
+            if (idx % 2 === 0) {
+              ctx.strokeStyle = '#94a3b8'
+              ctx.lineWidth = 1
+              ctx.stroke()
+            }
+          })
+
+          // Central circular hub with metallic highlight
+          ctx.beginPath()
+          ctx.arc(centerX, centerY, coreRadius, 0, Math.PI * 2)
           ctx.fillStyle = '#334155'
-          ctx.fillRect(tx, ty + TILE_SIZE - 2, TILE_SIZE, 2)
-          ctx.fillRect(tx + TILE_SIZE - 2, ty, 2, TILE_SIZE)
+          ctx.fill()
+          ctx.lineWidth = 1.2
+          ctx.strokeStyle = '#0f172a'
+          ctx.stroke()
+
+          // Inner blue/white core dot
+          ctx.beginPath()
+          ctx.arc(centerX - 1, centerY - 1, 1.5, 0, Math.PI * 2)
+          ctx.fillStyle = '#67e8f9'
+          ctx.fill()
+
+          ctx.restore()
         }
 
         // SPIKE UP
@@ -609,18 +648,12 @@ export default function Bounce() {
           ctx.fillStyle = '#475569'
           ctx.beginPath()
           ctx.moveTo(tx, ty + TILE_SIZE)
-          ctx.lineTo(tx + TILE_SIZE / 2, ty)
+          ctx.lineTo(tx + TILE_SIZE / 2, ty + 2)
           ctx.lineTo(tx + TILE_SIZE, ty + TILE_SIZE)
           ctx.closePath()
           ctx.fill()
-          // Chrome tip highlight
           ctx.fillStyle = '#f8fafc'
-          ctx.beginPath()
-          ctx.moveTo(tx + TILE_SIZE / 2 - 2, ty + 5)
-          ctx.lineTo(tx + TILE_SIZE / 2, ty)
-          ctx.lineTo(tx + TILE_SIZE / 2 + 2, ty + 5)
-          ctx.closePath()
-          ctx.fill()
+          ctx.fillRect(tx + TILE_SIZE / 2 - 1, ty + 2, 2, 4)
         }
 
         // SPIKE DOWN
@@ -628,7 +661,7 @@ export default function Bounce() {
           ctx.fillStyle = '#475569'
           ctx.beginPath()
           ctx.moveTo(tx, ty)
-          ctx.lineTo(tx + TILE_SIZE / 2, ty + TILE_SIZE)
+          ctx.lineTo(tx + TILE_SIZE / 2, ty + TILE_SIZE - 2)
           ctx.lineTo(tx + TILE_SIZE, ty)
           ctx.closePath()
           ctx.fill()
@@ -640,7 +673,6 @@ export default function Bounce() {
           ctx.fillRect(tx, ty + 4, TILE_SIZE, TILE_SIZE - 4)
           ctx.fillStyle = '#fef08a'
           ctx.fillRect(tx, ty + 4, TILE_SIZE, 3)
-          // Hazard chevron stripes
           ctx.fillStyle = '#1e293b'
           ctx.fillRect(tx + 4, ty + 10, 4, 6)
           ctx.fillRect(tx + 12, ty + 10, 4, 6)
@@ -648,30 +680,28 @@ export default function Bounce() {
 
         // WATER
         else if (tile === TILE.WATER) {
-          ctx.fillStyle = 'rgba(37, 99, 235, 0.65)'
+          ctx.fillStyle = 'rgba(37, 99, 235, 0.75)'
           ctx.fillRect(tx, ty + 4, TILE_SIZE, TILE_SIZE - 4)
-          // Animated ripple wave on top
-          ctx.fillStyle = 'rgba(147, 197, 253, 0.8)'
+          ctx.fillStyle = 'rgba(147, 197, 253, 0.9)'
           const waveY = ty + 4 + Math.sin((timeNow() * 0.005) + c) * 1.5
           ctx.fillRect(tx, waveY, TILE_SIZE, 2)
         }
 
-        // EXPANDER PUMP (Big Ball)
+        // EXPANDER PUMP
         else if (tile === TILE.PUMP_EXPAND) {
           ctx.fillStyle = '#0284c7'
           ctx.fillRect(tx + 3, ty + 2, 14, 16)
           ctx.fillStyle = '#ffffff'
-          // Draw expand arrows: ◄ ►
-          ctx.font = 'bold 9px monospace'
+          ctx.font = 'bold 8px monospace'
           ctx.fillText('◄►', tx + 3, ty + 13)
         }
 
-        // DEFLATER PUMP (Small/Normal Ball)
+        // DEFLATER PUMP
         else if (tile === TILE.PUMP_DEFLATE) {
           ctx.fillStyle = '#d97706'
           ctx.fillRect(tx + 3, ty + 2, 14, 16)
           ctx.fillStyle = '#ffffff'
-          ctx.font = 'bold 9px monospace'
+          ctx.font = 'bold 8px monospace'
           ctx.fillText('►◄', tx + 3, ty + 13)
         }
 
@@ -698,12 +728,10 @@ export default function Bounce() {
           ctx.fillRect(tx + 2, ty + 1, 16, 19)
 
           if (isOpen) {
-            // Pulsing golden doorway with arrow
             ctx.fillStyle = '#fde047'
-            ctx.font = 'bold 10px monospace'
+            ctx.font = 'bold 9px monospace'
             ctx.fillText('EXIT', tx + 2, ty + 14)
           } else {
-            // Padlock symbol
             ctx.fillStyle = '#fca5a5'
             ctx.font = 'bold 9px monospace'
             ctx.fillText('🔒', tx + 4, ty + 14)
@@ -712,30 +740,26 @@ export default function Bounce() {
       }
     }
 
-    // Render Golden Rings
+    // Render Golden Rings in level
     ringsRef.current.forEach(ring => {
       if (ring.collected) return
       ctx.save()
       ctx.translate(ring.x, ring.y)
 
-      // Ring Shimmer Rotation
+      // Golden vertical oval hoop (as seen in photo)
       const shimmer = Math.sin(timeNow() * 0.005 + ring.id)
-      const scaleX = 0.65 + shimmer * 0.35
+      const scaleX = 0.75 + shimmer * 0.25
 
       ctx.scale(scaleX, 1)
 
-      // Outer gold ring
       ctx.beginPath()
-      ctx.arc(0, 0, ring.radius, 0, Math.PI * 2)
-      ctx.lineWidth = 3
-      ctx.strokeStyle = '#eab308'
+      ctx.ellipse(0, 0, 4.5, 9, 0, 0, Math.PI * 2)
+      ctx.lineWidth = 2.5
+      ctx.strokeStyle = '#facc15'
       ctx.stroke()
 
-      // Inner gleam
-      ctx.beginPath()
-      ctx.arc(0, 0, ring.radius - 1, -Math.PI * 0.5, 0)
-      ctx.lineWidth = 1.5
-      ctx.strokeStyle = '#ffffff'
+      ctx.lineWidth = 1
+      ctx.strokeStyle = '#b45309'
       ctx.stroke()
 
       ctx.restore()
@@ -751,223 +775,240 @@ export default function Bounce() {
       ctx.globalAlpha = 1
     })
 
-    // Render Ball (if not popped)
+    // Render Red Ball (Exact styling from photo: solid red circle with crisp black outline)
     const ball = ballRef.current
     if (!ball.isPopping) {
       ctx.save()
       ctx.translate(ball.x, ball.y)
       ctx.rotate(ball.rotation)
 
-      // God Mode Shimmer Aura
+      // God Mode Aura
       if (isGodModeRef.current) {
         ctx.beginPath()
         ctx.arc(0, 0, ball.radius + 3, 0, Math.PI * 2)
-        ctx.fillStyle = 'rgba(250, 204, 21, 0.4)'
+        ctx.fillStyle = 'rgba(250, 204, 21, 0.45)'
         ctx.fill()
       }
 
-      // Ball Outer Circle
+      // Red body
       ctx.beginPath()
       ctx.arc(0, 0, ball.radius, 0, Math.PI * 2)
-      const ballGrad = ctx.createRadialGradient(
-        -ball.radius * 0.35,
-        -ball.radius * 0.35,
-        ball.radius * 0.1,
-        0,
-        0,
-        ball.radius
-      )
-      ballGrad.addColorStop(0, '#fca5a5')
-      ballGrad.addColorStop(0.3, '#ef4444')
-      ballGrad.addColorStop(1, '#991b1b')
-      ctx.fillStyle = ballGrad
+      ctx.fillStyle = '#eb3b1c'
       ctx.fill()
 
-      // Ball Rolling Texture / Seam Dot
-      ctx.fillStyle = '#7f1d1d'
-      ctx.beginPath()
-      ctx.arc(ball.radius * 0.5, 0, 2, 0, Math.PI * 2)
-      ctx.arc(-ball.radius * 0.5, 0, 2, 0, Math.PI * 2)
-      ctx.fill()
+      // Crisp Black Border (exactly as in photo)
+      ctx.lineWidth = 1.6
+      ctx.strokeStyle = '#111118'
+      ctx.stroke()
 
-      // Ball Specular Highlight (Nokia 3D shiny rubber look)
+      // Specular highlight dot (Nokia 3D shine)
       ctx.beginPath()
-      ctx.arc(-ball.radius * 0.35, -ball.radius * 0.35, ball.radius * 0.3, 0, Math.PI * 2)
+      ctx.arc(-ball.radius * 0.35, -ball.radius * 0.35, ball.radius * 0.25, 0, Math.PI * 2)
       ctx.fillStyle = 'rgba(255, 255, 255, 0.8)'
       ctx.fill()
 
       ctx.restore()
     }
 
-    ctx.restore() // Restore camera transform
+    ctx.restore() // Restore clipping to game area
 
-    // --- OVERLAY: Touch Screen Hints / Controls Guide ---
-    if (gameModeRef.current === 'playing') {
-      // Subtle touch guidance arrows on screen bottom corners
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.25)'
-      ctx.font = 'bold 12px monospace'
-      ctx.fillText('◄', 8, SCREEN_HEIGHT - 8)
-      ctx.fillText('►', SCREEN_WIDTH - 18, SCREEN_HEIGHT - 8)
+    // -------------------------------------------------------------
+    // HUD AT THE BOTTOM (EXACTLY MATCHING THE NOKIA 3510i PHOTO)
+    // -------------------------------------------------------------
+    // Deep royal blue HUD background
+    ctx.fillStyle = '#004ecc'
+    ctx.fillRect(0, playAreaHeight, SCREEN_WIDTH, HUD_HEIGHT)
 
-      // Active Touch Indicator Glow
-      if (touchStateRef.current.active) {
+    // HUD Row 1:
+    // Left: 5 Red Balls for Lives
+    // Right: 7-digit Score (e.g. 0002360) in white monospace pixel font
+    const hudTopY = playAreaHeight + 14
+
+    for (let i = 0; i < 5; i++) {
+      const bx = 12 + i * 14
+      const by = hudTopY
+
+      if (i < livesRef.current) {
+        // Red ball with black rim & white glare
         ctx.beginPath()
-        ctx.arc(touchStateRef.current.currentX, touchStateRef.current.currentY, 16, 0, Math.PI * 2)
-        ctx.fillStyle = 'rgba(34, 211, 238, 0.35)'
+        ctx.arc(bx, by, 5, 0, Math.PI * 2)
+        ctx.fillStyle = '#ef341e'
+        ctx.fill()
+        ctx.lineWidth = 1
+        ctx.strokeStyle = '#0f172a'
+        ctx.stroke()
+
+        // White highlight
+        ctx.beginPath()
+        ctx.arc(bx - 1.5, by - 1.5, 1.2, 0, Math.PI * 2)
+        ctx.fillStyle = '#ffffff'
+        ctx.fill()
+      } else {
+        // Empty life slot
+        ctx.beginPath()
+        ctx.arc(bx, by, 4, 0, Math.PI * 2)
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.35)'
         ctx.fill()
       }
     }
 
-    // --- OVERLAY: Title Screen / Menu ---
+    // 7-digit White Score (e.g. 0002360)
+    ctx.fillStyle = '#ffffff'
+    ctx.font = 'bold 15px monospace'
+    ctx.textAlign = 'right'
+    ctx.fillText(scoreRef.current.toString().padStart(7, '0'), SCREEN_WIDTH - 12, hudTopY + 5)
+
+    // HUD Row 2:
+    // Below lives: Vertical Golden Diamond Rings (◊ ◊ ◊ as in photo)
+    const hudBottomY = playAreaHeight + 28
+    const remainingRings = ringsRef.current.filter(r => !r.collected).length
+
+    for (let r = 0; r < Math.min(3, remainingRings); r++) {
+      const rx = 12 + r * 11
+      const ry = hudBottomY
+
+      // Vertical golden diamond/ring hoop
+      ctx.beginPath()
+      ctx.ellipse(rx, ry, 3.5, 6, 0, 0, Math.PI * 2)
+      ctx.fillStyle = '#facc15'
+      ctx.fill()
+      ctx.lineWidth = 1
+      ctx.strokeStyle = '#b45309'
+      ctx.stroke()
+
+      // Inner hollow
+      ctx.beginPath()
+      ctx.ellipse(rx, ry, 1.5, 3.5, 0, 0, Math.PI * 2)
+      ctx.fillStyle = '#004ecc'
+      ctx.fill()
+    }
+
+    // Tiny orange square on bottom-left (as seen in photo)
+    ctx.fillStyle = '#f97316'
+    ctx.fillRect(8, SCREEN_HEIGHT - 6, 4, 4)
+
+    // -------------------------------------------------------------
+    // OVERLAYS (Title, Menus, Pause)
+    // -------------------------------------------------------------
     if (gameModeRef.current === 'title') {
-      ctx.fillStyle = 'rgba(5, 17, 25, 0.75)'
+      ctx.fillStyle = 'rgba(0, 30, 80, 0.85)'
       ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)
 
-      // 3D Title Shadow & Glow
-      ctx.font = '900 30px sans-serif'
+      // Title Shadow & Glow
+      ctx.font = '900 24px monospace'
       ctx.textAlign = 'center'
       ctx.fillStyle = '#7f1d1d'
-      ctx.fillText('BOUNCE', SCREEN_WIDTH / 2 + 1.5, 83.5)
+      ctx.fillText('BOUNCE', SCREEN_WIDTH / 2 + 1, 61)
       ctx.fillStyle = '#ef4444'
-      ctx.fillText('BOUNCE', SCREEN_WIDTH / 2, 82)
+      ctx.fillText('BOUNCE', SCREEN_WIDTH / 2, 60)
 
       ctx.fillStyle = '#fde047'
-      ctx.font = 'bold 11px monospace'
-      ctx.fillText('★ NOKIA CLASSIC ★', SCREEN_WIDTH / 2, 102)
+      ctx.font = 'bold 10px monospace'
+      ctx.fillText('NOKIA 3510i', SCREEN_WIDTH / 2, 78)
 
-      // Bouncing Demo Ball with 3D Shader
-      const demoBounce = Math.abs(Math.sin(timeNow() * 0.005)) * 25
-      const demoY = 145 - demoBounce
+      // Bouncing Demo Ball
+      const demoBounce = Math.abs(Math.sin(timeNow() * 0.005)) * 18
+      const demoY = 112 - demoBounce
       ctx.beginPath()
-      ctx.arc(SCREEN_WIDTH / 2, demoY, 14, 0, Math.PI * 2)
-      const ballGrad = ctx.createRadialGradient(
-        SCREEN_WIDTH / 2 - 4,
-        demoY - 4,
-        2,
-        SCREEN_WIDTH / 2,
-        demoY,
-        14
-      )
-      ballGrad.addColorStop(0, '#fca5a5')
-      ballGrad.addColorStop(0.3, '#ef4444')
-      ballGrad.addColorStop(1, '#991b1b')
-      ctx.fillStyle = ballGrad
+      ctx.arc(SCREEN_WIDTH / 2, demoY, 11, 0, Math.PI * 2)
+      ctx.fillStyle = '#eb3b1c'
       ctx.fill()
-
-      // Specular highlight on demo ball
-      ctx.beginPath()
-      ctx.arc(SCREEN_WIDTH / 2 - 4, demoY - 4, 4, 0, Math.PI * 2)
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.8)'
-      ctx.fill()
+      ctx.lineWidth = 1.5
+      ctx.strokeStyle = '#111118'
+      ctx.stroke()
 
       // Interactive Touch Button
       ctx.fillStyle = '#10b981'
-      ctx.fillRect(SCREEN_WIDTH / 2 - 70, 178, 140, 32)
+      ctx.fillRect(SCREEN_WIDTH / 2 - 60, 134, 120, 26)
       ctx.fillStyle = '#022c22'
-      ctx.font = 'bold 12px monospace'
-      ctx.fillText('▶ TAP TO START', SCREEN_WIDTH / 2, 199)
-
-      ctx.fillStyle = '#94a3b8'
-      ctx.font = '9px monospace'
-      ctx.fillText('Or press 5 / Call on keypad', SCREEN_WIDTH / 2, 230)
+      ctx.font = 'bold 11px monospace'
+      ctx.fillText('▶ TAP TO START', SCREEN_WIDTH / 2, 151)
     }
 
-    // --- OVERLAY: Paused Screen ---
     else if (gameModeRef.current === 'paused') {
-      ctx.fillStyle = 'rgba(5, 17, 25, 0.8)'
+      ctx.fillStyle = 'rgba(0, 30, 80, 0.85)'
       ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)
 
       ctx.fillStyle = '#fde047'
-      ctx.font = 'bold 18px monospace'
+      ctx.font = 'bold 16px monospace'
       ctx.textAlign = 'center'
-      ctx.fillText('PAUSED', SCREEN_WIDTH / 2, 110)
+      ctx.fillText('PAUSED', SCREEN_WIDTH / 2, 75)
 
       ctx.fillStyle = '#10b981'
-      ctx.fillRect(SCREEN_WIDTH / 2 - 60, 135, 120, 30)
+      ctx.fillRect(SCREEN_WIDTH / 2 - 50, 95, 100, 26)
       ctx.fillStyle = '#022c22'
       ctx.font = 'bold 11px monospace'
-      ctx.fillText('▶ RESUME', SCREEN_WIDTH / 2, 154)
-
-      ctx.fillStyle = '#94a3b8'
-      ctx.font = '10px monospace'
-      ctx.fillText('Tap screen or Press 5', SCREEN_WIDTH / 2, 185)
+      ctx.fillText('▶ RESUME', SCREEN_WIDTH / 2, 112)
     }
 
-    // --- OVERLAY: Level Cleared ---
     else if (gameModeRef.current === 'level_clear') {
-      ctx.fillStyle = 'rgba(5, 17, 25, 0.85)'
+      ctx.fillStyle = 'rgba(0, 30, 80, 0.85)'
       ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)
 
       ctx.fillStyle = '#4ade80'
-      ctx.font = 'bold 18px monospace'
+      ctx.font = 'bold 16px monospace'
       ctx.textAlign = 'center'
-      ctx.fillText('LEVEL CLEARED!', SCREEN_WIDTH / 2, 90)
+      ctx.fillText('LEVEL CLEARED!', SCREEN_WIDTH / 2, 60)
 
       ctx.fillStyle = '#fde047'
-      ctx.font = 'bold 12px monospace'
-      ctx.fillText(`SCORE: ${scoreRef.current}`, SCREEN_WIDTH / 2, 120)
+      ctx.font = 'bold 11px monospace'
+      ctx.fillText(`SCORE: ${scoreRef.current}`, SCREEN_WIDTH / 2, 85)
 
       ctx.fillStyle = '#10b981'
-      ctx.fillRect(SCREEN_WIDTH / 2 - 65, 150, 130, 32)
+      ctx.fillRect(SCREEN_WIDTH / 2 - 55, 105, 110, 26)
       ctx.fillStyle = '#022c22'
       ctx.font = 'bold 11px monospace'
-      ctx.fillText('▶ NEXT LEVEL', SCREEN_WIDTH / 2, 170)
-
-      ctx.fillStyle = '#cbd5e1'
-      ctx.font = '10px monospace'
-      ctx.fillText('Tap screen or Press 5', SCREEN_WIDTH / 2, 205)
+      ctx.fillText('▶ NEXT LEVEL', SCREEN_WIDTH / 2, 122)
     }
 
-    // --- OVERLAY: Game Over ---
     else if (gameModeRef.current === 'gameover') {
-      ctx.fillStyle = 'rgba(25, 5, 5, 0.85)'
+      ctx.fillStyle = 'rgba(30, 5, 5, 0.88)'
       ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)
 
       ctx.fillStyle = '#f87171'
-      ctx.font = 'bold 20px monospace'
+      ctx.font = 'bold 18px monospace'
       ctx.textAlign = 'center'
-      ctx.fillText('GAME OVER', SCREEN_WIDTH / 2, 95)
+      ctx.fillText('GAME OVER', SCREEN_WIDTH / 2, 65)
 
       ctx.fillStyle = '#ffffff'
-      ctx.font = 'bold 12px monospace'
-      ctx.fillText(`FINAL SCORE: ${scoreRef.current}`, SCREEN_WIDTH / 2, 125)
+      ctx.font = 'bold 11px monospace'
+      ctx.fillText(`SCORE: ${scoreRef.current}`, SCREEN_WIDTH / 2, 90)
 
       ctx.fillStyle = '#ef4444'
-      ctx.fillRect(SCREEN_WIDTH / 2 - 60, 150, 120, 32)
+      ctx.fillRect(SCREEN_WIDTH / 2 - 55, 110, 110, 26)
       ctx.fillStyle = '#ffffff'
-      ctx.font = 'bold 12px monospace'
-      ctx.fillText('🔄 PLAY AGAIN', SCREEN_WIDTH / 2, 170)
+      ctx.font = 'bold 11px monospace'
+      ctx.fillText('🔄 PLAY AGAIN', SCREEN_WIDTH / 2, 127)
     }
 
-    // --- OVERLAY: Won Game ---
     else if (gameModeRef.current === 'won') {
-      ctx.fillStyle = 'rgba(5, 25, 15, 0.85)'
+      ctx.fillStyle = 'rgba(5, 30, 15, 0.88)'
       ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)
 
       ctx.fillStyle = '#facc15'
-      ctx.font = 'bold 20px monospace'
+      ctx.font = 'bold 18px monospace'
       ctx.textAlign = 'center'
-      ctx.fillText('🏆 YOU WIN! 🏆', SCREEN_WIDTH / 2, 85)
+      ctx.fillText('🏆 YOU WIN! 🏆', SCREEN_WIDTH / 2, 65)
 
       ctx.fillStyle = '#ffffff'
-      ctx.font = 'bold 12px monospace'
-      ctx.fillText(`FINAL SCORE: ${scoreRef.current}`, SCREEN_WIDTH / 2, 115)
+      ctx.font = 'bold 11px monospace'
+      ctx.fillText(`FINAL: ${scoreRef.current}`, SCREEN_WIDTH / 2, 90)
 
       ctx.fillStyle = '#4ade80'
-      ctx.fillRect(SCREEN_WIDTH / 2 - 60, 145, 120, 32)
+      ctx.fillRect(SCREEN_WIDTH / 2 - 55, 110, 110, 26)
       ctx.fillStyle = '#052e16'
-      ctx.font = 'bold 12px monospace'
-      ctx.fillText('▶ PLAY AGAIN', SCREEN_WIDTH / 2, 165)
+      ctx.font = 'bold 11px monospace'
+      ctx.fillText('▶ PLAY AGAIN', SCREEN_WIDTH / 2, 127)
     }
 
     // Cheat Notification Banner
     if (cheatBanner) {
       ctx.fillStyle = 'rgba(234, 179, 8, 0.95)'
-      ctx.fillRect(10, 8, SCREEN_WIDTH - 20, 24)
+      ctx.fillRect(10, 6, SCREEN_WIDTH - 20, 20)
       ctx.fillStyle = '#000000'
-      ctx.font = 'bold 10px monospace'
+      ctx.font = 'bold 9px monospace'
       ctx.textAlign = 'center'
-      ctx.fillText(cheatBanner, SCREEN_WIDTH / 2, 24)
+      ctx.fillText(cheatBanner, SCREEN_WIDTH / 2, 20)
     }
   }, [cheatBanner, timeNow])
 
@@ -1011,17 +1052,15 @@ export default function Bounce() {
             }
           }
 
-          // Ball Rotation (rolls proportional to horizontal displacement)
+          // Ball Rotation
           ball.rotation += (ball.vx * dt) / ball.radius
 
           // --- VERTICAL FORCES & WATER PHYSICS ---
           if (ball.inWater) {
             if (ball.sizeType === 'big') {
-              // Big ball floats high on water!
-              ball.vy += -380 * dt // Buoyancy pushes it up
-              ball.vy *= 0.94 // Water dampening
+              ball.vy += -380 * dt
+              ball.vy *= 0.94
             } else {
-              // Normal ball sinks slowly in water
               ball.vy += 140 * dt
               ball.vy *= 0.92
             }
@@ -1043,7 +1082,6 @@ export default function Bounce() {
           const targetX = oldX + ball.vx * dt
           const targetY = oldY + ball.vy * dt
 
-          // Update position tentatively
           ball.x = targetX
           ball.y = targetY
 
@@ -1086,7 +1124,6 @@ export default function Bounce() {
 
               // Solid block (Brick or Stone)
               if (tile === TILE.BRICK || tile === TILE.STONE) {
-                // Find closest point on AABB to circle
                 const closeX = Math.max(tileLeft, Math.min(ball.x, tileRight))
                 const closeY = Math.max(tileTop, Math.min(ball.y, tileBottom))
 
@@ -1138,36 +1175,23 @@ export default function Bounce() {
                   ball.vy = SUPER_BOUNCE_FORCE
                   ball.grounded = false
                   nokiaSound.playSuperBounce()
-
-                  // Trampoline bounce sparkles
-                  for (let p = 0; p < 8; p++) {
-                    particlesRef.current.push({
-                      x: ball.x,
-                      y: tileTop,
-                      vx: (Math.random() - 0.5) * 120,
-                      vy: -50 - Math.random() * 80,
-                      life: 0.4,
-                      maxLife: 0.4,
-                      color: '#fef08a',
-                      size: 2.5,
-                    })
-                  }
                 }
               }
 
-              // Spikes
+              // Spikes & Spiked Star Mine
               else if (
                 tile === TILE.SPIKE_UP ||
                 tile === TILE.SPIKE_DOWN ||
                 tile === TILE.SPIKE_LEFT ||
-                tile === TILE.SPIKE_RIGHT
+                tile === TILE.SPIKE_RIGHT ||
+                tile === TILE.MINE
               ) {
-                // Spike bounding box with slight margin
+                const spikeMargin = tile === TILE.MINE ? 1 : 2
                 if (
-                  ball.x + ball.radius * 0.7 > tileLeft + 2 &&
-                  ball.x - ball.radius * 0.7 < tileRight - 2 &&
-                  ball.y + ball.radius * 0.7 > tileTop + 2 &&
-                  ball.y - ball.radius * 0.7 < tileBottom - 2
+                  ball.x + ball.radius * 0.7 > tileLeft + spikeMargin &&
+                  ball.x - ball.radius * 0.7 < tileRight - spikeMargin &&
+                  ball.y + ball.radius * 0.7 > tileTop + spikeMargin &&
+                  ball.y - ball.radius * 0.7 < tileBottom - spikeMargin
                 ) {
                   popBall()
                 }
@@ -1185,7 +1209,7 @@ export default function Bounce() {
                 }
               }
 
-              // Expander Pump (Big Ball Power-up)
+              // Expander Pump
               else if (tile === TILE.PUMP_EXPAND) {
                 if (
                   ball.x + ball.radius > tileLeft &&
@@ -1195,13 +1219,13 @@ export default function Bounce() {
                 ) {
                   if (ball.sizeType !== 'big') {
                     ball.sizeType = 'big'
-                    ball.radius = 18
+                    ball.radius = 16
                     nokiaSound.playPump(true)
                   }
                 }
               }
 
-              // Deflater Pump (Normal Ball)
+              // Deflater Pump
               else if (tile === TILE.PUMP_DEFLATE) {
                 if (
                   ball.x + ball.radius > tileLeft &&
@@ -1211,7 +1235,7 @@ export default function Bounce() {
                 ) {
                   if (ball.sizeType !== 'normal') {
                     ball.sizeType = 'normal'
-                    ball.radius = 11
+                    ball.radius = 10
                     nokiaSound.playPump(false)
                   }
                 }
@@ -1235,7 +1259,6 @@ export default function Bounce() {
 
               // Exit Gate
               else if (tile === TILE.EXIT) {
-                // Only accessible once all rings collected!
                 const uncollected = ringsRef.current.filter(r => !r.collected).length
                 if (
                   uncollected === 0 &&
@@ -1244,7 +1267,6 @@ export default function Bounce() {
                   ball.y + ball.radius > tileTop &&
                   ball.y - ball.radius < tileBottom
                 ) {
-                  // Level Completed!
                   scoreRef.current += 1000 + livesRef.current * 250
                   setScore(scoreRef.current)
                   setGameMode('level_clear')
@@ -1267,14 +1289,12 @@ export default function Bounce() {
               nokiaSound.playRing()
 
               const remaining = ringsRef.current.filter(r => !r.collected).length
-              setRingsLeft(remaining)
 
               if (remaining === 0) {
                 nokiaSound.playExitOpen()
               }
 
-              // Golden ring sparkle particles
-              for (let p = 0; p < 10; p++) {
+              for (let p = 0; p < 8; p++) {
                 const angle = Math.random() * Math.PI * 2
                 const spd = 30 + Math.random() * 80
                 particlesRef.current.push({
@@ -1282,10 +1302,10 @@ export default function Bounce() {
                   y: ring.y,
                   vx: Math.cos(angle) * spd,
                   vy: Math.sin(angle) * spd,
-                  life: 0.6,
-                  maxLife: 0.6,
+                  life: 0.5,
+                  maxLife: 0.5,
                   color: '#facc15',
-                  size: 2.5,
+                  size: 2,
                 })
               }
             }
@@ -1294,25 +1314,26 @@ export default function Bounce() {
 
         // --- CAMERA FOLLOW ---
         const targetCamX = ball.x - SCREEN_WIDTH / 2
-        const targetCamY = ball.y - SCREEN_HEIGHT / 2
         const maxCamX = Math.max(0, level.width * TILE_SIZE - SCREEN_WIDTH)
-        const maxCamY = Math.max(0, level.height * TILE_SIZE - SCREEN_HEIGHT)
-
-        // Smooth camera dampening
         cameraRef.current.x += (Math.max(0, Math.min(targetCamX, maxCamX)) - cameraRef.current.x) * 0.15
+
+        // Smooth vertical camera transition between corridors if needed
+        const playAreaHeight = SCREEN_HEIGHT - HUD_HEIGHT
+        const targetCamY = ball.y > 70 ? 0 : Math.max(0, ball.y - playAreaHeight / 2)
+        const maxCamY = Math.max(0, level.height * TILE_SIZE - playAreaHeight)
         cameraRef.current.y += (Math.max(0, Math.min(targetCamY, maxCamY)) - cameraRef.current.y) * 0.15
 
         // Update particle lifetimes
         particlesRef.current.forEach(p => {
           p.x += p.vx * dt
           p.y += p.vy * dt
-          p.vy += 280 * dt // particle gravity
+          p.vy += 260 * dt
           p.life -= dt
         })
         particlesRef.current = particlesRef.current.filter(p => p.life > 0)
       }
 
-      // --- RENDER FRAME ON CANVAS ---
+      // Render Frame
       renderCanvas()
 
       animFrameRef.current = requestAnimationFrame(loop)
@@ -1327,36 +1348,26 @@ export default function Bounce() {
       <div className="flex flex-col items-center justify-center w-full py-1">
         
         {/* Top Header stats info */}
-        <div className="flex justify-between items-center w-full max-w-[360px] mb-2 px-3 py-1.5 rounded-xl bg-black/40 border border-white/10 text-xs font-mono font-bold">
+        <div className="flex justify-between items-center w-full max-w-[350px] mb-2 px-3 py-1.5 rounded-xl bg-black/40 border border-white/10 text-xs font-mono font-bold">
           <span className="text-red-400 flex items-center gap-1">
-            🔴 BOUNCE
+            🔴 NOKIA 3510i · BOUNCE
           </span>
           <span className="text-amber-300">
             👑 BEST: <span className="text-white ml-1">{bestScore || 0}</span>
           </span>
         </div>
 
-        {/* NOKIA MOBILE DEVICE WITH WORKING TOUCH SCREEN & KEYPAD */}
+        {/* EXACT NOKIA 3510i MOBILE PHONE CHASSIS */}
         <NokiaPhone
-          leftSoftLabel={
-            gameMode === 'playing' ? 'Pause' : gameMode === 'paused' ? 'Resume' : 'Start'
-          }
-          rightSoftLabel={gameMode === 'playing' ? 'Reset' : 'Menu'}
           onLeftSoft={handleLeftSoft}
           onRightSoft={handleRightSoft}
           onDirectionPress={handleDirectionPress}
           onActionPress={handleActionPress}
           onKeypadPress={handleKeyCheat}
-          onCallPress={startNewGame}
           onEndPress={() => setGameMode('paused')}
           cheatActive={isGodMode}
-          lives={lives}
-          ringsLeft={ringsLeft}
-          ringsTotal={ringsTotal}
-          score={score}
-          levelName={LEVELS[currentLevelIdx]?.name.split(':')[0] || 'Level 1'}
         >
-          {/* LCD Touchscreen Canvas */}
+          {/* LCD Touchscreen Canvas (Aspect 4:3) */}
           <canvas
             ref={canvasRef}
             width={SCREEN_WIDTH}
@@ -1366,7 +1377,7 @@ export default function Bounce() {
             onPointerUp={handleLcdPointerUp}
             onPointerCancel={handleLcdPointerUp}
             className="w-full h-full block cursor-pointer touch-none"
-            title="Nokia Touch Screen (Tap/Drag to play)"
+            title="Nokia 3510i Touch Screen (Tap/Drag to play)"
           />
         </NokiaPhone>
 
@@ -1376,7 +1387,7 @@ export default function Bounce() {
             <strong className="text-white">Touch Screen:</strong> Tap Left/Right to roll, Tap Top to jump.
           </p>
           <p>
-            <strong className="text-white">Keypad:</strong> 4=Left, 6=Right, 2 or 5=Jump, *=Sound.
+            <strong className="text-white">Keypad:</strong> 4=Left, 6=Right, 2 or 5=Jump, Navi-Bar=Action.
           </p>
           <p className="text-amber-300/80 font-mono text-[10px]">
             Cheat: Enter 787898 on keypad for God Mode!

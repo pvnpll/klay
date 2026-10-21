@@ -50,14 +50,14 @@ try:
         print("Captured bounce-playing-screenshot.png")
 
         # Test keypad interaction: press key 6 (Move Right)
-        print("Testing Nokia keypad: pressing '6 ►'...")
-        key_6 = page.locator("button:has-text('6 ►')")
+        print("Testing Nokia keypad: pressing '6'...")
+        key_6 = page.locator("button:has-text('6')").first
         key_6.click()
         page.wait_for_timeout(200)
 
-        # Test jump: press key 2 (▲ JUMP)
-        print("Testing Nokia keypad: pressing '2 ▲'...")
-        key_2 = page.locator("button:has-text('2 ▲')")
+        # Test jump: press key 2
+        print("Testing Nokia keypad: pressing '2'...")
+        key_2 = page.locator("button:has-text('2')").first
         key_2.click()
         page.wait_for_timeout(300)
 

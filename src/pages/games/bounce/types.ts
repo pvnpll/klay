@@ -14,6 +14,7 @@ export const TILE = {
   PUMP_DEFLATE: 10,
   CHECKPOINT: 11,
   EXIT: 12,
+  MINE: 13,
 } as const
 
 export type TileType = typeof TILE[keyof typeof TILE]
