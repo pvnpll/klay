@@ -28,6 +28,9 @@ const Stack = lazy(() => import('./pages/games/Stack.tsx'))
 const Bounce = lazy(() => import('./pages/games/Bounce.tsx'))
 const SpaceImpact = lazy(() => import('./pages/games/SpaceImpact.tsx'))
 const PrinceOfPersia = lazy(() => import('./pages/games/PrinceOfPersia.tsx'))
+const RapidRoll = lazy(() => import('./pages/games/RapidRoll.tsx'))
+const Asphalt = lazy(() => import('./pages/games/Asphalt.tsx'))
+const DiamondRush = lazy(() => import('./pages/games/DiamondRush.tsx'))
 import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
@@ -66,6 +69,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           <Route path="bounce" element={<Bounce />} />
           <Route path="space-impact" element={<SpaceImpact />} />
           <Route path="prince-of-persia" element={<PrinceOfPersia />} />
+          <Route path="rapid-roll" element={<RapidRoll />} />
+          <Route path="asphalt" element={<Asphalt />} />
+          <Route path="diamond-rush" element={<DiamondRush />} />
         </Route>
       </Routes>
       </Suspense>

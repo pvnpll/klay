@@ -1,4 +1,4 @@
-import { Zap, Hash, Brain, Grid3X3, Keyboard, PlaySquare, Type, CircleDot, Rocket, Swords } from 'lucide-react'
+import { Zap, Hash, Brain, Grid3X3, Keyboard, PlaySquare, Type, CircleDot, Rocket, Swords, Disc, Car, Gem } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
 export type ScoreType = 'time' | 'score' | 'accuracy' | 'lower-is-better' | 'win-loss'
@@ -439,6 +439,67 @@ export const GAMES: GameMetadata[] = [
     Icon: Swords,
     colorClass: "text-amber-400 bg-amber-400/10",
     gradientClass: "from-amber-500/20 to-orange-500/20"
+  },
+  {
+    id: "rapid-roll",
+    name: "Rapid Roll",
+    description: "The iconic Nokia falling ball survival game! Descend through moving conveyor belts, avoid deadly spikes, and collect hearts to stay alive.",
+    rules: [
+      "Use Arrow Keys (or Nokia keypad 4: Left, 6: Right, 5: Drop/Brake) or touch left/right on screen.",
+      "Stay on green and special platforms as they rise upwards.",
+      "Avoid spike platforms and don't get pushed into the ceiling spikes!",
+      "Collect floating Red Hearts to restore lives and Gold Stars for bonus points.",
+      "Pro tip: Entering 787898 on the Nokia keypad activates God Mode!"
+    ],
+    category: "Classic",
+    difficulty: "Medium",
+    estimatedDuration: "2 minutes",
+    scoreType: "score",
+    path: "/rapid-roll",
+    Icon: Disc,
+    colorClass: "text-emerald-400 bg-emerald-400/10",
+    gradientClass: "from-emerald-500/20 to-teal-500/20"
+  },
+  {
+    id: "asphalt",
+    name: "Asphalt: Urban GT",
+    description: "Gameloft's legendary 2D retro street racer! Weave through highway traffic, ignite nitro boosts, and outrun the police cruisers.",
+    rules: [
+      "Use Arrow Keys (or Nokia keypad 4: Left, 6: Right, 2: Accel, 8: Brake) or touch screen sides to steer.",
+      "Press 5 / Navi-Key / Space to trigger high-speed Nitro Boost!",
+      "Overtake traffic cars and collect Nitro bottles & Cash bags.",
+      "Avoid crashing into civilian cars and outrun the pursuing police cruiser.",
+      "Pro tip: Entering 787898 on the Nokia keypad activates God Mode & Infinite Nitro!"
+    ],
+    category: "Classic",
+    difficulty: "Medium",
+    estimatedDuration: "3 minutes",
+    scoreType: "score",
+    path: "/asphalt",
+    Icon: Car,
+    colorClass: "text-red-400 bg-red-400/10",
+    gradientClass: "from-red-500/20 to-orange-500/20"
+  },
+  {
+    id: "diamond-rush",
+    name: "Diamond Rush",
+    description: "Gameloft's legendary ancient temple adventure! Dig through soft soil, push rolling boulders, squash snakes, and gather glowing diamonds.",
+    rules: [
+      "Use Arrow Keys (or Nokia keypad 2, 4, 6, 8) or touch directional pads to explore.",
+      "Dig through soft dirt to reach sparkling rubies and blue diamonds.",
+      "Push heavy boulders into empty spaces or drop them to squash temple cobras!",
+      "Watch out: boulders fall with gravity and roll off curved rocks.",
+      "Collect all required diamonds to unlock the ancient exit gate and escape!",
+      "Pro tip: Entering 787898 on the Nokia keypad unlocks gates and activates God Mode!"
+    ],
+    category: "Classic",
+    difficulty: "Hard",
+    estimatedDuration: "4 minutes",
+    scoreType: "score",
+    path: "/diamond-rush",
+    Icon: Gem,
+    colorClass: "text-cyan-400 bg-cyan-400/10",
+    gradientClass: "from-cyan-500/20 to-blue-500/20"
   },
   {
     id: "word-guess",
