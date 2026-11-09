@@ -39,7 +39,7 @@ function App() {
 
       <footer className="border-t border-white/10 bg-black/40 p-6 text-center text-gray-400 text-sm relative z-10">
         <p className="font-bold">🕹️ Klay Playground — pick a game, beat your best, have fun!</p>
-        <p className="text-gray-500 mt-1">&copy; {new Date().getFullYear()} Klay. Made for instant play.</p>
+        <p className="text-gray-500 mt-1">&copy; {new Date().getFullYear()} Klay. Made for instant play. · Developed by <a href="https://pvnpll.in" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white underline underline-offset-4">pvnpll</a></p>
       </footer>
     </div>
   )
