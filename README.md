@@ -36,6 +36,16 @@ This project is configured to be deployed on Vercel. Connect the GitHub reposito
 - Tic-Tac-Toe
 - Typing
 
+## Bounce
+
+Open `/bounce` or choose **Bounce** from the game catalog.
+This classic arcade title is an authentic browser-native homage inspired by early 2000s Nokia mobile gaming (featuring ring collection, locked exit gates, spikes, water buoyancy, checkpoints, and classic keypad cheats like `787898` and `#` for god mode).
+
+**Product-scope note:**
+This implementation focuses on faithful arcade gameplay mechanics, physics, and keypad navigation. It does not claim pixel-perfect or reverse-engineered visual fidelity to any specific proprietary "Legendary" edition or commercial remaster without an approved reference asset pack.
+
+Progression, lives, checkpoints, fail states, audio toggles, responsive viewports, and cheat codes are continuously verified by automated regression tests in `tests/bounce-test.py`.
+
 ## Play experience
 
 Every game opens in a screen-filling play view. Boards automatically fit phones,

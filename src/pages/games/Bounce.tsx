@@ -275,6 +275,55 @@ export default function Bounce() {
     }
   }, [loadLevel])
 
+  // Expose test hook for deterministic test fixtures without altering gameplay
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      ;(window as unknown as { __BOUNCE_TEST__?: unknown }).__BOUNCE_TEST__ = {
+        getState: () => ({
+          gameMode: gameModeRef.current,
+          levelIdx: levelIdxRef.current,
+          score: scoreRef.current,
+          lives: livesRef.current,
+          isGodMode: isGodModeRef.current,
+          ball: { ...ballRef.current },
+          checkpoint: checkpointRef.current,
+          uncollectedRings: ringsRef.current.filter(r => !r.collected).length,
+          totalRings: ringsRef.current.length,
+          exitPosition: {
+            x: currentLevelRef.current.exitX,
+            y: currentLevelRef.current.exitY,
+          },
+        }),
+        loadLevel: (idx: number, keepScore = true) => loadLevel(idx, keepScore),
+        collectAllRings: () => {
+          ringsRef.current.forEach(r => (r.collected = true))
+          scoreRef.current += ringsRef.current.length * 500
+          setScore(scoreRef.current)
+        },
+        teleportBall: (x: number, y: number) => {
+          ballRef.current.x = x
+          ballRef.current.y = y
+          ballRef.current.vx = 0
+          ballRef.current.vy = 0
+        },
+        popBall: () => popBall(),
+        respawnBall: () => respawnBall(),
+        setLives: (n: number) => {
+          livesRef.current = n
+        },
+        advanceToNextLevel: () => advanceToNextLevel(),
+        startNewGame: () => startNewGame(),
+        pause: () => setGameMode('paused'),
+        resume: () => setGameMode('playing'),
+      }
+    }
+    return () => {
+      if (typeof window !== 'undefined') {
+        delete (window as unknown as { __BOUNCE_TEST__?: unknown }).__BOUNCE_TEST__
+      }
+    }
+  }, [loadLevel, popBall, respawnBall, advanceToNextLevel, startNewGame])
+
   // -------------------------------------------------------------
   // Keyboard Events Handler
   // -------------------------------------------------------------
