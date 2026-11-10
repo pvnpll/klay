@@ -93,6 +93,10 @@ export default function Bounce() {
     down: false,
   })
 
+  // Jump buffer and coyote time refs for responsive mobile & keypad controls
+  const jumpBufferRef = useRef<number>(0)
+  const coyoteTimerRef = useRef<number>(0)
+
   // Touch screen interaction state
   const touchStateRef = useRef<{
     active: boolean
@@ -168,6 +172,12 @@ export default function Bounce() {
 
   // Start game from beginning
   const startNewGame = useCallback(() => {
+    inputRef.current.jump = false
+    inputRef.current.left = false
+    inputRef.current.right = false
+    inputRef.current.down = false
+    jumpBufferRef.current = 0
+    coyoteTimerRef.current = 0
     loadLevel(0, false)
     setGameMode('playing')
     nokiaSound.playKeyClick()
@@ -341,12 +351,14 @@ export default function Bounce() {
         case 'A':
         case '4':
           inputRef.current.left = true
+          if (ballRef.current.vx > -90) ballRef.current.vx = -90
           break
         case 'ArrowRight':
         case 'd':
         case 'D':
         case '6':
           inputRef.current.right = true
+          if (ballRef.current.vx < 90) ballRef.current.vx = 90
           break
         case 'ArrowUp':
         case 'w':
@@ -355,6 +367,7 @@ export default function Bounce() {
         case '2':
         case '5':
           inputRef.current.jump = true
+          jumpBufferRef.current = 0.16
           if (gameModeRef.current === 'title') {
             startNewGame()
           } else if (gameModeRef.current === 'level_clear') {
@@ -422,6 +435,10 @@ export default function Bounce() {
   // -------------------------------------------------------------
   const handleLcdPointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
     e.preventDefault()
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId)
+    } catch {}
+
     const rect = e.currentTarget.getBoundingClientRect()
     const touchX = e.clientX - rect.left
     const touchY = e.clientY - rect.top
@@ -458,16 +475,20 @@ export default function Bounce() {
 
     if (normY < 0.45) {
       inputRef.current.jump = true
+      jumpBufferRef.current = 0.16
       touchStateRef.current.isTapJump = true
     } else {
-      if (normX < 0.45) {
+      if (normX < 0.42) {
         inputRef.current.left = true
         inputRef.current.right = false
-      } else if (normX > 0.55) {
+        if (ballRef.current.vx > -90) ballRef.current.vx = -90
+      } else if (normX > 0.58) {
         inputRef.current.right = true
         inputRef.current.left = false
+        if (ballRef.current.vx < 90) ballRef.current.vx = 90
       } else {
         inputRef.current.jump = true
+        jumpBufferRef.current = 0.16
       }
     }
   }
@@ -481,18 +502,35 @@ export default function Bounce() {
     touchStateRef.current.currentY = touchY
 
     const dx = touchX - touchStateRef.current.startX
+    const dy = touchY - touchStateRef.current.startY
+
+    // Upward swipe -> Jump
+    if (dy < -18) {
+      inputRef.current.jump = true
+      jumpBufferRef.current = 0.16
+    }
+
     if (Math.abs(dx) > 10) {
       if (dx < 0) {
         inputRef.current.left = true
         inputRef.current.right = false
+        if (ballRef.current.vx > -90) ballRef.current.vx = -90
       } else {
         inputRef.current.right = true
         inputRef.current.left = false
+        if (ballRef.current.vx < 90) ballRef.current.vx = 90
       }
     }
   }
 
-  const handleLcdPointerUp = () => {
+  const handleLcdPointerUp = (e?: React.PointerEvent<HTMLCanvasElement>) => {
+    if (e) {
+      try {
+        if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+          e.currentTarget.releasePointerCapture(e.pointerId)
+        }
+      } catch {}
+    }
     touchStateRef.current.active = false
     inputRef.current.left = false
     inputRef.current.right = false
@@ -503,24 +541,63 @@ export default function Bounce() {
   // Nokia Keypad Callbacks
   // -------------------------------------------------------------
   const handleDirectionPress = (dir: 'left' | 'right' | 'up' | 'down', pressed: boolean) => {
-    if (dir === 'left') inputRef.current.left = pressed
-    if (dir === 'right') inputRef.current.right = pressed
+    if (dir === 'left') {
+      inputRef.current.left = pressed
+      if (pressed && ballRef.current.vx > -90) {
+        ballRef.current.vx = -90
+      }
+    }
+    if (dir === 'right') {
+      inputRef.current.right = pressed
+      if (pressed && ballRef.current.vx < 90) {
+        ballRef.current.vx = 90
+      }
+    }
     if (dir === 'up') {
-      inputRef.current.jump = pressed
-      if (pressed && gameModeRef.current === 'title') startNewGame()
-      if (pressed && gameModeRef.current === 'level_clear') advanceToNextLevel()
-      if (pressed && gameModeRef.current === 'gameover') startNewGame()
+      if (pressed) {
+        if (gameModeRef.current === 'title') {
+          startNewGame()
+          return
+        }
+        if (gameModeRef.current === 'level_clear') {
+          advanceToNextLevel()
+          return
+        }
+        if (gameModeRef.current === 'gameover') {
+          startNewGame()
+          return
+        }
+        inputRef.current.jump = true
+        jumpBufferRef.current = 0.16
+      } else {
+        inputRef.current.jump = false
+      }
     }
     if (dir === 'down') inputRef.current.down = pressed
   }
 
   const handleActionPress = (pressed: boolean) => {
-    inputRef.current.jump = pressed
     if (pressed) {
-      if (gameModeRef.current === 'title') startNewGame()
-      else if (gameModeRef.current === 'level_clear') advanceToNextLevel()
-      else if (gameModeRef.current === 'gameover') startNewGame()
-      else if (gameModeRef.current === 'paused') setGameMode('playing')
+      if (gameModeRef.current === 'title') {
+        startNewGame()
+        return
+      }
+      if (gameModeRef.current === 'level_clear') {
+        advanceToNextLevel()
+        return
+      }
+      if (gameModeRef.current === 'gameover') {
+        startNewGame()
+        return
+      }
+      if (gameModeRef.current === 'paused') {
+        setGameMode('playing')
+        return
+      }
+      inputRef.current.jump = true
+      jumpBufferRef.current = 0.16
+    } else {
+      inputRef.current.jump = false
     }
   }
 
@@ -1074,11 +1151,27 @@ export default function Bounce() {
             ball.vy += GRAVITY * dt
           }
 
-          // Jump Input
-          if (inputRef.current.jump && (ball.grounded || ball.inWater)) {
+          // Coyote time tracking
+          if (ball.grounded || ball.inWater) {
+            coyoteTimerRef.current = 0.12
+          } else {
+            coyoteTimerRef.current = Math.max(0, coyoteTimerRef.current - dt)
+          }
+
+          // Jump buffer tracking
+          if (inputRef.current.jump) {
+            jumpBufferRef.current = 0.16
+          } else {
+            jumpBufferRef.current = Math.max(0, jumpBufferRef.current - dt)
+          }
+
+          // Jump Input (Buffered Jump + Coyote Time for silky smooth responsive taps)
+          if ((inputRef.current.jump || jumpBufferRef.current > 0) && (coyoteTimerRef.current > 0 || ball.inWater)) {
             const jForce = ball.sizeType === 'big' ? BIG_JUMP_FORCE : JUMP_FORCE
             ball.vy = jForce
             ball.grounded = false
+            coyoteTimerRef.current = 0
+            jumpBufferRef.current = 0
             nokiaSound.playBounce(1.2)
           }
 
@@ -1418,6 +1511,7 @@ export default function Bounce() {
           onActionPress={handleActionPress}
           onKeypadPress={handleKeyCheat}
           onEndPress={() => setGameMode('paused')}
+          onKeySound={() => nokiaSound.playKeyClick()}
           cheatActive={isGodMode}
         >
           {/* LCD Touchscreen Canvas (Exact 258x248 Cutout) */}
