@@ -1,6 +1,7 @@
 import { gameNow, gameRaf as requestAnimationFrame, cancelGameRaf as cancelAnimationFrame, isGamePaused } from '../../utils/gameClock'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { GameLayout } from '../../components/GameLayout'
+import { BasicController } from '../../components/BasicController'
 import { GameResult } from '../../components/GameResult'
 import { GAMES } from '../../data/games'
 import { saveScore, getStats } from '../../utils/storage'
@@ -182,58 +183,45 @@ export default function Snake() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [gameState])
 
-  // Touch controls
-  const [touchStart, setTouchStart] = useState<{ x: number, y: number } | null>(null)
-  
-  const handleTouchStart = (e: React.TouchEvent) => {
-    if (gameState !== 'playing') return
-    setTouchStart({
-      x: e.touches[0].clientX,
-      y: e.touches[0].clientY
-    })
-  }
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (!touchStart || gameState !== 'playing') return
-    
-    const touchEnd = {
-      x: e.changedTouches[0].clientX,
-      y: e.changedTouches[0].clientY
-    }
-    
-    const dx = touchEnd.x - touchStart.x
-    const dy = touchEnd.y - touchStart.y
-    const absDx = Math.abs(dx)
-    const absDy = Math.abs(dy)
-
-    if (Math.max(absDx, absDy) > 30) {
-      if (turnedRef.current) return
-      const currentDir = directionRef.current
-      turnedRef.current = true
-      if (absDx > absDy) {
-        if (dx > 0 && currentDir.x !== -1) directionRef.current = { x: 1, y: 0 }
-        else if (dx < 0 && currentDir.x !== 1) directionRef.current = { x: -1, y: 0 }
-      } else {
-        if (dy > 0 && currentDir.y !== -1) directionRef.current = { x: 0, y: 1 }
-        else if (dy < 0 && currentDir.y !== 1) directionRef.current = { x: 0, y: -1 }
+  const handleDirectionPress = (dir: 'up' | 'down' | 'left' | 'right', pressed: boolean) => {
+    if (!pressed) return
+    if (gameStateRef.current !== 'playing') {
+      if (gameStateRef.current === 'idle' || gameStateRef.current === 'gameover') {
+        resetGame()
       }
+      return
     }
-    setTouchStart(null)
+    if (turnedRef.current) return
+    const currentDir = directionRef.current
+    turnedRef.current = true
+    switch (dir) {
+      case 'up':
+        if (currentDir.y !== 1) directionRef.current = { x: 0, y: -1 }
+        break
+      case 'down':
+        if (currentDir.y !== -1) directionRef.current = { x: 0, y: 1 }
+        break
+      case 'left':
+        if (currentDir.x !== 1) directionRef.current = { x: -1, y: 0 }
+        break
+      case 'right':
+        if (currentDir.x !== -1) directionRef.current = { x: 1, y: 0 }
+        break
+    }
   }
 
   return (
     <GameLayout title={gameMeta.name}>
       <div className="flex flex-col items-center relative">
-        <div className="flex justify-between w-full max-w-md mb-4 px-5 text-sm font-black bg-gradient-to-r from-lime-500/20 to-emerald-500/10 py-3 rounded-2xl border border-lime-400/20 shadow-inner">
+        <div className="flex justify-between w-full max-w-md mb-3 px-5 text-sm font-black bg-gradient-to-r from-lime-500/20 to-emerald-500/10 py-2.5 rounded-2xl border border-lime-400/20 shadow-inner">
           <span className="text-lime-200">🍏 SCORE <span className="text-white text-xl ml-1 tabular-nums">{score}</span></span>
           <span className="text-gray-300">👑 BEST <span className="text-white text-xl ml-1 tabular-nums">{bestScore || 0}</span></span>
         </div>
 
+        {/* Snake Grid Board (Pure Display - No Touch Screen Gestures Required) */}
         <div 
-          className="relative bg-[#0a1f14] border-2 border-lime-400/30 rounded-3xl overflow-hidden touch-none shadow-[0_0_40px_rgba(74,222,128,0.25)]"
-          style={{ width: '100%', maxWidth: 400, aspectRatio: '1' }}
-          onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEnd}
+          className="relative bg-[#0a1f14] border-2 border-lime-400/30 rounded-3xl overflow-hidden pointer-events-none select-none shadow-[0_0_40px_rgba(74,222,128,0.25)]"
+          style={{ width: '100%', maxWidth: 360, aspectRatio: '1' }}
         >
           <div className="absolute inset-0 opacity-20 pointer-events-none" style={{ backgroundImage: 'linear-gradient(rgba(74,222,128,0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(74,222,128,0.4) 1px, transparent 1px)', backgroundSize: '5% 5%' }} />
           {gameState === 'idle' && (
@@ -279,9 +267,27 @@ export default function Snake() {
           </div>
         </div>
 
-        <div className="mt-4 text-center text-gray-400 text-sm max-w-sm font-medium">
-          <p className="hidden sm:block mb-2">⌨️ Use <strong className="text-white">Arrow Keys</strong> or <strong className="text-white">WASD</strong> to move.</p>
-          <p className="sm:hidden mb-2">👆 Swipe anywhere to move.</p>
+        {/* Unified Retro Basic Controller */}
+        <div className="w-full max-w-md mt-3 sm:mt-4">
+          <BasicController
+            onDirectionPress={handleDirectionPress}
+            onActionPress={(pressed) => {
+              if (pressed && gameState !== 'playing') {
+                resetGame()
+              }
+            }}
+            actionLabel="A"
+            actionSublabel={gameState === 'playing' ? 'RUN' : 'PLAY'}
+            actionColor="emerald"
+            onSelect={resetGame}
+            selectLabel="RETRY"
+            onStartPause={() => {
+              if (gameState === 'playing') setGameState('idle')
+              else resetGame()
+            }}
+            startPauseLabel={gameState === 'playing' ? 'PAUSE' : 'START'}
+            isPaused={gameState === 'idle'}
+          />
         </div>
 
         {gameState === 'gameover' && (

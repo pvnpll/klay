@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { GameLayout } from '../../components/GameLayout'
 import { GameResult } from '../../components/GameResult'
-import { NokiaPhone } from '../../components/NokiaPhone'
+import { BasicController } from '../../components/BasicController'
 import { GAMES } from '../../data/games'
 import { saveScore, getStats } from '../../utils/storage'
 import { spaceSound } from './space-impact/sound'
@@ -152,19 +152,6 @@ export default function SpaceImpact() {
     left: false,
     right: false,
     fire: false,
-  })
-
-  // Touch state
-  const touchStateRef = useRef<{
-    active: boolean
-    targetX: number
-    targetY: number
-    firing: boolean
-  }>({
-    active: false,
-    targetX: 24,
-    targetY: 110,
-    firing: false,
   })
 
   const lastShootTimeRef = useRef<number>(0)
@@ -567,64 +554,6 @@ export default function SpaceImpact() {
     [gameState, startNewGame, fireBlaster],
   )
 
-  // Direct touchscreen canvas handlers
-  const handleLcdPointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
-    e.preventDefault()
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const rect = canvas.getBoundingClientRect()
-    const x = ((e.clientX - rect.left) / rect.width) * SCREEN_WIDTH
-    const y = ((e.clientY - rect.top) / rect.height) * SCREEN_HEIGHT
-
-    if (gameState === 'title') {
-      startNewGame()
-      return
-    }
-
-    if (gameState === 'levelclear') {
-      const nextIdx = levelIndex + 1
-      if (nextIdx < LEVELS.length) {
-        startLevel(nextIdx, false)
-        setGameState('playing')
-      } else {
-        setGameState('victory')
-      }
-      return
-    }
-
-    touchStateRef.current.active = true
-    touchStateRef.current.targetX = Math.max(10, Math.min(x - 14, SCREEN_WIDTH - 40))
-    touchStateRef.current.targetY = Math.max(HUD_HEIGHT + 4, Math.min(y - 9, SCREEN_HEIGHT - 22))
-
-    // Tap on right half fires blasters
-    if (x > SCREEN_WIDTH * 0.65) {
-      touchStateRef.current.firing = true
-      fireBlaster()
-    }
-
-    // Tap on top-left special icon switches/fires special
-    if (y < HUD_HEIGHT + 14 && x < 120) {
-      fireSpecialWeapon()
-    }
-  }
-
-  const handleLcdPointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
-    if (!touchStateRef.current.active) return
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const rect = canvas.getBoundingClientRect()
-    const x = ((e.clientX - rect.left) / rect.width) * SCREEN_WIDTH
-    const y = ((e.clientY - rect.top) / rect.height) * SCREEN_HEIGHT
-
-    touchStateRef.current.targetX = Math.max(10, Math.min(x - 14, SCREEN_WIDTH - 40))
-    touchStateRef.current.targetY = Math.max(HUD_HEIGHT + 4, Math.min(y - 9, SCREEN_HEIGHT - 22))
-  }
-
-  const handleLcdPointerUp = () => {
-    touchStateRef.current.active = false
-    touchStateRef.current.firing = false
-  }
-
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -980,9 +909,8 @@ export default function SpaceImpact() {
       if (gameState === 'playing') {
         const p = playerRef.current
         const keys = keysDownRef.current
-        const touch = touchStateRef.current
 
-        // 1. Player Movement (analog touch or keypad keys)
+        // 1. Player Movement (D-Pad or Keyboard)
         let dx = 0
         let dy = 0
 
@@ -997,16 +925,8 @@ export default function SpaceImpact() {
         }
 
         const moveSpeed = 145
-        if (touch.active) {
-          // Direct smooth touch dragging
-          const diffX = touch.targetX - p.x
-          const diffY = touch.targetY - p.y
-          p.x += diffX * 0.22
-          p.y += diffY * 0.22
-        } else {
-          p.x += dx * moveSpeed * dt
-          p.y += dy * moveSpeed * dt
-        }
+        p.x += dx * moveSpeed * dt
+        p.y += dy * moveSpeed * dt
 
         // Clamp inside playfield
         p.x = Math.max(8, Math.min(p.x, SCREEN_WIDTH - p.width - 8))
@@ -1018,7 +938,7 @@ export default function SpaceImpact() {
         }
 
         // Auto-fire if held
-        if (keys.fire || touch.firing) {
+        if (keys.fire) {
           fireBlaster()
         }
 
@@ -1411,64 +1331,81 @@ export default function SpaceImpact() {
           </span>
         </div>
 
-        {/* EXACT NOKIA 3510i MOBILE PHONE CHASSIS (Shared Handset Component) */}
-        <NokiaPhone
-          screenBg={THEMES[lcdTheme].bg}
-          onLeftSoft={() => {
-            if (gameState === 'title') startNewGame()
-            else fireBlaster()
-          }}
-          onRightSoft={() => {
-            if (gameState === 'playing') fireSpecialWeapon()
-          }}
-          onDirectionPress={handleDirectionPress}
-          onActionPress={handleActionPress}
-          onKeypadPress={handleKeyCheat}
-          onEndPress={() => {
-            setGameState(prev => (prev === 'playing' ? 'paused' : prev === 'paused' ? 'playing' : prev))
-          }}
-          cheatActive={isGodMode}
-        >
-          {/* LCD Touchscreen Canvas (Exact 258x248 Cutout) */}
-          <canvas
-            ref={canvasRef}
-            width={SCREEN_WIDTH}
-            height={SCREEN_HEIGHT}
-            onPointerDown={handleLcdPointerDown}
-            onPointerMove={handleLcdPointerMove}
-            onPointerUp={handleLcdPointerUp}
-            onPointerCancel={handleLcdPointerUp}
-            className="w-full h-full block cursor-crosshair touch-none"
-            title="Nokia 3510i Screen (Touch or Keypad to play)"
-          />
-        </NokiaPhone>
+        {/* Authentic Nokia 3510i Bezel Frame */}
+        <div className="w-full max-w-[340px] sm:max-w-[370px] flex flex-col items-center bg-[#131d2e] rounded-3xl p-2.5 sm:p-3 border-2 border-slate-700/80 shadow-[0_15px_40px_rgba(0,0,0,0.85),inset_0_1px_0_rgba(255,255,255,0.15)] relative">
+          {/* Top Pill Speaker */}
+          <div className="w-12 h-1 bg-slate-600/70 rounded-full mb-1" />
+          
+          {/* Nokia Brand */}
+          <div className="text-[10px] font-sans font-black tracking-[0.25em] text-slate-400 uppercase mb-1.5 select-none">
+            NOKIA
+          </div>
 
-        {/* Quick Interactive Shortcuts & Mode Toggles under Phone */}
-        <div className="flex flex-wrap justify-center gap-2 mt-2 max-w-[350px] text-[11px] font-mono text-zinc-400 text-center">
-          <button
-            type="button"
-            onClick={() => fireBlaster()}
-            className="bg-white/5 hover:bg-white/10 active:scale-95 px-2.5 py-1 rounded-lg border border-white/10 transition-all cursor-pointer"
-            title="Fire primary blasters"
+          {/* LCD Screen Cutout */}
+          <div
+            className="w-full aspect-[258/248] max-h-[38dvh] rounded-xl overflow-hidden border-2 border-slate-900 relative shadow-[inset_0_0_15px_rgba(0,0,0,0.5)]"
+            style={{ backgroundColor: THEMES[lcdTheme].bg }}
           >
-            🔥 <strong className="text-zinc-200">5 / OK</strong>: Fire
-          </button>
-          <button
-            type="button"
-            onClick={() => fireSpecialWeapon()}
-            className="bg-white/5 hover:bg-white/10 active:scale-95 px-2.5 py-1 rounded-lg border border-white/10 transition-all cursor-pointer"
-            title="Fire equipped special weapon"
-          >
-            🚀 <strong className="text-zinc-200">0 / C</strong>: Special
-          </button>
-          <button
-            type="button"
-            onClick={() => setLcdTheme(prev => (prev === 'green' ? 'color' : prev === 'color' ? 'mono' : 'green'))}
-            className="bg-white/5 hover:bg-white/10 active:scale-95 px-2.5 py-1 rounded-lg border border-white/10 transition-all cursor-pointer"
-            title="Switch LCD theme: Classic Green, Color 3510i, or Monochrome"
-          >
-            🎨 <strong className="text-zinc-200">#</strong>: LCD ({lcdTheme.toUpperCase()})
-          </button>
+            <canvas
+              ref={canvasRef}
+              width={SCREEN_WIDTH}
+              height={SCREEN_HEIGHT}
+              className="w-full h-full block pointer-events-none select-none"
+              title="Nokia 3510i Screen"
+            />
+          </div>
+        </div>
+
+        {/* Unified Retro Basic Controller */}
+        <div className="w-full max-w-md mt-3 sm:mt-4">
+          <BasicController
+            onDirectionPress={handleDirectionPress}
+            onActionPress={handleActionPress}
+            actionLabel="A"
+            actionSublabel="FIRE"
+            actionColor="red"
+            showSecondaryAction={true}
+            onSecondaryActionPress={(pressed) => {
+              if (pressed && gameState === 'playing') {
+                fireSpecialWeapon()
+              }
+            }}
+            secondaryActionLabel="B"
+            secondaryActionSublabel="SPECIAL"
+            secondaryColor="cyan"
+            onSelect={() => {
+              if (gameState === 'title') startNewGame()
+              else if (gameState === 'gameover' || gameState === 'victory') startNewGame()
+            }}
+            selectLabel="SELECT"
+            onStartPause={() => {
+              setGameState(prev => (prev === 'playing' ? 'paused' : prev === 'paused' ? 'playing' : prev))
+            }}
+            startPauseLabel={gameState === 'paused' ? 'RESUME' : 'PAUSE'}
+            isPaused={gameState === 'paused'}
+            extraSlot={
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setLcdTheme(prev => (prev === 'green' ? 'color' : prev === 'color' ? 'mono' : 'green'))}
+                  className="px-2 py-0.5 rounded bg-slate-800 text-[10px] font-mono text-zinc-300 border border-slate-700 active:bg-slate-700"
+                  title="Switch LCD theme"
+                >
+                  🎨 {lcdTheme.toUpperCase()}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsGodMode(prev => !prev)}
+                  className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold border transition-colors ${
+                    isGodMode ? 'bg-amber-400/20 text-amber-300 border-amber-400/60' : 'bg-slate-800 text-slate-400 border-slate-700'
+                  }`}
+                  title="Toggle God Mode"
+                >
+                  ★ GOD
+                </button>
+              </div>
+            }
+          />
         </div>
 
         {/* Game Result Modal (on game over or victory) */}

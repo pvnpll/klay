@@ -11,10 +11,8 @@ import {
   RotateCcw,
   Info,
   X,
-  ChevronLeft,
-  ChevronRight,
-  ArrowUp,
 } from 'lucide-react'
+import { BasicController } from '../../components/BasicController'
 import { GameResult } from '../../components/GameResult'
 import { GAMES } from '../../data/games'
 import { saveScore, getStats } from '../../utils/storage'
@@ -65,15 +63,6 @@ export default function Bounce() {
   const [levelNumber, setLevelNumber] = useState(1)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [showRules, setShowRules] = useState(false)
-  const [activeKeys, setActiveKeys] = useState<Record<string, boolean>>({})
-  const activePointersRef = useRef<Map<number, string>>(new Map())
-
-  const markKeyActive = useCallback((keyId: string, active: boolean) => {
-    setActiveKeys((prev) => {
-      if (prev[keyId] === active) return prev
-      return { ...prev, [keyId]: active }
-    })
-  }, [])
 
   // Universal text selection suppression for mobile & touch browsers
   useEffect(() => {
@@ -141,23 +130,6 @@ export default function Bounce() {
   // Jump buffer and coyote time refs for responsive mobile & keypad controls
   const jumpBufferRef = useRef<number>(0)
   const coyoteTimerRef = useRef<number>(0)
-
-  // Touch screen interaction state
-  const touchStateRef = useRef<{
-    active: boolean
-    startX: number
-    startY: number
-    currentX: number
-    currentY: number
-    isTapJump: boolean
-  }>({
-    active: false,
-    startX: 0,
-    startY: 0,
-    currentX: 0,
-    currentY: 0,
-    isTapJump: false,
-  })
 
   // Cheat code buffer
   const cheatBufferRef = useRef<string[]>([])
@@ -516,114 +488,7 @@ export default function Bounce() {
   }, [handleKeyCheat, startNewGame, advanceToNextLevel])
 
   // -------------------------------------------------------------
-  // Touch Screen Handlers (Direct Touch on the Nokia LCD Screen)
-  // -------------------------------------------------------------
-  const handleLcdPointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
-    e.preventDefault()
-    try {
-      e.currentTarget.setPointerCapture(e.pointerId)
-    } catch {}
-
-    const rect = e.currentTarget.getBoundingClientRect()
-    const touchX = e.clientX - rect.left
-    const touchY = e.clientY - rect.top
-
-    touchStateRef.current = {
-      active: true,
-      startX: touchX,
-      startY: touchY,
-      currentX: touchX,
-      currentY: touchY,
-      isTapJump: false,
-    }
-
-    if (gameModeRef.current === 'title') {
-      startNewGame()
-      return
-    }
-    if (gameModeRef.current === 'level_clear') {
-      advanceToNextLevel()
-      return
-    }
-    if (gameModeRef.current === 'gameover' || gameModeRef.current === 'won') {
-      startNewGame()
-      return
-    }
-    if (gameModeRef.current === 'paused') {
-      setGameMode('playing')
-      return
-    }
-
-    // In-game touch steering
-    const normX = touchX / rect.width
-    const normY = touchY / rect.height
-
-    if (normY < 0.45) {
-      inputRef.current.jump = true
-      jumpBufferRef.current = 0.16
-      touchStateRef.current.isTapJump = true
-    } else {
-      if (normX < 0.42) {
-        inputRef.current.left = true
-        inputRef.current.right = false
-        if (ballRef.current.vx > -90) ballRef.current.vx = -90
-      } else if (normX > 0.58) {
-        inputRef.current.right = true
-        inputRef.current.left = false
-        if (ballRef.current.vx < 90) ballRef.current.vx = 90
-      } else {
-        inputRef.current.jump = true
-        jumpBufferRef.current = 0.16
-      }
-    }
-  }
-
-  const handleLcdPointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
-    if (!touchStateRef.current.active || gameModeRef.current !== 'playing') return
-    const rect = e.currentTarget.getBoundingClientRect()
-    const touchX = e.clientX - rect.left
-    const touchY = e.clientY - rect.top
-    touchStateRef.current.currentX = touchX
-    touchStateRef.current.currentY = touchY
-
-    const dx = touchX - touchStateRef.current.startX
-    const dy = touchY - touchStateRef.current.startY
-
-    // Upward swipe -> Jump
-    if (dy < -18) {
-      inputRef.current.jump = true
-      jumpBufferRef.current = 0.16
-    }
-
-    if (Math.abs(dx) > 10) {
-      if (dx < 0) {
-        inputRef.current.left = true
-        inputRef.current.right = false
-        if (ballRef.current.vx > -90) ballRef.current.vx = -90
-      } else {
-        inputRef.current.right = true
-        inputRef.current.left = false
-        if (ballRef.current.vx < 90) ballRef.current.vx = 90
-      }
-    }
-  }
-
-  const handleLcdPointerUp = (e?: React.PointerEvent<HTMLCanvasElement>) => {
-    if (e) {
-      try {
-        if (e.currentTarget.hasPointerCapture(e.pointerId)) {
-          e.currentTarget.releasePointerCapture(e.pointerId)
-        }
-      } catch {}
-    }
-    touchStateRef.current.active = false
-    inputRef.current.left = false
-    inputRef.current.right = false
-    inputRef.current.jump = false
-  }
-
-  // -------------------------------------------------------------
-  // Nokia Keypad Callbacks
+  // Controller Callbacks (D-Pad, Action, Navi)
   // -------------------------------------------------------------
   const handleDirectionPress = (dir: 'left' | 'right' | 'up' | 'down', pressed: boolean) => {
     if (dir === 'left') {
@@ -686,172 +551,6 @@ export default function Bounce() {
     }
   }
 
-  // --- Dedicated Resilient Pointer Capture for Left & Right Buttons ---
-  const bindDirection = (dir: 'left' | 'right', keyId: string) => {
-    return {
-      onPointerDown: (e: React.PointerEvent<HTMLButtonElement>) => {
-        e.preventDefault()
-        e.stopPropagation()
-        try {
-          e.currentTarget.setPointerCapture(e.pointerId)
-          activePointersRef.current.set(e.pointerId, keyId)
-        } catch {}
-        markKeyActive(keyId, true)
-        playClick()
-        handleDirectionPress(dir, true)
-      },
-      onPointerUp: (e: React.PointerEvent<HTMLButtonElement>) => {
-        e.preventDefault()
-        e.stopPropagation()
-        try {
-          if (e.currentTarget.hasPointerCapture(e.pointerId)) {
-            e.currentTarget.releasePointerCapture(e.pointerId)
-          }
-        } catch {}
-        activePointersRef.current.delete(e.pointerId)
-        markKeyActive(keyId, false)
-        handleDirectionPress(dir, false)
-      },
-      onPointerCancel: (e: React.PointerEvent<HTMLButtonElement>) => {
-        try {
-          if (e.currentTarget.hasPointerCapture(e.pointerId)) {
-            e.currentTarget.releasePointerCapture(e.pointerId)
-          }
-        } catch {}
-        activePointersRef.current.delete(e.pointerId)
-        markKeyActive(keyId, false)
-        handleDirectionPress(dir, false)
-      },
-      onPointerLeave: (e: React.PointerEvent<HTMLButtonElement>) => {
-        try {
-          if (e.currentTarget.hasPointerCapture(e.pointerId)) return
-        } catch {}
-        activePointersRef.current.delete(e.pointerId)
-        markKeyActive(keyId, false)
-        handleDirectionPress(dir, false)
-      },
-      onTouchStart: (e: React.TouchEvent<HTMLButtonElement>) => {
-        e.preventDefault()
-        e.stopPropagation()
-      },
-      onContextMenu: (e: React.MouseEvent) => e.preventDefault(),
-    }
-  }
-
-  // --- Dedicated Resilient Pointer Capture for Jump Button ---
-  const bindJump = (keyId = 'jump') => {
-    return {
-      onPointerDown: (e: React.PointerEvent<HTMLButtonElement>) => {
-        e.preventDefault()
-        e.stopPropagation()
-        try {
-          e.currentTarget.setPointerCapture(e.pointerId)
-          activePointersRef.current.set(e.pointerId, keyId)
-        } catch {}
-        markKeyActive(keyId, true)
-        playClick()
-        handleActionPress(true)
-      },
-      onPointerUp: (e: React.PointerEvent<HTMLButtonElement>) => {
-        e.preventDefault()
-        e.stopPropagation()
-        try {
-          if (e.currentTarget.hasPointerCapture(e.pointerId)) {
-            e.currentTarget.releasePointerCapture(e.pointerId)
-          }
-        } catch {}
-        activePointersRef.current.delete(e.pointerId)
-        markKeyActive(keyId, false)
-        handleActionPress(false)
-      },
-      onPointerCancel: (e: React.PointerEvent<HTMLButtonElement>) => {
-        try {
-          if (e.currentTarget.hasPointerCapture(e.pointerId)) {
-            e.currentTarget.releasePointerCapture(e.pointerId)
-          }
-        } catch {}
-        activePointersRef.current.delete(e.pointerId)
-        markKeyActive(keyId, false)
-        handleActionPress(false)
-      },
-      onPointerLeave: (e: React.PointerEvent<HTMLButtonElement>) => {
-        try {
-          if (e.currentTarget.hasPointerCapture(e.pointerId)) return
-        } catch {}
-        activePointersRef.current.delete(e.pointerId)
-        markKeyActive(keyId, false)
-        handleActionPress(false)
-      },
-      onTouchStart: (e: React.TouchEvent<HTMLButtonElement>) => {
-        e.preventDefault()
-        e.stopPropagation()
-      },
-      onContextMenu: (e: React.MouseEvent) => e.preventDefault(),
-    }
-  }
-
-  // --- Pointer Capture for Navi, Clear, End ---
-  const bindKey = (keyId: string, action: () => void) => {
-    return {
-      onPointerDown: (e: React.PointerEvent<HTMLButtonElement>) => {
-        e.preventDefault()
-        e.stopPropagation()
-        try {
-          e.currentTarget.setPointerCapture(e.pointerId)
-          activePointersRef.current.set(e.pointerId, keyId)
-        } catch {}
-        markKeyActive(keyId, true)
-        playClick()
-        action()
-      },
-      onPointerUp: (e: React.PointerEvent<HTMLButtonElement>) => {
-        e.preventDefault()
-        e.stopPropagation()
-        try {
-          if (e.currentTarget.hasPointerCapture(e.pointerId)) {
-            e.currentTarget.releasePointerCapture(e.pointerId)
-          }
-        } catch {}
-        activePointersRef.current.delete(e.pointerId)
-        markKeyActive(keyId, false)
-      },
-      onPointerCancel: (e: React.PointerEvent<HTMLButtonElement>) => {
-        try {
-          if (e.currentTarget.hasPointerCapture(e.pointerId)) {
-            e.currentTarget.releasePointerCapture(e.pointerId)
-          }
-        } catch {}
-        activePointersRef.current.delete(e.pointerId)
-        markKeyActive(keyId, false)
-      },
-      onTouchStart: (e: React.TouchEvent<HTMLButtonElement>) => {
-        e.preventDefault()
-        e.stopPropagation()
-      },
-      onContextMenu: (e: React.MouseEvent) => e.preventDefault(),
-    }
-  }
-
-  // --- Keypad cheat entry ---
-  const bindKeypadCheat = (key: string) => {
-    return {
-      onPointerDown: (e: React.PointerEvent<HTMLButtonElement>) => {
-        e.preventDefault()
-        e.stopPropagation()
-        playClick()
-        handleKeyCheat(key)
-        markKeyActive(`key-${key}`, true)
-      },
-      onPointerUp: () => markKeyActive(`key-${key}`, false),
-      onPointerCancel: () => markKeyActive(`key-${key}`, false),
-      onTouchStart: (e: React.TouchEvent<HTMLButtonElement>) => {
-        e.preventDefault()
-        e.stopPropagation()
-      },
-      onContextMenu: (e: React.MouseEvent) => e.preventDefault(),
-    }
-  }
-
   const handleNaviPress = () => {
     if (gameModeRef.current === 'title') {
       startNewGame()
@@ -864,16 +563,6 @@ export default function Bounce() {
     } else {
       handleActionPress(true)
       setTimeout(() => handleActionPress(false), 120)
-    }
-  }
-
-  const handleClearPress = () => {
-    if (gameModeRef.current === 'playing') {
-      setGameMode('paused')
-    } else if (gameModeRef.current === 'paused') {
-      setGameMode('playing')
-    } else if (gameModeRef.current === 'title') {
-      startNewGame()
     }
   }
 
@@ -1859,12 +1548,8 @@ export default function Bounce() {
               ref={canvasRef}
               width={SCREEN_WIDTH}
               height={SCREEN_HEIGHT}
-              onPointerDown={handleLcdPointerDown}
-              onPointerMove={handleLcdPointerMove}
-              onPointerUp={handleLcdPointerUp}
-              onPointerCancel={handleLcdPointerUp}
-              className="w-full h-full block cursor-pointer touch-none"
-              title="Nokia 3510i Screen (Touch or buttons to play)"
+              className="w-full h-full block pointer-events-none select-none"
+              title="Nokia 3510i Screen"
             />
 
             {/* In-Screen Cheat Banner */}
@@ -1916,146 +1601,35 @@ export default function Bounce() {
         </div>
       </main>
 
-      {/* 3. THE REQUIRED PLAYABLE BUTTONS (Massive, Tactile, Perfectly Clickable!) */}
-      <footer className="w-full max-w-md mx-auto px-3 pb-3 sm:pb-4 flex flex-col gap-2 shrink-0 z-30 select-none">
-        
-        {/* Softkeys & Navi-Bar Row */}
-        <div className="flex items-center justify-between w-full px-1 gap-2 select-none">
-          {/* Clear / 'C' button */}
-          <button
-            type="button"
-            aria-label="C / Clear"
-            {...bindKey('c', () => handleClearPress())}
-            className={`h-9 px-3 rounded-xl border font-bold text-xs flex items-center gap-1.5 transition-all select-none touch-none ${
-              activeKeys['c']
-                ? 'bg-white/40 border-white text-white shadow-[0_0_12px_rgba(255,255,255,0.7)]'
-                : 'bg-slate-800/80 border-slate-600 text-slate-200 active:bg-white/20'
-            }`}
-          >
-            <span>C</span>
-            <span className="text-[10px] text-slate-400 font-normal">Back</span>
-          </button>
-
-          {/* Center Cyan Navi-Bar */}
-          <button
-            type="button"
-            aria-label="Navi-Key (Select / Action)"
-            {...bindKey('navi', () => handleNaviPress())}
-            className={`flex-1 h-9 px-4 rounded-full border-2 font-mono font-bold text-xs flex items-center justify-center transition-all select-none touch-none ${
-              activeKeys['navi']
-                ? 'bg-cyan-400 text-slate-950 border-cyan-300 shadow-[0_0_16px_rgba(34,211,238,0.8)]'
-                : 'bg-cyan-950/40 border-cyan-400/60 text-cyan-300 active:bg-cyan-400/30'
-            }`}
-          >
-            <span>─ ACTION / SELECT ─</span>
-          </button>
-
-          {/* Red Power / Pause button */}
-          <button
-            type="button"
-            aria-label="Power / End / Pause"
-            {...bindKey('end', () => setGameMode('paused'))}
-            className={`h-9 px-3 rounded-xl border font-bold text-xs flex items-center gap-1.5 transition-all select-none touch-none ${
-              activeKeys['end']
-                ? 'bg-red-500 text-white border-red-400 shadow-[0_0_14px_rgba(239,68,68,0.8)]'
-                : 'bg-red-950/30 border-red-700/60 text-red-400 active:bg-red-500/30'
-            }`}
-          >
-            <span>⏻</span>
-            <span className="text-[10px] text-red-300/80 font-normal">Pause</span>
-          </button>
-        </div>
-
-        {/* The Core Thumb Controls Row (Large, Ergonomic, Impossible to Miss) */}
-        <div className="flex items-center justify-between w-full gap-3 px-1 select-none">
-          {/* Left Thumb: Directional Steer */}
-          <div className="flex items-center gap-2 select-none">
-            {/* Left Button */}
-            <button
-              type="button"
-              aria-label="Key 4 (Left)"
-              {...bindDirection('left', 'left')}
-              className={`w-20 h-16 sm:w-24 sm:h-18 rounded-2xl border-2 flex flex-col items-center justify-center select-none touch-none transition-all ${
-                activeKeys['left']
-                  ? 'bg-amber-400 text-slate-950 border-amber-300 shadow-[0_0_20px_rgba(251,191,36,0.8)] scale-[0.97]'
-                  : 'bg-gradient-to-b from-slate-700 to-slate-900 border-slate-600 text-slate-100 shadow-[0_4px_0_#1e293b,0_6px_12px_rgba(0,0,0,0.5)] active:translate-y-1 active:shadow-[0_1px_0_#1e293b]'
-              }`}
-            >
-              <ChevronLeft size={28} strokeWidth={2.5} />
-              <span className="text-[11px] font-mono font-bold tracking-wider text-amber-300">4 ghi</span>
-            </button>
-
-            {/* Right Button */}
-            <button
-              type="button"
-              aria-label="Key 6 (Right)"
-              {...bindDirection('right', 'right')}
-              className={`w-20 h-16 sm:w-24 sm:h-18 rounded-2xl border-2 flex flex-col items-center justify-center select-none touch-none transition-all ${
-                activeKeys['right']
-                  ? 'bg-amber-400 text-slate-950 border-amber-300 shadow-[0_0_20px_rgba(251,191,36,0.8)] scale-[0.97]'
-                  : 'bg-gradient-to-b from-slate-700 to-slate-900 border-slate-600 text-slate-100 shadow-[0_4px_0_#1e293b,0_6px_12px_rgba(0,0,0,0.5)] active:translate-y-1 active:shadow-[0_1px_0_#1e293b]'
-              }`}
-            >
-              <ChevronRight size={28} strokeWidth={2.5} />
-              <span className="text-[11px] font-mono font-bold tracking-wider text-amber-300">6 mno</span>
-            </button>
-          </div>
-
-          {/* Right Thumb: The Big Jump Button */}
-          <div className="flex items-center select-none">
-            <button
-              type="button"
-              aria-label="Key 5 (Action / Fire)"
-              {...bindJump('jump')}
-              className={`w-28 h-18 sm:w-32 sm:h-20 rounded-3xl border-3 flex flex-col items-center justify-center select-none touch-none transition-all ${
-                activeKeys['jump']
-                  ? 'bg-amber-300 text-amber-950 border-white shadow-[0_0_25px_rgba(253,224,71,0.9)] scale-[0.96] translate-y-1'
-                  : 'bg-gradient-to-b from-amber-500 to-amber-600 border-amber-300 text-slate-950 shadow-[0_6px_0_#92400e,0_8px_18px_rgba(245,158,11,0.4)] active:translate-y-1 active:shadow-[0_2px_0_#92400e]'
-              }`}
-            >
-              <ArrowUp size={28} strokeWidth={3} className="text-slate-950 mb-[-2px]" />
-              <span className="text-xs font-black uppercase tracking-wider text-slate-950">JUMP · 5</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Bottom Cheat & Keyboard Help Row */}
-        <div className="flex items-center justify-between w-full px-2 pt-0.5 text-[11px] text-slate-400 font-mono select-none">
-          <span className="hidden sm:inline">Desktop: ← / A / 4: Left · → / D / 6: Right · Space / 5: Jump</span>
-          <div className="flex items-center gap-1.5 ml-auto select-none">
-            <button
-              type="button"
-              aria-label="Key 7"
-              {...bindKeypadCheat('7')}
-              className="w-6 h-5 rounded bg-slate-800 text-[10px] text-slate-400 border border-slate-700 active:bg-amber-400 active:text-black"
-            >
-              7
-            </button>
-            <button
-              type="button"
-              aria-label="Key 8 (Down)"
-              {...bindKeypadCheat('8')}
-              className="w-6 h-5 rounded bg-slate-800 text-[10px] text-slate-400 border border-slate-700 active:bg-amber-400 active:text-black"
-            >
-              8
-            </button>
-            <button
-              type="button"
-              aria-label="Key 9"
-              {...bindKeypadCheat('9')}
-              className="w-6 h-5 rounded bg-slate-800 text-[10px] text-slate-400 border border-slate-700 active:bg-amber-400 active:text-black"
-            >
-              9
-            </button>
+      {/* 3. BASIC CONTROLLER (Unified Arcade Controller) */}
+      <footer className="w-full max-w-md mx-auto px-3 pb-2 sm:pb-3 shrink-0 z-30 select-none">
+        <BasicController
+          onDirectionPress={handleDirectionPress}
+          onActionPress={handleActionPress}
+          actionLabel="A"
+          actionSublabel="JUMP"
+          actionColor="amber"
+          onSelect={handleNaviPress}
+          selectLabel="SELECT"
+          onStartPause={togglePause}
+          startPauseLabel={gameMode === 'paused' ? 'RESUME' : 'PAUSE'}
+          isPaused={gameMode === 'paused'}
+          onKeyClickSound={playClick}
+          extraSlot={
             <button
               type="button"
               onClick={toggleGodMode}
-              className="text-[10px] font-bold text-amber-400/80 hover:text-amber-300 ml-1"
+              className={`px-2.5 py-1 rounded-full text-[10px] font-mono font-bold border transition-colors ${
+                isGodMode
+                  ? 'bg-amber-400/25 text-amber-300 border-amber-400/70 shadow-[0_0_8px_rgba(251,191,36,0.5)]'
+                  : 'bg-slate-800 text-slate-400 border-slate-700 active:bg-amber-400 active:text-black'
+              }`}
+              title="Toggle God Mode (Nokia Cheat 787898)"
             >
               ★ 787898
             </button>
-          </div>
-        </div>
+          }
+        />
       </footer>
 
       {/* 4. HOW TO PLAY RULES MODAL */}
