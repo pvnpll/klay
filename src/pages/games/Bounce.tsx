@@ -1,10 +1,29 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
-import { GameLayout } from '../../components/GameLayout'
+import { Link } from 'react-router-dom'
+import {
+  ArrowLeft,
+  Volume2,
+  VolumeX,
+  Pause,
+  Play,
+  Maximize2,
+  Minimize2,
+  RotateCcw,
+  Info,
+  X,
+  ChevronLeft,
+  ChevronRight,
+  ArrowUp,
+} from 'lucide-react'
 import { GameResult } from '../../components/GameResult'
 import { GAMES } from '../../data/games'
 import { saveScore, getStats } from '../../utils/storage'
-import { isGamePaused, gameNow, gameRaf as requestAnimationFrame, cancelGameRaf as cancelAnimationFrame } from '../../utils/gameClock'
-import { NokiaPhone } from './bounce/NokiaPhone'
+import {
+  isGamePaused,
+  gameNow,
+  gameRaf as requestAnimationFrame,
+  cancelGameRaf as cancelAnimationFrame,
+} from '../../utils/gameClock'
 import { nokiaSound } from './bounce/sound'
 import { LEVELS } from './bounce/levels'
 import { TILE, TILE_SIZE, type Ring, type Particle, type Ball, type GameMode, type LevelData } from './bounce/types'
@@ -40,6 +59,32 @@ export default function Bounce() {
   // Storage & Best Score
   const [bestScore, setBestScore] = useState<number | undefined>(() => getStats().bests[gameMeta.id])
   const [isNewBest, setIsNewBest] = useState(false)
+
+  // Full-screen and modal UI state
+  const [soundOn, setSoundOn] = useState<boolean>(() => !nokiaSound.isMuted())
+  const [levelNumber, setLevelNumber] = useState(1)
+  const [isFullscreen, setIsFullscreen] = useState(false)
+  const [showRules, setShowRules] = useState(false)
+  const [activeKeys, setActiveKeys] = useState<Record<string, boolean>>({})
+  const activePointersRef = useRef<Map<number, string>>(new Map())
+
+  const markKeyActive = useCallback((keyId: string, active: boolean) => {
+    setActiveKeys((prev) => {
+      if (prev[keyId] === active) return prev
+      return { ...prev, [keyId]: active }
+    })
+  }, [])
+
+  // Universal text selection suppression for mobile & touch browsers
+  useEffect(() => {
+    const preventSelection = (e: Event) => {
+      e.preventDefault()
+    }
+    document.addEventListener('selectstart', preventSelection)
+    return () => {
+      document.removeEventListener('selectstart', preventSelection)
+    }
+  }, [])
 
   // Mutable Game Loop State in Refs (avoid re-render lag)
   const gameModeRef = useRef<GameMode>('title')
@@ -118,9 +163,39 @@ export default function Bounce() {
   const cheatBufferRef = useRef<string[]>([])
   const lastTimeRef = useRef<number>(0)
   const animFrameRef = useRef<number>(0)
-
-  // Safe time for animations
   const timeNow = useCallback(() => (typeof performance !== 'undefined' ? performance.now() : Date.now()), [])
+
+  // Track browser fullscreen status
+  useEffect(() => {
+    const handleFs = () => setIsFullscreen(!!document.fullscreenElement)
+    document.addEventListener('fullscreenchange', handleFs)
+    return () => document.removeEventListener('fullscreenchange', handleFs)
+  }, [])
+
+  const toggleFullscreen = async () => {
+    try {
+      if (!document.fullscreenElement) {
+        await document.documentElement.requestFullscreen?.()
+      } else {
+        await document.exitFullscreen?.()
+      }
+    } catch {}
+  }
+
+  const toggleSound = () => {
+    const next = !soundOn
+    setSoundOn(next)
+    nokiaSound.setMuted(!next)
+  }
+
+  const togglePause = () => {
+    if (gameModeRef.current === 'playing') setGameMode('paused')
+    else if (gameModeRef.current === 'paused') setGameMode('playing')
+  }
+
+  const playClick = () => {
+    nokiaSound.playKeyClick()
+  }
 
   // -------------------------------------------------------------
   // Level Initialization
@@ -128,6 +203,7 @@ export default function Bounce() {
   const loadLevel = useCallback((lvlIdx: number, keepScore = true) => {
     const level = LEVELS[lvlIdx % LEVELS.length]
     levelIdxRef.current = lvlIdx % LEVELS.length
+    setLevelNumber((lvlIdx % LEVELS.length) + 1)
     currentLevelRef.current = level
 
     checkpointRef.current = null
@@ -266,6 +342,15 @@ export default function Bounce() {
       setCheatBanner(newGod ? '★ GOD MODE: ON ★' : '★ GOD MODE: OFF ★')
       setTimeout(() => setCheatBanner(null), 2500)
     }
+  }, [])
+
+  const toggleGodMode = useCallback(() => {
+    const newGod = !isGodModeRef.current
+    isGodModeRef.current = newGod
+    setIsGodMode(newGod)
+    nokiaSound.playCheat()
+    setCheatBanner(newGod ? '★ GOD MODE: ON ★' : '★ GOD MODE: OFF ★')
+    setTimeout(() => setCheatBanner(null), 2500)
   }, [])
 
   // Advance level
@@ -601,26 +686,194 @@ export default function Bounce() {
     }
   }
 
-  const handleLeftSoft = () => {
+  // --- Dedicated Resilient Pointer Capture for Left & Right Buttons ---
+  const bindDirection = (dir: 'left' | 'right', keyId: string) => {
+    return {
+      onPointerDown: (e: React.PointerEvent<HTMLButtonElement>) => {
+        e.preventDefault()
+        e.stopPropagation()
+        try {
+          e.currentTarget.setPointerCapture(e.pointerId)
+          activePointersRef.current.set(e.pointerId, keyId)
+        } catch {}
+        markKeyActive(keyId, true)
+        playClick()
+        handleDirectionPress(dir, true)
+      },
+      onPointerUp: (e: React.PointerEvent<HTMLButtonElement>) => {
+        e.preventDefault()
+        e.stopPropagation()
+        try {
+          if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+            e.currentTarget.releasePointerCapture(e.pointerId)
+          }
+        } catch {}
+        activePointersRef.current.delete(e.pointerId)
+        markKeyActive(keyId, false)
+        handleDirectionPress(dir, false)
+      },
+      onPointerCancel: (e: React.PointerEvent<HTMLButtonElement>) => {
+        try {
+          if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+            e.currentTarget.releasePointerCapture(e.pointerId)
+          }
+        } catch {}
+        activePointersRef.current.delete(e.pointerId)
+        markKeyActive(keyId, false)
+        handleDirectionPress(dir, false)
+      },
+      onPointerLeave: (e: React.PointerEvent<HTMLButtonElement>) => {
+        try {
+          if (e.currentTarget.hasPointerCapture(e.pointerId)) return
+        } catch {}
+        activePointersRef.current.delete(e.pointerId)
+        markKeyActive(keyId, false)
+        handleDirectionPress(dir, false)
+      },
+      onTouchStart: (e: React.TouchEvent<HTMLButtonElement>) => {
+        e.preventDefault()
+        e.stopPropagation()
+      },
+      onContextMenu: (e: React.MouseEvent) => e.preventDefault(),
+    }
+  }
+
+  // --- Dedicated Resilient Pointer Capture for Jump Button ---
+  const bindJump = (keyId = 'jump') => {
+    return {
+      onPointerDown: (e: React.PointerEvent<HTMLButtonElement>) => {
+        e.preventDefault()
+        e.stopPropagation()
+        try {
+          e.currentTarget.setPointerCapture(e.pointerId)
+          activePointersRef.current.set(e.pointerId, keyId)
+        } catch {}
+        markKeyActive(keyId, true)
+        playClick()
+        handleActionPress(true)
+      },
+      onPointerUp: (e: React.PointerEvent<HTMLButtonElement>) => {
+        e.preventDefault()
+        e.stopPropagation()
+        try {
+          if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+            e.currentTarget.releasePointerCapture(e.pointerId)
+          }
+        } catch {}
+        activePointersRef.current.delete(e.pointerId)
+        markKeyActive(keyId, false)
+        handleActionPress(false)
+      },
+      onPointerCancel: (e: React.PointerEvent<HTMLButtonElement>) => {
+        try {
+          if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+            e.currentTarget.releasePointerCapture(e.pointerId)
+          }
+        } catch {}
+        activePointersRef.current.delete(e.pointerId)
+        markKeyActive(keyId, false)
+        handleActionPress(false)
+      },
+      onPointerLeave: (e: React.PointerEvent<HTMLButtonElement>) => {
+        try {
+          if (e.currentTarget.hasPointerCapture(e.pointerId)) return
+        } catch {}
+        activePointersRef.current.delete(e.pointerId)
+        markKeyActive(keyId, false)
+        handleActionPress(false)
+      },
+      onTouchStart: (e: React.TouchEvent<HTMLButtonElement>) => {
+        e.preventDefault()
+        e.stopPropagation()
+      },
+      onContextMenu: (e: React.MouseEvent) => e.preventDefault(),
+    }
+  }
+
+  // --- Pointer Capture for Navi, Clear, End ---
+  const bindKey = (keyId: string, action: () => void) => {
+    return {
+      onPointerDown: (e: React.PointerEvent<HTMLButtonElement>) => {
+        e.preventDefault()
+        e.stopPropagation()
+        try {
+          e.currentTarget.setPointerCapture(e.pointerId)
+          activePointersRef.current.set(e.pointerId, keyId)
+        } catch {}
+        markKeyActive(keyId, true)
+        playClick()
+        action()
+      },
+      onPointerUp: (e: React.PointerEvent<HTMLButtonElement>) => {
+        e.preventDefault()
+        e.stopPropagation()
+        try {
+          if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+            e.currentTarget.releasePointerCapture(e.pointerId)
+          }
+        } catch {}
+        activePointersRef.current.delete(e.pointerId)
+        markKeyActive(keyId, false)
+      },
+      onPointerCancel: (e: React.PointerEvent<HTMLButtonElement>) => {
+        try {
+          if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+            e.currentTarget.releasePointerCapture(e.pointerId)
+          }
+        } catch {}
+        activePointersRef.current.delete(e.pointerId)
+        markKeyActive(keyId, false)
+      },
+      onTouchStart: (e: React.TouchEvent<HTMLButtonElement>) => {
+        e.preventDefault()
+        e.stopPropagation()
+      },
+      onContextMenu: (e: React.MouseEvent) => e.preventDefault(),
+    }
+  }
+
+  // --- Keypad cheat entry ---
+  const bindKeypadCheat = (key: string) => {
+    return {
+      onPointerDown: (e: React.PointerEvent<HTMLButtonElement>) => {
+        e.preventDefault()
+        e.stopPropagation()
+        playClick()
+        handleKeyCheat(key)
+        markKeyActive(`key-${key}`, true)
+      },
+      onPointerUp: () => markKeyActive(`key-${key}`, false),
+      onPointerCancel: () => markKeyActive(`key-${key}`, false),
+      onTouchStart: (e: React.TouchEvent<HTMLButtonElement>) => {
+        e.preventDefault()
+        e.stopPropagation()
+      },
+      onContextMenu: (e: React.MouseEvent) => e.preventDefault(),
+    }
+  }
+
+  const handleNaviPress = () => {
     if (gameModeRef.current === 'title') {
       startNewGame()
-    } else if (gameModeRef.current === 'playing') {
-      setGameMode('paused')
-    } else if (gameModeRef.current === 'paused') {
-      setGameMode('playing')
     } else if (gameModeRef.current === 'level_clear') {
       advanceToNextLevel()
     } else if (gameModeRef.current === 'gameover' || gameModeRef.current === 'won') {
       startNewGame()
+    } else if (gameModeRef.current === 'paused') {
+      setGameMode('playing')
+    } else {
+      handleActionPress(true)
+      setTimeout(() => handleActionPress(false), 120)
     }
   }
 
-  const handleRightSoft = () => {
-    if (gameModeRef.current === 'playing' || gameModeRef.current === 'paused') {
-      loadLevel(levelIdxRef.current, true)
+  const handleClearPress = () => {
+    if (gameModeRef.current === 'playing') {
+      setGameMode('paused')
+    } else if (gameModeRef.current === 'paused') {
       setGameMode('playing')
-    } else {
-      setGameMode('title')
+    } else if (gameModeRef.current === 'title') {
+      startNewGame()
     }
   }
 
@@ -1490,47 +1743,378 @@ export default function Bounce() {
   }, [popBall, respawnBall, renderCanvas])
 
   return (
-    <GameLayout title={gameMeta.name} description={gameMeta.description} rules={gameMeta.rules}>
-      <div className="flex flex-col items-center justify-center w-full py-1">
-        
-        {/* Top Header stats info */}
-        <div className="flex justify-between items-center w-full max-w-[350px] mb-2 px-3 py-1.5 rounded-xl bg-black/40 border border-white/10 text-xs font-mono font-bold">
-          <span className="text-red-400 flex items-center gap-1">
-            🔴 NOKIA 3510i · BOUNCE
+    <div
+      className="bounce-root fixed inset-0 w-full h-[100dvh] flex flex-col justify-between bg-[#070b19] text-white select-none overflow-hidden touch-none"
+      style={{
+        touchAction: 'none',
+        WebkitTouchCallout: 'none',
+        WebkitUserSelect: 'none',
+        userSelect: 'none',
+      }}
+      onContextMenu={(e) => e.preventDefault()}
+    >
+      <style>{`
+        .bounce-root, .bounce-root * {
+          -webkit-user-select: none !important;
+          -moz-user-select: none !important;
+          -ms-user-select: none !important;
+          user-select: none !important;
+          -webkit-touch-callout: none !important;
+          -webkit-tap-highlight-color: transparent !important;
+        }
+      `}</style>
+
+      {/* 1. TOP HEADER TOOLBAR */}
+      <header className="h-12 border-b border-white/10 bg-[#0c1222]/90 backdrop-blur-md flex items-center justify-between px-3 sm:px-4 shrink-0 z-40 select-none">
+        <Link
+          to="/"
+          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-white/5 border border-white/10 text-slate-300 active:bg-white/15 text-xs font-semibold select-none"
+          aria-label="Back to all games"
+        >
+          <ArrowLeft size={16} />
+          <span>Games</span>
+        </Link>
+
+        <div className="flex items-center gap-2 select-none">
+          <span className="text-red-400 font-bold font-mono text-xs sm:text-sm tracking-wide flex items-center gap-1">
+            🔴 BOUNCE
           </span>
-          <span className="text-amber-300">
-            👑 BEST: <span className="text-white ml-1">{bestScore || 0}</span>
+          <span className="text-[10px] text-amber-300 font-mono font-bold px-1.5 py-0.5 rounded bg-amber-950/60 border border-amber-800/80">
+            LVL {levelNumber}
           </span>
         </div>
 
-        {/* EXACT NOKIA 3510i MOBILE PHONE CHASSIS (Real physical handset photo) */}
-        <NokiaPhone
-          onLeftSoft={handleLeftSoft}
-          onRightSoft={handleRightSoft}
-          onDirectionPress={handleDirectionPress}
-          onActionPress={handleActionPress}
-          onKeypadPress={handleKeyCheat}
-          onEndPress={() => setGameMode('paused')}
-          onKeySound={() => nokiaSound.playKeyClick()}
-          cheatActive={isGodMode}
-        >
-          {/* LCD Touchscreen Canvas (Exact 258x248 Cutout) */}
-          <canvas
-            ref={canvasRef}
-            width={SCREEN_WIDTH}
-            height={SCREEN_HEIGHT}
-            onPointerDown={handleLcdPointerDown}
-            onPointerMove={handleLcdPointerMove}
-            onPointerUp={handleLcdPointerUp}
-            onPointerCancel={handleLcdPointerUp}
-            className="w-full h-full block cursor-pointer touch-none"
-            title="Nokia 3510i Screen (Touch or Keypad to play)"
-          />
-        </NokiaPhone>
+        <div className="flex items-center gap-1 sm:gap-1.5 select-none">
+          <div className="hidden xs:flex items-center gap-1 text-[11px] font-mono font-bold text-amber-300 px-2 py-1 rounded-lg bg-black/40 border border-white/10 select-none">
+            👑 {bestScore || 0}
+          </div>
 
-        {/* Game Result Modal (on game over or victory) */}
-        {(gameMode === 'gameover' || gameMode === 'won') && (
-          <div className="mt-4 w-full max-w-sm animate-pop-in">
+          <button
+            type="button"
+            onClick={toggleGodMode}
+            className={`px-2 py-1 rounded-lg text-[10px] font-mono font-bold border transition-colors select-none touch-none ${
+              isGodMode
+                ? 'bg-amber-400/20 text-amber-300 border-amber-400/60 shadow-[0_0_10px_rgba(251,191,36,0.4)]'
+                : 'bg-white/5 text-slate-400 border-white/10 hover:text-slate-200'
+            }`}
+            title="Toggle God Mode (Nokia Cheat 787898)"
+          >
+            ★ GOD
+          </button>
+
+          <button
+            type="button"
+            onClick={toggleSound}
+            className="w-8 h-8 rounded-lg border border-white/10 bg-white/5 flex items-center justify-center text-slate-300 active:bg-white/15 select-none touch-none"
+            aria-label={soundOn ? 'Mute sound' : 'Enable sound'}
+          >
+            {soundOn ? <Volume2 size={16} /> : <VolumeX size={16} />}
+          </button>
+
+          <button
+            type="button"
+            onClick={togglePause}
+            className="w-8 h-8 rounded-lg border border-white/10 bg-white/5 flex items-center justify-center text-slate-300 active:bg-white/15 select-none touch-none"
+            aria-label={gameMode === 'paused' ? 'Resume game' : 'Pause game'}
+          >
+            {gameMode === 'paused' ? <Play size={16} /> : <Pause size={16} />}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setShowRules(true)}
+            className="w-8 h-8 rounded-lg border border-white/10 bg-white/5 flex items-center justify-center text-slate-300 active:bg-white/15 select-none touch-none"
+            aria-label="How to play"
+          >
+            <Info size={16} />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => void toggleFullscreen()}
+            className="w-8 h-8 rounded-lg border border-white/10 bg-white/5 flex items-center justify-center text-slate-300 active:bg-white/15 select-none touch-none"
+            aria-label={isFullscreen ? 'Exit browser fullscreen' : 'Enter browser fullscreen'}
+          >
+            {isFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+          </button>
+        </div>
+      </header>
+
+      {/* 2. GAME STAGE / LCD DISPLAY UNIT */}
+      <main className="flex-1 min-h-0 w-full flex items-center justify-center p-2 select-none overflow-hidden">
+        {/* Authentic Nokia 3510i Bezel Frame */}
+        <div className="w-full max-w-[340px] sm:max-w-[390px] flex flex-col items-center bg-[#131d2e] rounded-3xl p-2.5 sm:p-3 border-2 border-slate-700/80 shadow-[0_15px_40px_rgba(0,0,0,0.85),inset_0_1px_0_rgba(255,255,255,0.15)] relative">
+          
+          {/* Top Pill Speaker */}
+          <div className="w-12 h-1 bg-slate-600/70 rounded-full mb-1" />
+          
+          {/* Nokia Brand */}
+          <div className="text-[10px] font-sans font-black tracking-[0.25em] text-slate-400 uppercase mb-1.5 select-none">
+            NOKIA
+          </div>
+
+          {/* LCD Screen Cutout */}
+          <div className="w-full aspect-[258/248] max-h-[38dvh] rounded-xl overflow-hidden border-2 border-slate-900 bg-[#004ecc] relative shadow-[inset_0_0_15px_rgba(0,0,0,0.5)]">
+            <canvas
+              ref={canvasRef}
+              width={SCREEN_WIDTH}
+              height={SCREEN_HEIGHT}
+              onPointerDown={handleLcdPointerDown}
+              onPointerMove={handleLcdPointerMove}
+              onPointerUp={handleLcdPointerUp}
+              onPointerCancel={handleLcdPointerUp}
+              className="w-full h-full block cursor-pointer touch-none"
+              title="Nokia 3510i Screen (Touch or buttons to play)"
+            />
+
+            {/* In-Screen Cheat Banner */}
+            {cheatBanner && (
+              <div className="absolute top-2 inset-x-0 mx-auto w-fit px-3 py-1 bg-amber-400 text-slate-950 font-mono font-black text-xs rounded-full shadow-lg animate-bounce pointer-events-none">
+                {cheatBanner}
+              </div>
+            )}
+
+            {/* In-Screen Pause Overlay */}
+            {gameMode === 'paused' && (
+              <div className="absolute inset-0 bg-black/75 backdrop-blur-xs flex flex-col items-center justify-center p-4 text-center z-20">
+                <div className="text-amber-400 font-mono font-black text-lg mb-2">⏸ GAME PAUSED</div>
+                <div className="text-xs text-slate-300 font-mono mb-4">Press Resume to continue</div>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setGameMode('playing')}
+                    className="px-4 py-2 rounded-xl bg-amber-400 text-black font-bold text-xs flex items-center gap-1.5 active:bg-amber-300"
+                  >
+                    <Play size={14} /> Resume
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => loadLevel(levelNumber - 1, true)}
+                    className="px-3 py-2 rounded-xl bg-slate-800 text-white border border-slate-700 font-bold text-xs flex items-center gap-1 active:bg-slate-700"
+                  >
+                    <RotateCcw size={14} /> Retry
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* In-Screen Level Clear Overlay */}
+            {gameMode === 'level_clear' && (
+              <div className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center p-4 text-center z-20 animate-pop-in">
+                <div className="text-amber-300 text-2xl font-black font-mono mb-1">🎉 LEVEL CLEAR!</div>
+                <div className="text-xs text-slate-200 font-mono mb-3">Score: {score}</div>
+                <button
+                  type="button"
+                  onClick={advanceToNextLevel}
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-black text-sm shadow-lg active:scale-95"
+                >
+                  NEXT LEVEL ▶
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </main>
+
+      {/* 3. THE REQUIRED PLAYABLE BUTTONS (Massive, Tactile, Perfectly Clickable!) */}
+      <footer className="w-full max-w-md mx-auto px-3 pb-3 sm:pb-4 flex flex-col gap-2 shrink-0 z-30 select-none">
+        
+        {/* Softkeys & Navi-Bar Row */}
+        <div className="flex items-center justify-between w-full px-1 gap-2 select-none">
+          {/* Clear / 'C' button */}
+          <button
+            type="button"
+            aria-label="C / Clear"
+            {...bindKey('c', () => handleClearPress())}
+            className={`h-9 px-3 rounded-xl border font-bold text-xs flex items-center gap-1.5 transition-all select-none touch-none ${
+              activeKeys['c']
+                ? 'bg-white/40 border-white text-white shadow-[0_0_12px_rgba(255,255,255,0.7)]'
+                : 'bg-slate-800/80 border-slate-600 text-slate-200 active:bg-white/20'
+            }`}
+          >
+            <span>C</span>
+            <span className="text-[10px] text-slate-400 font-normal">Back</span>
+          </button>
+
+          {/* Center Cyan Navi-Bar */}
+          <button
+            type="button"
+            aria-label="Navi-Key (Select / Action)"
+            {...bindKey('navi', () => handleNaviPress())}
+            className={`flex-1 h-9 px-4 rounded-full border-2 font-mono font-bold text-xs flex items-center justify-center transition-all select-none touch-none ${
+              activeKeys['navi']
+                ? 'bg-cyan-400 text-slate-950 border-cyan-300 shadow-[0_0_16px_rgba(34,211,238,0.8)]'
+                : 'bg-cyan-950/40 border-cyan-400/60 text-cyan-300 active:bg-cyan-400/30'
+            }`}
+          >
+            <span>─ ACTION / SELECT ─</span>
+          </button>
+
+          {/* Red Power / Pause button */}
+          <button
+            type="button"
+            aria-label="Power / End / Pause"
+            {...bindKey('end', () => setGameMode('paused'))}
+            className={`h-9 px-3 rounded-xl border font-bold text-xs flex items-center gap-1.5 transition-all select-none touch-none ${
+              activeKeys['end']
+                ? 'bg-red-500 text-white border-red-400 shadow-[0_0_14px_rgba(239,68,68,0.8)]'
+                : 'bg-red-950/30 border-red-700/60 text-red-400 active:bg-red-500/30'
+            }`}
+          >
+            <span>⏻</span>
+            <span className="text-[10px] text-red-300/80 font-normal">Pause</span>
+          </button>
+        </div>
+
+        {/* The Core Thumb Controls Row (Large, Ergonomic, Impossible to Miss) */}
+        <div className="flex items-center justify-between w-full gap-3 px-1 select-none">
+          {/* Left Thumb: Directional Steer */}
+          <div className="flex items-center gap-2 select-none">
+            {/* Left Button */}
+            <button
+              type="button"
+              aria-label="Key 4 (Left)"
+              {...bindDirection('left', 'left')}
+              className={`w-20 h-16 sm:w-24 sm:h-18 rounded-2xl border-2 flex flex-col items-center justify-center select-none touch-none transition-all ${
+                activeKeys['left']
+                  ? 'bg-amber-400 text-slate-950 border-amber-300 shadow-[0_0_20px_rgba(251,191,36,0.8)] scale-[0.97]'
+                  : 'bg-gradient-to-b from-slate-700 to-slate-900 border-slate-600 text-slate-100 shadow-[0_4px_0_#1e293b,0_6px_12px_rgba(0,0,0,0.5)] active:translate-y-1 active:shadow-[0_1px_0_#1e293b]'
+              }`}
+            >
+              <ChevronLeft size={28} strokeWidth={2.5} />
+              <span className="text-[11px] font-mono font-bold tracking-wider text-amber-300">4 ghi</span>
+            </button>
+
+            {/* Right Button */}
+            <button
+              type="button"
+              aria-label="Key 6 (Right)"
+              {...bindDirection('right', 'right')}
+              className={`w-20 h-16 sm:w-24 sm:h-18 rounded-2xl border-2 flex flex-col items-center justify-center select-none touch-none transition-all ${
+                activeKeys['right']
+                  ? 'bg-amber-400 text-slate-950 border-amber-300 shadow-[0_0_20px_rgba(251,191,36,0.8)] scale-[0.97]'
+                  : 'bg-gradient-to-b from-slate-700 to-slate-900 border-slate-600 text-slate-100 shadow-[0_4px_0_#1e293b,0_6px_12px_rgba(0,0,0,0.5)] active:translate-y-1 active:shadow-[0_1px_0_#1e293b]'
+              }`}
+            >
+              <ChevronRight size={28} strokeWidth={2.5} />
+              <span className="text-[11px] font-mono font-bold tracking-wider text-amber-300">6 mno</span>
+            </button>
+          </div>
+
+          {/* Right Thumb: The Big Jump Button */}
+          <div className="flex items-center select-none">
+            <button
+              type="button"
+              aria-label="Key 5 (Action / Fire)"
+              {...bindJump('jump')}
+              className={`w-28 h-18 sm:w-32 sm:h-20 rounded-3xl border-3 flex flex-col items-center justify-center select-none touch-none transition-all ${
+                activeKeys['jump']
+                  ? 'bg-amber-300 text-amber-950 border-white shadow-[0_0_25px_rgba(253,224,71,0.9)] scale-[0.96] translate-y-1'
+                  : 'bg-gradient-to-b from-amber-500 to-amber-600 border-amber-300 text-slate-950 shadow-[0_6px_0_#92400e,0_8px_18px_rgba(245,158,11,0.4)] active:translate-y-1 active:shadow-[0_2px_0_#92400e]'
+              }`}
+            >
+              <ArrowUp size={28} strokeWidth={3} className="text-slate-950 mb-[-2px]" />
+              <span className="text-xs font-black uppercase tracking-wider text-slate-950">JUMP · 5</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Bottom Cheat & Keyboard Help Row */}
+        <div className="flex items-center justify-between w-full px-2 pt-0.5 text-[11px] text-slate-400 font-mono select-none">
+          <span className="hidden sm:inline">Desktop: ← / A / 4: Left · → / D / 6: Right · Space / 5: Jump</span>
+          <div className="flex items-center gap-1.5 ml-auto select-none">
+            <button
+              type="button"
+              aria-label="Key 7"
+              {...bindKeypadCheat('7')}
+              className="w-6 h-5 rounded bg-slate-800 text-[10px] text-slate-400 border border-slate-700 active:bg-amber-400 active:text-black"
+            >
+              7
+            </button>
+            <button
+              type="button"
+              aria-label="Key 8 (Down)"
+              {...bindKeypadCheat('8')}
+              className="w-6 h-5 rounded bg-slate-800 text-[10px] text-slate-400 border border-slate-700 active:bg-amber-400 active:text-black"
+            >
+              8
+            </button>
+            <button
+              type="button"
+              aria-label="Key 9"
+              {...bindKeypadCheat('9')}
+              className="w-6 h-5 rounded bg-slate-800 text-[10px] text-slate-400 border border-slate-700 active:bg-amber-400 active:text-black"
+            >
+              9
+            </button>
+            <button
+              type="button"
+              onClick={toggleGodMode}
+              className="text-[10px] font-bold text-amber-400/80 hover:text-amber-300 ml-1"
+            >
+              ★ 787898
+            </button>
+          </div>
+        </div>
+      </footer>
+
+      {/* 4. HOW TO PLAY RULES MODAL */}
+      {showRules && (
+        <div
+          className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 select-none"
+          onClick={() => setShowRules(false)}
+        >
+          <div
+            className="w-full max-w-sm bg-[#141b2d] border border-white/20 rounded-2xl p-5 text-slate-100 shadow-2xl animate-pop-in select-none"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-3 select-none">
+              <h2 className="text-base font-black font-mono text-amber-400">HOW TO PLAY BOUNCE</h2>
+              <button
+                type="button"
+                onClick={() => setShowRules(false)}
+                className="w-7 h-7 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-slate-300 hover:text-white"
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <ul className="space-y-2 text-xs text-slate-300 font-sans select-none">
+              <li className="flex gap-2">
+                <span className="text-amber-400 font-bold">1.</span>
+                <span>Collect all golden rings on the level to unlock the Exit Gate.</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="text-amber-400 font-bold">2.</span>
+                <span>Use ◀ Left and Right ▶ to roll. Tap or hold JUMP to bounce high.</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="text-amber-400 font-bold">3.</span>
+                <span>Avoid red spikes and spiked star mines. Touch checkpoints (flags) to save progress.</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="text-amber-400 font-bold">4.</span>
+                <span>Jump on green trampolines for super bounce. Yellow pumps inflate / deflate the ball.</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="text-amber-400 font-bold">5.</span>
+                <span>Big ball floats in water; small ball sinks to deep passages.</span>
+              </li>
+            </ul>
+            <button
+              type="button"
+              onClick={() => setShowRules(false)}
+              className="mt-4 w-full py-2.5 rounded-xl bg-amber-400 text-black font-black text-xs uppercase tracking-wider"
+            >
+              GOT IT · LET’S PLAY
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 5. GAME RESULT MODAL (GAME OVER OR WON) */}
+      {(gameMode === 'gameover' || gameMode === 'won') && (
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-sm animate-pop-in">
             <GameResult
               game={gameMeta}
               score={score}
@@ -1540,8 +2124,8 @@ export default function Bounce() {
               onRestart={startNewGame}
             />
           </div>
-        )}
-      </div>
-    </GameLayout>
+        </div>
+      )}
+    </div>
   )
 }
