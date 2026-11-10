@@ -1,26 +1,23 @@
-import subprocess
-import time
+import os
+import sys
+from pathlib import Path
 from playwright.sync_api import sync_playwright
 
-# Start vite preview server
-preview_proc = subprocess.Popen(
-    ["npm", "run", "preview", "--", "--port", "4173"],
-    cwd=".",
-    stdout=subprocess.PIPE,
-    stderr=subprocess.PIPE,
-    text=True
-)
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from test_utils import ensure_server, get_output_dir
+
+BASE_URL, preview_proc = ensure_server(default_port=4173)
+output_dir = get_output_dir()
 
 try:
-    time.sleep(2)
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
         page = browser.new_page(viewport={"width": 420, "height": 860}, has_touch=True)
         errors = []
         page.on("pageerror", lambda e: errors.append(str(e)))
 
-        print("Visiting /space-impact...")
-        page.goto("http://127.0.0.1:4173/space-impact")
+        print(f"Visiting {BASE_URL}/space-impact...")
+        page.goto(f"{BASE_URL}/space-impact")
         page.wait_for_timeout(500)
 
         assert len(errors) == 0, f"Page errors found: {errors}"
@@ -36,7 +33,7 @@ try:
         print("LCD Canvas verified.")
 
         # Take initial screenshot of title screen inside Nokia phone
-        page.screenshot(path="space-impact-title.png")
+        page.screenshot(path=os.path.join(output_dir, "space-impact-title.png"))
         print("Captured space-impact-title.png")
 
         # Test touch screen interaction: tap canvas to start game
@@ -45,7 +42,7 @@ try:
         page.wait_for_timeout(400)
 
         # Capture in-game playing screenshot
-        page.screenshot(path="space-impact-playing.png")
+        page.screenshot(path=os.path.join(output_dir, "space-impact-playing.png"))
         print("Captured space-impact-playing.png")
 
         # Test keypad interaction:
@@ -91,7 +88,7 @@ try:
         page.mouse.up()
 
         # Capture screenshot while in combat
-        page.screenshot(path="space-impact-combat.png")
+        page.screenshot(path=os.path.join(output_dir, "space-impact-combat.png"))
         print("Captured space-impact-combat.png")
 
         # Test cheat code 787898 on keypad
@@ -102,17 +99,18 @@ try:
             page.wait_for_timeout(60)
 
         page.wait_for_timeout(400)
-        page.screenshot(path="space-impact-godmode.png")
+        page.screenshot(path=os.path.join(output_dir, "space-impact-godmode.png"))
         print("Captured space-impact-godmode.png")
 
         # Test Theme Toggle with '#'
         print("Testing LCD Theme toggle with '#'...")
         page.keyboard.press("#")
         page.wait_for_timeout(300)
-        page.screenshot(path="space-impact-color-theme.png")
+        page.screenshot(path=os.path.join(output_dir, "space-impact-color-theme.png"))
         print("Captured space-impact-color-theme.png")
 
         print("All Space Impact tests completed successfully!")
         browser.close()
 finally:
-    preview_proc.terminate()
+    if preview_proc:
+        preview_proc.terminate()

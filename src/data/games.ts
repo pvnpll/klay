@@ -20,6 +20,20 @@ export interface GameMetadata {
 
 export const GAMES: GameMetadata[] = [
   {
+    id: "hanuman",
+    name: "Hanuman: Son of the Wind",
+    description: "A little hero with a mighty gada! Collect mangoes, smash pots, unleash Gada Storm, and face the temple’s final guardian.",
+    rules: ["Move with WASD or arrows; hold Shift to sprint. Drag or use Q/E to rotate the camera.", "Press J for a gada combo. Hold C to guard. Collect mangoes and smash pots to heal and charge Gada Storm; press L when ready.", "Space jumps. K unleashes a divine leap with a damaging landing and an eight-second cooldown.", "Defeat five guardians and press F near each of three seals. The last seal awakens the Storm Guardian: jump over its pink waves and defeat it. Escape pauses."],
+    category: "Arcade",
+    difficulty: "Medium",
+    estimatedDuration: "5 minutes",
+    scoreType: "win-loss",
+    path: "/hanuman",
+    Icon: Swords,
+    colorClass: "text-amber-300 bg-amber-300/10",
+    gradientClass: "from-amber-500/20 to-orange-700/20"
+  },
+  {
     id: "breakout",
     name: "Breakout",
     description: "Destroy all the bricks with the bouncing ball.",

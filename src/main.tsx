@@ -30,6 +30,7 @@ const SpaceImpact = lazy(() => import('./pages/games/SpaceImpact.tsx'))
 const PrinceOfPersia = lazy(() => import('./pages/games/PrinceOfPersia.tsx'))
 const RapidRoll = lazy(() => import('./pages/games/RapidRoll.tsx'))
 const Asphalt = lazy(() => import('./pages/games/Asphalt.tsx'))
+const Hanuman = lazy(() => import('./pages/games/Hanuman.tsx'))
 const DiamondRush = lazy(() => import('./pages/games/DiamondRush.tsx'))
 import './index.css'
 
@@ -71,6 +72,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           <Route path="prince-of-persia" element={<PrinceOfPersia />} />
           <Route path="rapid-roll" element={<RapidRoll />} />
           <Route path="asphalt" element={<Asphalt />} />
+          <Route path="hanuman" element={<Hanuman />} />
           <Route path="diamond-rush" element={<DiamondRush />} />
         </Route>
       </Routes>

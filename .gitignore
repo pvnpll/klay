@@ -30,3 +30,9 @@ dist-ssr
 .vercel
 .env*
 venv/
+
+# Test artifacts
+test-results/
+artifacts/
+*.png
+

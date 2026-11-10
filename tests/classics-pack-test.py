@@ -1,17 +1,15 @@
-import subprocess
-import time
+import os
+import sys
+from pathlib import Path
 from playwright.sync_api import sync_playwright
 
-preview_proc = subprocess.Popen(
-    ["npm", "run", "preview", "--", "--port", "4178"],
-    cwd=".",
-    stdout=subprocess.PIPE,
-    stderr=subprocess.PIPE,
-    text=True
-)
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from test_utils import ensure_server, get_output_dir
+
+BASE_URL, preview_proc = ensure_server(default_port=4178)
+output_dir = get_output_dir()
 
 try:
-    time.sleep(2)
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
         page = browser.new_page(viewport={"width": 420, "height": 860}, has_touch=True)
@@ -21,14 +19,14 @@ try:
         # -------------------------------------------------------------
         # 1. RAPID ROLL
         # -------------------------------------------------------------
-        print("Visiting /rapid-roll...")
-        page.goto("http://127.0.0.1:4178/rapid-roll")
+        print(f"Visiting {BASE_URL}/rapid-roll...")
+        page.goto(f"{BASE_URL}/rapid-roll")
         page.wait_for_timeout(500)
         assert len(errors) == 0, f"Page errors: {errors}"
 
         assert page.locator("img[alt='Nokia 3510i Handset']").count() > 0
         assert page.locator("canvas").count() > 0
-        page.screenshot(path="/Users/pavan/.gemini/antigravity/brain/794a8309-e631-4a56-8737-d4fd57375392/rapid-roll-title.png")
+        page.screenshot(path=os.path.join(output_dir, "rapid-roll-title.png"))
         print("Captured rapid-roll-title.png")
 
         # Start game
@@ -44,18 +42,18 @@ try:
         key_6.click()
         page.wait_for_timeout(200)
 
-        page.screenshot(path="/Users/pavan/.gemini/antigravity/brain/794a8309-e631-4a56-8737-d4fd57375392/rapid-roll-playing.png")
+        page.screenshot(path=os.path.join(output_dir, "rapid-roll-playing.png"))
         print("Captured rapid-roll-playing.png")
 
         # -------------------------------------------------------------
         # 2. ASPHALT: URBAN GT
         # -------------------------------------------------------------
-        print("Visiting /asphalt...")
-        page.goto("http://127.0.0.1:4178/asphalt")
+        print(f"Visiting {BASE_URL}/asphalt...")
+        page.goto(f"{BASE_URL}/asphalt")
         page.wait_for_timeout(500)
         assert len(errors) == 0, f"Page errors: {errors}"
 
-        page.screenshot(path="/Users/pavan/.gemini/antigravity/brain/794a8309-e631-4a56-8737-d4fd57375392/asphalt-title.png")
+        page.screenshot(path=os.path.join(output_dir, "asphalt-title.png"))
         print("Captured asphalt-title.png")
 
         # Start race
@@ -71,18 +69,18 @@ try:
         key_5.click() # Nitro
         page.wait_for_timeout(300)
 
-        page.screenshot(path="/Users/pavan/.gemini/antigravity/brain/794a8309-e631-4a56-8737-d4fd57375392/asphalt-racing.png")
+        page.screenshot(path=os.path.join(output_dir, "asphalt-racing.png"))
         print("Captured asphalt-racing.png")
 
         # -------------------------------------------------------------
         # 3. DIAMOND RUSH
         # -------------------------------------------------------------
-        print("Visiting /diamond-rush...")
-        page.goto("http://127.0.0.1:4178/diamond-rush")
+        print(f"Visiting {BASE_URL}/diamond-rush...")
+        page.goto(f"{BASE_URL}/diamond-rush")
         page.wait_for_timeout(500)
         assert len(errors) == 0, f"Page errors: {errors}"
 
-        page.screenshot(path="/Users/pavan/.gemini/antigravity/brain/794a8309-e631-4a56-8737-d4fd57375392/diamond-rush-title.png")
+        page.screenshot(path=os.path.join(output_dir, "diamond-rush-title.png"))
         print("Captured diamond-rush-title.png")
 
         # Start game
@@ -98,14 +96,14 @@ try:
         key_6.click()
         page.wait_for_timeout(200)
 
-        page.screenshot(path="/Users/pavan/.gemini/antigravity/brain/794a8309-e631-4a56-8737-d4fd57375392/diamond-rush-playing.png")
+        page.screenshot(path=os.path.join(output_dir, "diamond-rush-playing.png"))
         print("Captured diamond-rush-playing.png")
 
         # -------------------------------------------------------------
         # 4. HOME PAGE VERIFICATION
         # -------------------------------------------------------------
-        print("Visiting Home page...")
-        page.goto("http://127.0.0.1:4178/")
+        print(f"Visiting Home page at {BASE_URL}...")
+        page.goto(f"{BASE_URL}/")
         page.wait_for_timeout(500)
 
         # Click Classic Nokia filter
@@ -118,10 +116,11 @@ try:
         for path in ['/rapid-roll', '/asphalt', '/diamond-rush', '/bounce', '/space-impact', '/prince-of-persia']:
             assert page.locator(f"a[href='{path}']").count() > 0, f"Link {path} missing"
 
-        page.screenshot(path="/Users/pavan/.gemini/antigravity/brain/794a8309-e631-4a56-8737-d4fd57375392/classics-homepage.png")
+        page.screenshot(path=os.path.join(output_dir, "classics-homepage.png"))
         print("Captured classics-homepage.png")
 
         print("All classic games tested successfully!")
         browser.close()
 finally:
-    preview_proc.terminate()
+    if preview_proc:
+        preview_proc.terminate()

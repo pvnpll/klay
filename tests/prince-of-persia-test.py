@@ -1,25 +1,23 @@
-import subprocess
-import time
+import os
+import sys
+from pathlib import Path
 from playwright.sync_api import sync_playwright
 
-preview_proc = subprocess.Popen(
-    ["npm", "run", "preview", "--", "--port", "4174"],
-    cwd=".",
-    stdout=subprocess.PIPE,
-    stderr=subprocess.PIPE,
-    text=True
-)
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from test_utils import ensure_server, get_output_dir
+
+BASE_URL, preview_proc = ensure_server(default_port=4174)
+output_dir = get_output_dir()
 
 try:
-    time.sleep(2)
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
         page = browser.new_page(viewport={"width": 420, "height": 860}, has_touch=True)
         errors = []
         page.on("pageerror", lambda e: errors.append(str(e)))
 
-        print("Visiting /prince-of-persia...")
-        page.goto("http://127.0.0.1:4174/prince-of-persia")
+        print(f"Visiting {BASE_URL}/prince-of-persia...")
+        page.goto(f"{BASE_URL}/prince-of-persia")
         page.wait_for_timeout(500)
 
         assert len(errors) == 0, f"Page errors found: {errors}"
@@ -35,7 +33,7 @@ try:
         print("LCD Canvas verified.")
 
         # Capture Title screen
-        page.screenshot(path="/Users/pavan/.gemini/antigravity/brain/794a8309-e631-4a56-8737-d4fd57375392/pop-title.png")
+        page.screenshot(path=os.path.join(output_dir, "pop-title.png"))
         print("Captured pop-title.png")
 
         # 3. Start game with Key 5 or tap
@@ -44,7 +42,7 @@ try:
         key_5.click()
         page.wait_for_timeout(500)
 
-        page.screenshot(path="/Users/pavan/.gemini/antigravity/brain/794a8309-e631-4a56-8737-d4fd57375392/pop-playing.png")
+        page.screenshot(path=os.path.join(output_dir, "pop-playing.png"))
         print("Captured pop-playing.png")
 
         # 4. Move Prince Right: key 6
@@ -67,7 +65,7 @@ try:
         key_5.click()
         page.wait_for_timeout(200)
 
-        page.screenshot(path="/Users/pavan/.gemini/antigravity/brain/794a8309-e631-4a56-8737-d4fd57375392/pop-combat.png")
+        page.screenshot(path=os.path.join(output_dir, "pop-combat.png"))
         print("Captured pop-combat.png")
 
         # 7. Water Freeze Power: key 7
@@ -76,14 +74,14 @@ try:
         key_7.click()
         page.wait_for_timeout(300)
 
-        page.screenshot(path="/Users/pavan/.gemini/antigravity/brain/794a8309-e631-4a56-8737-d4fd57375392/pop-water-freeze.png")
+        page.screenshot(path=os.path.join(output_dir, "pop-water-freeze.png"))
         print("Captured pop-water-freeze.png")
 
         # 8. Sands of Time Rewind: press and hold key 0
         print("Testing Sands of Time Rewind: key 0...")
         page.keyboard.down("0")
         page.wait_for_timeout(300)
-        page.screenshot(path="/Users/pavan/.gemini/antigravity/brain/794a8309-e631-4a56-8737-d4fd57375392/pop-rewind.png")
+        page.screenshot(path=os.path.join(output_dir, "pop-rewind.png"))
         print("Captured pop-rewind.png")
         page.keyboard.up("0")
         page.wait_for_timeout(200)
@@ -98,9 +96,9 @@ try:
 
         # 10. Check Home page for Prince of Persia listing
         print("Visiting Home page to verify Prince of Persia is listed...")
-        page.goto("http://127.0.0.1:4174/")
+        page.goto(f"{BASE_URL}/")
         page.wait_for_timeout(600)
-        page.screenshot(path="/Users/pavan/.gemini/antigravity/brain/794a8309-e631-4a56-8737-d4fd57375392/pop-homepage.png")
+        page.screenshot(path=os.path.join(output_dir, "pop-homepage.png"))
         print("Captured pop-homepage.png")
 
         # Check for link or text with Prince of Persia
@@ -111,4 +109,5 @@ try:
         print("All Prince of Persia tests passed successfully!")
         browser.close()
 finally:
-    preview_proc.terminate()
+    if preview_proc:
+        preview_proc.terminate()

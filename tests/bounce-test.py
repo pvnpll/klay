@@ -1,22 +1,13 @@
 import os
-import subprocess
-import time
+import sys
+from pathlib import Path
 from playwright.sync_api import sync_playwright
 
-BASE_URL = os.getenv("GAME_BASE_URL")
-preview_proc = None
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from test_utils import ensure_server, get_output_dir
 
-if not BASE_URL:
-    port = "4173"
-    preview_proc = subprocess.Popen(
-        ["npx", "vite", "preview", "--host", "127.0.0.1", "--port", port],
-        cwd=".",
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True
-    )
-    time.sleep(2)
-    BASE_URL = f"http://127.0.0.1:{port}"
+BASE_URL, preview_proc = ensure_server(default_port=4173)
+output_dir = get_output_dir()
 
 try:
     with sync_playwright() as p:

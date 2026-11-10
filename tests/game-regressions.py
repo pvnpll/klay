@@ -1,6 +1,9 @@
-"""Run against the local Vite preview: venv/bin/python tests/game-regressions.py."""
-from playwright.sync_api import sync_playwright
+"""Run against local preview or GAME_BASE_URL: venv/bin/python tests/game-regressions.py."""
 import json
+import os
+from playwright.sync_api import sync_playwright
+
+BASE = os.getenv('GAME_BASE_URL', 'http://127.0.0.1:5173').rstrip('/')
 
 with sync_playwright() as p:
     browser = p.chromium.launch()
@@ -8,7 +11,7 @@ with sync_playwright() as p:
     errors = []
     page.on('pageerror', lambda e: errors.append(str(e)))
     def visit(path):
-        page.goto('http://127.0.0.1:5173/' + path)
+        page.goto(f"{BASE}/{path}")
         page.wait_for_timeout(100)
     visit('stack')
     page.get_by_role('button', name='Build Tower').click()
@@ -22,7 +25,11 @@ with sync_playwright() as p:
     visit('target-click')
     page.get_by_role('button', name='Start Training').click()
     for i in range(20):
-        page.locator('button.absolute').tap()
+        target = page.locator('button.absolute')
+        target.wait_for(state='visible')
+        target.click()
+        page.wait_for_timeout(30)
+    page.wait_for_timeout(200)
     assert page.get_by_text('20 targets smashed!', exact=False).count()
     stats = page.evaluate("JSON.parse(localStorage.getItem('klay_user_stats'))")
     assert stats['playCounts']['target-click'] == 1
